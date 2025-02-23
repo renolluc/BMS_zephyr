@@ -1,0 +1,5 @@
+west:
+  command: /home/hackerluca/zephyrproject/.venv/bin/west build -p always -b nucleo_l432kc
+    /home/hackerluca/zephyrproject/zephyr/samples/basic/blinky
+  topdir: /home/hackerluca/zephyrproject
+  version: 1.3.0
