@@ -1,5 +1,47 @@
 # BMS_zephyr
 
+## Software Deployment
+To install the necessary software on your Ubuntu system, follow these steps:
+
+The used Ubuntu version for this project was **Ubuntu 24.04**
+1. **Check your Ubuntu version**:
+    ```sh
+    lsb_release -a
+    ```
+
+2. **Install Zephyr**:
+
+    Follow the [Zephyr Project's Getting Started Guide](https://docs.zephyrproject.org/latest/getting_started/index.html) to set up the Zephyr environment.
+    West version **v1.3.0** was used for this project.
+
+3. **Clone the repository**:
+    ```sh
+    git clone https://github.com/hackerluca/BMS_zephyr.git
+    cd BMS_zephyr
+    ```
+4. **Build the project**:
+    ```sh
+    west build -p always -b nucleo_l432kc <PATH>/BMS_zephyr/BMS_l432kc/
+    ```
+
+5. **install STMCubeProgrammer**
+    Install [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html)
+
+6. **install st-link-tools**
+    ```sh
+    sudo apt install stlink-tools
+    ```
+    After installing stlink tools you can check for devices with:
+    ```sh
+    st-info --probe
+    ```
+    This should detect the microcontroller. When a device is detected you should be able to flash the software.
+
+7. **Flash the firmware**:
+    ```sh
+    west flash
+    ```
+
 ## Activation and Configuration Sequence Diagram
 The following sequence diagram illustrates the activation and configuration process, detailing the interactions between components during system initialization.
 
@@ -31,7 +73,7 @@ sequenceDiagram
 
 ## Loops Sequence Diagram
 The following sequence diagram illustrates the interactions between various components, including their communication loops and timings.
-```mermaid
+```mermaid33
 sequenceDiagram
     participant laptop as Laptop
     participant ecu as ECU

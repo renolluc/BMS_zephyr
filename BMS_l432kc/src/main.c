@@ -9,7 +9,7 @@
 #include <zephyr/drivers/gpio.h>
 
 /* 1000 msec = 1 sec */
-#define SLEEP_TIME_MS   1000
+#define SLEEP_TIME_MS   100
 
 /* The devicetree node identifier for the "led0" alias. */
 #define LED0_NODE DT_ALIAS(led0)
@@ -22,8 +22,8 @@ static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 
 int main(void)
 {
-	int ret;
-	bool led_state = true;
+	int ret; 
+	bool led_state = true;	
 
 	if (!gpio_is_ready_dt(&led)) {
 		return 0;
