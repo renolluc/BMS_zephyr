@@ -4,15 +4,27 @@
 To install the necessary software on your Ubuntu system, follow these steps:
 
 The used Ubuntu version for this project was **Ubuntu 24.04**
-1. **Check your Ubuntu version**:
+1. **Check and update your Ubuntu version**:
     ```sh
     lsb_release -a
+    sudo apt update
+    sudo apt upgrade
     ```
 
 2. **Install Zephyr**:
 
     Follow the [Zephyr Project's Getting Started Guide](https://docs.zephyrproject.org/latest/getting_started/index.html) to set up the Zephyr environment.
-    West version **v1.3.0** was used for this project.
+    The following verisons were used for this project:
+    - Zephyr: **4.1.0**
+        ```sh
+        cat ~/zephyrproject/zephyr/VERSION
+        ```
+    - West: **1.3.0** (west -V)
+        ```sh
+        cd ~/zephyrproject/zephyr/
+        west -V
+        ```
+    - Zephyr SDK: **0.17.0**
 
 3. **Clone the repository**:
     ```sh
@@ -73,7 +85,8 @@ sequenceDiagram
 
 ## Loops Sequence Diagram
 The following sequence diagram illustrates the interactions between various components, including their communication loops and timings.
-```mermaid33
+
+```mermaid
 sequenceDiagram
     participant laptop as Laptop
     participant ecu as ECU
