@@ -13,10 +13,10 @@ static const struct device *can_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_canbus));
 
 int can_init(void) {
     if (!device_is_ready(can_dev)) {
-        printk("CAN device not ready\n");
+        LOG_INF("CAN device not ready\n");
         return -1;
     }
-    printk("CAN initialized\n");
+    LOG_INF("CAN initialized\n");
     return 0;
 }
 
