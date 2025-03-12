@@ -8,6 +8,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
 
+
 /* 1000 msec = 1 sec */
 #define SLEEP_TIME_MS   100
 
@@ -22,6 +23,7 @@ static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 
 int main(void)
 {
+	
 	int ret; 
 	bool led_state = true;	
 
@@ -44,5 +46,14 @@ int main(void)
 		printf("LED state: %s\n", led_state ? "ON" : "OFF");
 		k_msleep(SLEEP_TIME_MS);
 	}
+
+
+	/*
+	int err;
+
+	err = can_init();
+	if(err != 0) {
+		printf("CAN initialization failed\n");
+	}*/
 	return 0;
 }
