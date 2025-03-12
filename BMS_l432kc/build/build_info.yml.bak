@@ -1,0 +1,4 @@
+west:
+  command: /home/falu/zephyrproject/.venv/bin/west build
+  topdir: /home/falu/zephyrproject
+  version: 1.3.0

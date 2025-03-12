@@ -48,6 +48,7 @@ int main(void)
 	}
 
 
+	//seich seich 
 	/*
 	int err;
 

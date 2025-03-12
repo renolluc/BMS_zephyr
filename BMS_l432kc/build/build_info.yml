@@ -1,0 +1,54 @@
+cmake:
+  application:
+    configuration-dir: /home/falu/zephyrproject/BMS_zephyr/BMS_l432kc
+    source-dir: /home/falu/zephyrproject/BMS_zephyr/BMS_l432kc
+  board:
+    name: nucleo_l432kc
+    path:
+     - /home/falu/zephyrproject/zephyr/boards/st/nucleo_l432kc
+    qualifiers: stm32l432xx
+    revision: 
+  devicetree:
+    bindings-dirs:
+     - /home/falu/zephyrproject/zephyr/dts/bindings
+    files:
+     - /home/falu/zephyrproject/zephyr/boards/st/nucleo_l432kc/nucleo_l432kc.dts
+    include-dirs:
+     - /home/falu/zephyrproject/modules/hal/atmel/include
+     - /home/falu/zephyrproject/modules/hal/gigadevice/include
+     - /home/falu/zephyrproject/modules/hal/microchip/include
+     - /home/falu/zephyrproject/modules/hal/microchip/dts
+     - /home/falu/zephyrproject/modules/hal/nuvoton/dts
+     - /home/falu/zephyrproject/modules/hal/nxp/dts
+     - /home/falu/zephyrproject/modules/hal/stm32/dts
+     - /home/falu/zephyrproject/BMS_zephyr/BMS_l432kc/include
+     - /home/falu/zephyrproject/zephyr/include
+     - /home/falu/zephyrproject/zephyr/include/zephyr
+     - /home/falu/zephyrproject/zephyr/dts/common
+     - /home/falu/zephyrproject/zephyr/dts/x86
+     - /home/falu/zephyrproject/zephyr/dts/xtensa
+     - /home/falu/zephyrproject/zephyr/dts/sparc
+     - /home/falu/zephyrproject/zephyr/dts/riscv
+     - /home/falu/zephyrproject/zephyr/dts/posix
+     - /home/falu/zephyrproject/zephyr/dts/nios2
+     - /home/falu/zephyrproject/zephyr/dts/arm64
+     - /home/falu/zephyrproject/zephyr/dts/arm
+     - /home/falu/zephyrproject/zephyr/dts/arc
+     - /home/falu/zephyrproject/zephyr/dts
+  kconfig:
+    files:
+     - /home/falu/zephyrproject/zephyr/boards/st/nucleo_l432kc/nucleo_l432kc_defconfig
+     - /home/falu/zephyrproject/BMS_zephyr/BMS_l432kc/prj.conf
+    user-files:
+     - /home/falu/zephyrproject/BMS_zephyr/BMS_l432kc/prj.conf
+  toolchain:
+    name: zephyr
+    path: /home/falu/zephyr-sdk-0.17.0
+  zephyr:
+    version: 4.1.0-rc3
+    zephyr-base: /home/falu/zephyrproject/zephyr
+version: 0.1.0
+west:
+  command: /home/falu/zephyrproject/.venv/bin/west build
+  topdir: /home/falu/zephyrproject
+  version: 1.3.0
