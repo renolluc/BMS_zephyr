@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "gpio.h": "c"
+    },
+    "C_Cpp.default.compilerPath": "${userHome}/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-gcc.exe",
+    "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
+    "cmake.sourceDirectory": "/home/hackerluca/zephyrproject/BMS_zephyr/BMS_l432kc"
+}
