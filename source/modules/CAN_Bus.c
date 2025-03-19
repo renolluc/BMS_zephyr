@@ -7,7 +7,7 @@
 #ifndef SRC_CAN_BUS_C
 #define SRC_CAN_BUS_C
 
-#include "CAN_Bus.h"
+#include <CAN_Bus.h>
 
 static const struct device *can_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_canbus));
 

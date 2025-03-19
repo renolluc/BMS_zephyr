@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
+#include "CAN_Bus.h"
 
 
 /* 1000 msec = 1 sec */
@@ -36,6 +37,15 @@ int main(void)
 		return 0;
 	}
 
+	//Initialisierung des CAN Bus
+	ret	= can_init();
+	if (ret < 0) {
+		printf("Can Bus Init failed\n");
+		return 0;
+	}
+
+
+
 	while (1) {
 		ret = gpio_pin_toggle_dt(&led);
 		if (ret < 0) {
@@ -47,14 +57,5 @@ int main(void)
 		k_msleep(SLEEP_TIME_MS);
 	}
 
-
-	//seich seich 
-	/*
-	int err;
-
-	err = can_init();
-	if(err != 0) {
-		printf("CAN initialization failed\n");
-	}*/
 	return 0;
 }
