@@ -4,10 +4,10 @@
  *  Created on: 08.03.2025
  *      Author: renolluc / grossfa2
  */
-#ifndef SRC_CAN_BUS_C
-#define SRC_CAN_BUS_C
 
 #include <CAN_Bus.h>
+#include <zephyr/logging/log.h>
+LOG_MODULE_REGISTER(custom_can, LOG_LEVEL_DBG);
 
 static const struct device *can_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_canbus));
 
@@ -43,4 +43,3 @@ int can_receive_msg(uint32_t *id, uint8_t *data) {
     return err;
 }
 
-#endif
