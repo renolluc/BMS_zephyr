@@ -21,25 +21,12 @@ int can_init(void) {
 }
 
 int can_send_msg(uint32_t id, uint8_t *data, uint8_t len) {
-    struct can_frame frame;
-    frame.id = id;
-    frame.dlc = len;
-    frame.flags = CAN_FRAME_IDE; // Standard Frame
-
-    memcpy(frame.data, data, len);
-
-    int err = can_send(can_dev, &frame, K_MSEC(100), NULL, NULL);
+int err = 0;
     return err;
 }
 
 int can_receive_msg(uint32_t *id, uint8_t *data) {
-    struct can_frame frame;
-    int err = can_recv(can_dev, &frame, K_FOREVER, NULL, NULL);
-
-    if (err == 0) {
-        *id = frame.id;
-        memcpy(data, frame.data, frame.dlc);
-    }
+int err = 0;
     return err;
 }
 

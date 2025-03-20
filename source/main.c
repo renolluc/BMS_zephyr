@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
-#include "CAN_Bus.h"
+#include <CAN_Bus.h>
 
 
 /* 1000 msec = 1 sec */
