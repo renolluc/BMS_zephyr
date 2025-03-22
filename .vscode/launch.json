@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "STLink Flash & Debug BootloaderUnderDev",
+            "cwd": "${workspaceFolder}",
+            "executable": "build/zephyr/zephyr.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "device": "nucleo_l432kc",
+            "targetId": "nucleo_l432kc",
+            "toolchainPrefix": "arm-zephyr-eabi",
+            "armToolchainPath": "${userHome}/zephyr-sdk-0.17.0/arm-zephyr-eabi/bin/",
+            "configFiles": [
+                "${userHome}/zephyr-sdk-0.17.0/sysroots/x86_64-pokysdk-linux/usr/share/openocd/scripts/interface/stlink.cfg",
+                "${userHome}/zephyr-sdk-0.17.0/sysroots/x86_64-pokysdk-linux/usr/share/openocd/scripts/target/stm32l4x.cfg"
+            ],
+
+            "showDevDebugOutput": "raw"
+        },
+]
+}

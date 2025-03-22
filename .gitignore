@@ -9,7 +9,7 @@
 *.loT
 
 # setting files for IDE
-.vscode
+#.vscode
 .idea
 .cmake
 
