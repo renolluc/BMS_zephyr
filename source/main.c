@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/can.h>
 #include <CAN_Bus.h>
 
 
@@ -38,13 +39,13 @@ int main(void)
 	}
 
 	//Initialisierung des CAN Bus
-	ret	= can_init();
+/* 	ret	= can_init();
 	if (ret < 0) {
 		printf("Can Bus Init failed\n");
 		return 0;
-	}
+	} */
 
-
+	BMS_CAN_INIT();
 
 	while (1) {
 		ret = gpio_pin_toggle_dt(&led);
