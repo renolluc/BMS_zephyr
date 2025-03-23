@@ -3,6 +3,8 @@
     "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
     "files.associations": {
         "stdio.h": "c",
-        "gpio.h": "c"
+        "gpio.h": "c",
+        "log.h": "c",
+        "spi.h": "c"
     }
 }
