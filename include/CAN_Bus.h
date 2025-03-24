@@ -11,7 +11,7 @@
 #include <stdint.h>
 
 #define CAN_DEVICE DT_LABEL(DT_NODELABEL(can1))  // Zephyr CAN-Device
-//can1 ist die Verküpfung im Device Tree 
+//can1 ist die Verküpfung im Device Tree
 
 int BMS_CAN_INIT(void);
 
