@@ -14,5 +14,6 @@
 //can1 ist die Verküpfung im Device Tree
 
 int BMS_CAN_INIT(void);
+int send_can_message(const uint8_t *data);
 
 #endif

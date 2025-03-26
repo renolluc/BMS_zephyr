@@ -16,16 +16,14 @@
  #include <CAN_Bus.h>
 
 #define LED_MSG_ID 0x10
-#define SET_LED 1
-#define RESET_LED 0
 #define COUNTER_MSG_ID 0x12345
 
-uint8_t toggle = 1;
-struct can_frame change_led_frame = {
-    .flags = 0,
-    .id = LED_MSG_ID,
-    .dlc = 1
-};
+//Thread defines
+#define RX_THREAD_STACK_SIZE 512
+#define RX_THREAD_PRIORITY 2
+K_THREAD_STACK_DEFINE(rx_thread_stack, RX_THREAD_STACK_SIZE);
+struct k_thread rx_thread_data;
+
  
  const struct device *const can_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_canbus));
 
@@ -43,10 +41,64 @@ struct can_frame change_led_frame = {
 	}
 }
 
+void rx_thread(void *arg1, void *arg2, void *arg3)
+{
+	ARG_UNUSED(arg1);
+	ARG_UNUSED(arg2);
+	ARG_UNUSED(arg3);
+	const struct can_filter filter = {
+		.flags = CAN_FILTER_IDE,
+		.id = COUNTER_MSG_ID,
+		.mask = CAN_EXT_ID_MASK
+	};
+	struct can_frame frame;
+	int filter_id;
+
+	//filter_id = can_add_rx_filter_msgq(can_dev, &counter_msgq, &filter);
+	//printk("Counter filter id: %d\n", filter_id);
+
+	while (1) {
+		if (k_msgq_get(&counter_msgq, &frame, K_FOREVER) == 0) {;
+			printf("Message received: %u\n",
+			       sys_be16_to_cpu(UNALIGNED_GET((uint16_t *)&frame.data)));
+		}
+		if (IS_ENABLED(CONFIG_CAN_ACCEPT_RTR) && (frame.flags & CAN_FRAME_RTR) != 0U) {
+			continue;
+		}
+
+		if (frame.dlc != 2U) {
+			printf("Wrong data length: %u\n", frame.dlc);
+			continue;
+		}
+		printf("watchdog");
+	}
+}
+
+int send_can_message(const uint8_t *data)
+{
+	const struct can_filter filter = {
+		.flags = CAN_FILTER_IDE,
+		.id = COUNTER_MSG_ID,
+		.mask = CAN_EXT_ID_MASK
+	};
+
+	struct can_frame frame = {
+		.flags = 0,
+		.id = LED_MSG_ID,
+		.dlc = 1
+	};
+	uint8_t toggle = 1;
+	frame.data[0] = toggle++ & 0x01 ? 1 : 0;
+		/* This sending call is none blocking. */
+		if	(can_send(can_dev, &frame, K_FOREVER, tx_irq_callback, "test message") == 0){
+			printf("CAN message sent\n");
+		};
+		return 0;
+}
+
 int BMS_CAN_INIT()
 {
 	int ret;
-	uint8_t test; // Declare the variable 'test' with an appropriate type
 
     #ifdef CONFIG_LOOPBACK_MODE
 	ret = can_set_mode(can_dev, CAN_MODE_LOOPBACK);
@@ -63,30 +115,17 @@ int BMS_CAN_INIT()
 	}
     printf("CAN Bus initialized\n");
 
-	test = 0x01;
-    uint8_t can_data[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    change_led_frame.data[0] = toggle++ & 0x01 ? SET_LED : RESET_LED;
-		/* This sending call is none blocking. */
-	if	(can_send(can_dev, &change_led_frame, K_FOREVER, tx_irq_callback, "test message") == 0){
-        printf("CAN message sent\n");
-    };
+	k_tid_t rx_tid;
 
-    const struct can_filter filter = {
-		.flags = CAN_FILTER_IDE,
-		.id = COUNTER_MSG_ID,
-		.mask = CAN_EXT_ID_MASK
-	};
-
-	struct can_frame frame;
-    int filter_id;
-
-	filter_id = can_add_rx_filter_msgq(can_dev, &counter_msgq, &filter);
-    printf("Filter ID: %d\n", filter_id);
-    
-    if (k_msgq_get(&counter_msgq, &frame, K_FOREVER) == 0){
-        printf("Counter received: %u\n",
-        sys_be16_to_cpu(UNALIGNED_GET((uint16_t *)&frame.data)));
-    };
+	rx_tid = k_thread_create(&rx_thread_data, rx_thread_stack,
+							 K_THREAD_STACK_SIZEOF(rx_thread_stack),
+							 rx_thread, NULL, NULL, NULL,
+							 RX_THREAD_PRIORITY, 0, K_NO_WAIT);
+	if (!rx_tid)
+	{
+		printf("ERROR spawning rx thread\n");
+	}
+	printf("RX thread spawned\n");
 
 	return 0;
 }

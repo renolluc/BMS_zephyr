@@ -38,17 +38,11 @@ int main(void)
 		return 0;
 	}
 
-	//Initialisierung des CAN Bus
-/* 	ret	= can_init();
-	if (ret < 0) {
-		printf("Can Bus Init failed\n");
-		return 0;
-	} */
 
 	BMS_CAN_INIT();
 
 	while (1) {
-		ret = gpio_pin_toggle_dt(&led);
+ 		ret = gpio_pin_toggle_dt(&led);
 		if (ret < 0) {
 			return 0;
 		}
@@ -56,6 +50,9 @@ int main(void)
 		led_state = !led_state;
 		printf("LED state: %s\n", led_state ? "ON" : "OFF");
 		k_msleep(SLEEP_TIME_MS);
+ 
+		uint8_t can_data[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+		send_can_message(can_data);
 	}
 
 	return 0;
