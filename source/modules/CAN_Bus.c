@@ -17,6 +17,7 @@
 
 #define LED_MSG_ID 0x10
 #define COUNTER_MSG_ID 0x12345
+#define SLEEP_TIME_MS   1000
 
 //Thread defines
 #define RX_THREAD_STACK_SIZE 512
@@ -53,24 +54,25 @@ void rx_thread(void *arg1, void *arg2, void *arg3)
 	};
 	struct can_frame frame;
 	int filter_id;
+	
 
 	//filter_id = can_add_rx_filter_msgq(can_dev, &counter_msgq, &filter);
 	//printk("Counter filter id: %d\n", filter_id);
 
 	while (1) {
-		if (k_msgq_get(&counter_msgq, &frame, K_FOREVER) == 0) {;
-			printf("Message received: %u\n",
-			       sys_be16_to_cpu(UNALIGNED_GET((uint16_t *)&frame.data)));
-		}
-		if (IS_ENABLED(CONFIG_CAN_ACCEPT_RTR) && (frame.flags & CAN_FRAME_RTR) != 0U) {
+	    if (k_msgq_get(&counter_msgq, &frame, K_NO_WAIT) == 0) {
+			printf("Message received: %u\n", sys_be16_to_cpu(UNALIGNED_GET((uint16_t *)&frame.data)));
+		} 
+ 		/* if (IS_ENABLED(CONFIG_CAN_ACCEPT_RTR) && (frame.flags & CAN_FRAME_RTR) != 0U) {
 			continue;
 		}
 
 		if (frame.dlc != 2U) {
 			printf("Wrong data length: %u\n", frame.dlc);
 			continue;
-		}
-		printf("watchdog");
+		} */
+		printf("watchdog\n");
+		k_msleep(SLEEP_TIME_MS); 
 	}
 }
 
@@ -88,9 +90,10 @@ int send_can_message(const uint8_t *data)
 		.dlc = 1
 	};
 	uint8_t toggle = 1;
-	frame.data[0] = toggle++ & 0x01 ? 1 : 0;
+	frame.data[0] = 0x34;
 		/* This sending call is none blocking. */
 		if	(can_send(can_dev, &frame, K_FOREVER, tx_irq_callback, "test message") == 0){
+			k_msgq_put(&counter_msgq, &frame, K_NO_WAIT);
 			printf("CAN message sent\n");
 		};
 		return 0;
@@ -126,6 +129,8 @@ int BMS_CAN_INIT()
 		printf("ERROR spawning rx thread\n");
 	}
 	printf("RX thread spawned\n");
+
+	k_thread_start(rx_thread);
 
 	return 0;
 }
