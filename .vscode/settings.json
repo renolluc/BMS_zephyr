@@ -5,6 +5,7 @@
         "stdio.h": "c",
         "gpio.h": "c",
         "log.h": "c",
-        "spi.h": "c"
+        "spi.h": "c",
+        "cstdlib": "c"
     }
 }

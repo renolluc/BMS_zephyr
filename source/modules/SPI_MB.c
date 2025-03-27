@@ -11,17 +11,22 @@
 #include <SPI_MB.h>
 #include <zephyr/logging/log.h>
 
+// define spi1 device
+const struct device *spi1_dev = DEVICE_DT_GET(SPI_DEVICE);
+
+
 #define ISO_SPI_CS1_Pin GPIO_PIN_1
 
 
-
-
-
 // Default Configuration Register
-static const uint8_t CFGAR[] = {0xF9, 0x00, 0xF0, 0xFF, 0x00, 0x00};		// data for CRFA, ADCOPT = 1, REFON = 1, GPIOx = 1
-static const uint8_t CFGBR[] = {0x0F, 0x80, 0x00, 0x00, 0x00, 0x00};		// data for CRFB, MUTE = 1, GPIOx = 1
-static const uint8_t RDCV[] = {RDCVA, RDCVB, RDCVC, RDCVD, RDCVE, RDCVF};	// Read Voltages Register
-static const uint8_t RDAUX[] = {RDAUXA, RDAUXB, RDAUXC, RDAUXD};			// Read Temp Register
+// data for CRFA, ADCOPT = 1, REFON = 1, GPIOx = 1
+static const uint8_t CFGAR[] = {0xF9, 0x00, 0xF0, 0xFF, 0x00, 0x00};
+// data for CRFB, MUTE = 1, GPIOx = 1		
+static const uint8_t CFGBR[] = {0x0F, 0x80, 0x00, 0x00, 0x00, 0x00};	
+// Read Voltages Register	
+static const uint8_t RDCV[] = {RDCVA, RDCVB, RDCVC, RDCVD, RDCVE, RDCVF};
+// Read Temp Register	
+static const uint8_t RDAUX[] = {RDAUXA, RDAUXB, RDAUXC, RDAUXD};			
 
 void delay_1us(){	// delay 960ns + pin delay 45ns = 1050ns
 	for(volatile uint32_t i=0; i<5; i++);	// 100ns per cycle
@@ -39,6 +44,7 @@ void wake_up(){
 	for(volatile uint32_t i=0; i<100; i++);	// 100ns per cycle, 10us, communication ready time
 }
 
+//OLD TRANSCEIVE FUNCTION
 HAL_StatusTypeDef SPI_Transceive(uint8_t *tx_data, uint8_t *rx_data, uint16_t size) {
 	GPIOB->BSRR = ISO_SPI_CS1_Pin<<16;	// CS low
 	delay_1us();
@@ -46,6 +52,18 @@ HAL_StatusTypeDef SPI_Transceive(uint8_t *tx_data, uint8_t *rx_data, uint16_t si
 	GPIOB->BSRR = ISO_SPI_CS1_Pin;	// CS high
 	return status;
 }
+
+//NEW TRANSCEIVE FUNCTION
+/* int spiTransceive(const struct device *spi_dev, const struct spi_config *spi_cfg, const struct spi_buf_set *tx_bufs, const struct spi_buf_set *rx_bufs)
+{
+	// Send and receive SPI data
+	int ret = spi_transceive(spi_dev, spi_cfg, tx_bufs, rx_bufs);
+	if (ret < 0) {
+		printk("SPI Transceive failed\n");
+		return ret;
+	}
+	return 0;
+} */
 
 /*
 uint16_t Calculate_CRC(uint8_t* data, uint16_t size) {
@@ -316,52 +334,110 @@ HAL_StatusTypeDef ADBMS_HW_Init(){
 }
 
 
-//SPI TEST
 
-/**
- * SPI Physical Loopback Test (MOSI -> MISO)
- */
+struct spi_config spi_cfg_wakeup = {
+    .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB,
+    .frequency = WAKEUP_FREQ,  // Start with 1 MHz for wakeup
+    .slave = 0
+};
+struct spi_config spi_cfg_command = {
+	.operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB,
+	.frequency = COMMAND_FREQ,  // 2 MHz for commands
+	.slave = 0
+};
 
+struct spi_buf_set rx_test_buf;
+#define SPI_WAKEUP_TEST 
 
+// Wake-up sequence Daisy Chain Method
+void wakeup_adbms1818() {
+	// Wake-up message
+    uint8_t wakeup_msg_data[2] = {0xFF, 0xFF};
+	// SPI buffer
+    struct spi_buf tx_buf = {.buf = wakeup_msg_data, .len = sizeof(wakeup_msg_data)};
+	// SPI buffer set
+    struct spi_buf_set tx = {.buffers = &tx_buf, .count = 1};
+
+	// Send wake-up message
+	#ifdef SPI_WAKEUP_TEST
+		uint8_t rx_wakeup_data[sizeof(wakeup_msg_data)] = { 0 };
+		struct spi_buf rx_bufs[] = { { .buf = rx_wakeup_data, .len = sizeof(rx_wakeup_data) } };
+		rx_test_buf.buffers = rx_bufs;
+		rx_test_buf.count = 1;
+		spi_transceive(spi1_dev, &spi_cfg_wakeup, &tx, &rx_test_buf);
+		printk("w Test defined\n");
+
+	    // Check if the received data matches the sent wake-up message
+		bool wakeup_match = (memcmp(wakeup_msg_data, rx_wakeup_data, sizeof(wakeup_msg_data)) == 0);
+		
+		// Print results
+        printk("\nSPI Loopback Test");
+        printk("\nSent:    %02X %02X", wakeup_msg_data[0], wakeup_msg_data[1]);
+        printk("\nReceived:%02X %02X", rx_wakeup_data[0], rx_wakeup_data[1]);
+
+        if (wakeup_match) {
+            printk("\nSPI Loopback SUCCESS!\n");
+        } else {
+            printk("\nSPI Loopback FAILED! Check MOSI-MISO wiring.\n");
+        }
+		
+	#else 
+		spi_transceive(spi1_dev, &spi_cfg_wakeup, &tx, NULL);
+		printk("w Test not defined\n");
+
+	#endif
+    
+    k_sleep(K_MSEC(2));  // Small delay after wakeup
+}
+// SPI Physical Loopback Test (MOSI -> MISO)
 int spi_test_physical_loopback(void)
 {
 	
-    const struct device *spi1_dev = DEVICE_DT_GET(SPI_DEVICE);
     if (!device_is_ready(spi1_dev)) {
         printk("SPI device is not ready\n");
         return -ENODEV;
     }
 
+	// SPI Configuration
     struct spi_config spi_cfg = {
-        .frequency = 2000000U,  // 2 MHz
+		// 2 MHz
+        .frequency = 2000000U,
+		// 8-bit word size, MSB first, Master mode  
         .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_OP_MODE_MASTER,
-        .cs = NULL, // No chip select needed for loopback
+		// No chip select needed for loopback
+        .cs = NULL, 
     };
-
-    uint8_t tx_data[] = { 0xA5, 0x5A, 0xC3, 0x3C };  // Test pattern
+	
+	// Create test pattern
+    uint8_t tx_data[] = { 0xA5, 0x5A, 0xC3, 0x3C };
+	// Create receive Array with size of test pattern
     uint8_t rx_data[sizeof(tx_data)] = {0};
 
+	// Create SPI TX buffers
     struct spi_buf tx_bufs[] = {
         { .buf = tx_data, .len = sizeof(tx_data) }
     };
 
+	// Create SPI RX buffers
     struct spi_buf rx_bufs[] = {
         { .buf = rx_data, .len = sizeof(rx_data) }
     };
 
+	// Create SPI buffer sets
     struct spi_buf_set tx = { .buffers = tx_bufs, .count = 1 };
     struct spi_buf_set rx = { .buffers = rx_bufs, .count = 1 };
 
-        /* Send and receive SPI data */
+        // Send and receive SPI data
         int ret = spi_transceive(spi1_dev, &spi_cfg, &tx, &rx);
         if (ret < 0) {
             printk("SPI Transceive failed\n");
             return ret;
         }
 
-        /* Check if received data matches sent data */
+        // Check if received data matches sent data
         bool match = (memcmp(tx_data, rx_data, sizeof(tx_data)) == 0);
 
+		// Print results
         printk("\nSPI Loopback Test");
         printk("\nSent:    %02X %02X %02X %02X", tx_data[0], tx_data[1], tx_data[2], tx_data[3]);
         printk("\nReceived:%02X %02X %02X %02X", rx_data[0], rx_data[1], rx_data[2], rx_data[3]);
@@ -371,6 +447,75 @@ int spi_test_physical_loopback(void)
         } else {
             printk("\nSPI Loopback FAILED! Check MOSI-MISO wiring.\n");
         }
+
   
+    return 0;
+}
+
+// SPI Wake-up Loopback Test
+int spi_test_wakeup_loopback(void)
+{	
+    printk("\n--- Running SPI Wake-up Verification Test ---\n");
+	
+    // Step 1: Send wake-up signal
+    wakeup_adbms1818();
+    return 0;
+}
+
+// Function to compute CRC-15
+uint16_t compute_crc15(const uint8_t *data, uint8_t len) {
+	// CRC-15 parameters
+    uint16_t remainder = 0x0000;
+	// CRC-15 polynomial
+    uint16_t polynomial = 0x4599;  
+
+	// Compute CRC-15
+    for (uint8_t i = 0; i < len; i++) {
+        remainder ^= (data[i] << 7);
+        for (uint8_t bit = 0; bit < 8; bit++) {
+            if (remainder & 0x4000) {
+                remainder = (remainder << 1) ^ polynomial;
+            } else {
+                remainder = (remainder << 1);
+            }
+        }
+    }
+    return remainder & 0x7FFF;
+}
+
+// Function to send command
+void send_command(uint8_t cmd_high, uint8_t cmd_low) {
+	// Command buffer
+    uint8_t cmd[4] = {cmd_high, cmd_low, 0, 0};
+	// Compute CRC-15 for command
+    uint16_t crc = compute_crc15(cmd, 2);
+	// Add CRC to command buffer
+    cmd[2] = (crc >> 8) & 0xFF;
+    cmd[3] = crc & 0xFF;
+
+    struct spi_buf tx_buf = {.buf = cmd, .len = sizeof(cmd)};
+    struct spi_buf_set tx = {.buffers = &tx_buf, .count = 1};
+
+    spi_transceive(spi1_dev, &spi_cfg_command, &tx, NULL);
+}
+
+// Function to read response
+int read_response(uint8_t *data, size_t len) {
+    uint8_t response[len + 2];  // Data + 2 bytes PEC
+    struct spi_buf rx_buf = {.buf = response, .len = sizeof(response)};
+    struct spi_buf_set rx = {.buffers = &rx_buf, .count = 1};
+
+    if (spi_read(spi1_dev, &spi_cfg_command, &rx) != 0) {
+        return -1;  // SPI error
+    }
+
+    // Validate CRC
+    uint16_t received_crc = (response[len] << 8) | response[len + 1];
+    if (compute_crc15(response, len) != received_crc) {
+        return -2;  // CRC error
+    }
+
+    // Copy valid data
+    memcpy(data, response, len);
     return 0;
 }
