@@ -38,7 +38,7 @@ int main(void)
 		return 0;
 	}
 
-
+	// Initialize CAN Bus
 	BMS_CAN_INIT();
 
 	while (1) {
@@ -50,9 +50,11 @@ int main(void)
 		led_state = !led_state;
 		printf("LED state: %s\n", led_state ? "ON" : "OFF");
 		k_msleep(SLEEP_TIME_MS);
- 
-		uint8_t can_data[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-		send_can_message(can_data);
+		
+		// define the data to be sent
+		uint8_t can_data[] = {0x01};
+		uint8_t *data = can_data;
+		send_can_message(*data);
 	}
 
 	return 0;

@@ -4,20 +4,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
- #include <stdio.h>
+#include <stdio.h>
 
- #include <zephyr/kernel.h>
- #include <zephyr/sys/printk.h>
- #include <zephyr/device.h>
- #include <zephyr/drivers/can.h>
- #include <zephyr/drivers/gpio.h>
- #include <zephyr/sys/byteorder.h>
+#include <zephyr/kernel.h>
+#include <zephyr/sys/printk.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/can.h>
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/sys/byteorder.h>
 
- #include <CAN_Bus.h>
+#include <CAN_Bus.h>
 
 #define LED_MSG_ID 0x10
-#define COUNTER_MSG_ID 0x12345
-#define SLEEP_TIME_MS   1000
+#define CAN_MSG_ID 0x12345
+#define SLEEP_TIME_MS 1000
 
 //Thread defines
 #define RX_THREAD_STACK_SIZE 512
@@ -25,98 +25,96 @@
 K_THREAD_STACK_DEFINE(rx_thread_stack, RX_THREAD_STACK_SIZE);
 struct k_thread rx_thread_data;
 
- 
- const struct device *const can_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_canbus));
+//get CAN device
+const struct device *const can_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_canbus));
 
- CAN_MSGQ_DEFINE(counter_msgq, 2);
+//define message queue
+CAN_MSGQ_DEFINE(can_msgq, 2);
 
- void tx_irq_callback(const struct device *dev, int error, void *arg)
- {
+//Callback function for sending messages
+void tx_irq_callback(const struct device *dev, int error, void *arg)
+{
 	char *sender = (char *)arg;
 
 	ARG_UNUSED(dev);
 
-	if (error != 0) {
+	if (error != 0)
+	{
 		printf("Callback! error-code: %d\nSender: %s\n",
-		       error, sender);
+			   error, sender);
 	}
 }
 
+//Thread for receiving CAN messages
 void rx_thread(void *arg1, void *arg2, void *arg3)
 {
 	ARG_UNUSED(arg1);
 	ARG_UNUSED(arg2);
 	ARG_UNUSED(arg3);
+
 	const struct can_filter filter = {
 		.flags = CAN_FILTER_IDE,
-		.id = COUNTER_MSG_ID,
+		.id = CAN_MSG_ID,
 		.mask = CAN_EXT_ID_MASK
 	};
 	struct can_frame frame;
 	int filter_id;
-	
 
-	//filter_id = can_add_rx_filter_msgq(can_dev, &counter_msgq, &filter);
-	//printk("Counter filter id: %d\n", filter_id);
+	//add filter to message queue and initialize queue
+	filter_id = can_add_rx_filter_msgq(can_dev, &can_msgq, &filter);
+	printk("Counter filter id: %d\n", filter_id);
 
+	//while loop to receive messages
 	while (1) {
-	    if (k_msgq_get(&counter_msgq, &frame, K_NO_WAIT) == 0) {
-			printf("Message received: %u\n", sys_be16_to_cpu(UNALIGNED_GET((uint16_t *)&frame.data)));
+	    if (k_msgq_get(&can_msgq, &frame, K_FOREVER) == 0) {
+			printf("Message received: %02X\n", frame.data[0]);
 		} 
- 		/* if (IS_ENABLED(CONFIG_CAN_ACCEPT_RTR) && (frame.flags & CAN_FRAME_RTR) != 0U) {
-			continue;
+		else {
+			printf("No message in queue\n");
 		}
-
-		if (frame.dlc != 2U) {
-			printf("Wrong data length: %u\n", frame.dlc);
-			continue;
-		} */
-		printf("watchdog\n");
-		k_msleep(SLEEP_TIME_MS); 
+		//printf("watchdog\n");
+		//k_msleep(SLEEP_TIME_MS); 
 	}
 }
 
+//Function to send CAN messages
 int send_can_message(const uint8_t *data)
 {
-	const struct can_filter filter = {
-		.flags = CAN_FILTER_IDE,
-		.id = COUNTER_MSG_ID,
-		.mask = CAN_EXT_ID_MASK
-	};
-
 	struct can_frame frame = {
-		.flags = 0,
-		.id = LED_MSG_ID,
-		.dlc = 1
+		.flags = CAN_FRAME_IDE,
+		.id = CAN_MSG_ID,
+		.dlc = 2};
+
+	frame.data[0] = data;
+	/* This sending call is none blocking. */
+	if (can_send(can_dev, &frame, K_FOREVER, tx_irq_callback, "test message") == 0)
+	{
+		printf("CAN message sent\n");
 	};
-	uint8_t toggle = 1;
-	frame.data[0] = 0x34;
-		/* This sending call is none blocking. */
-		if	(can_send(can_dev, &frame, K_FOREVER, tx_irq_callback, "test message") == 0){
-			k_msgq_put(&counter_msgq, &frame, K_NO_WAIT);
-			printf("CAN message sent\n");
-		};
-		return 0;
+	return 0;
 }
 
+//Function to initialize CAN Bus
 int BMS_CAN_INIT()
 {
 	int ret;
 
-    #ifdef CONFIG_LOOPBACK_MODE
+#ifdef CONFIG_LOOPBACK_MODE
 	ret = can_set_mode(can_dev, CAN_MODE_LOOPBACK);
-	if (ret != 0) {
+	if (ret != 0)
+	{
 		printf("Error setting CAN mode [%d]", ret);
 		return 0;
 	}
-    #endif
+#endif
 
- ret = can_start(can_dev);
-	if (ret != 0) {
+	ret = can_start(can_dev);
+	if (ret != 0)
+	{
 		printf("Error starting CAN controller [%d]", ret);
 		return 0;
 	}
-    printf("CAN Bus initialized\n");
+	printf("CAN Bus initialized\n");
 
 	k_tid_t rx_tid;
 
@@ -130,7 +128,8 @@ int BMS_CAN_INIT()
 	}
 	printf("RX thread spawned\n");
 
-	k_thread_start(rx_thread);
+	// not needed anymore for thread implementation but leaving it for a while
+	// k_thread_start(rx_thread);
 
 	return 0;
 }
