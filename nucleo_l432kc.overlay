@@ -1,0 +1,4 @@
+&spi1 {
+    status = "okay";
+    cs-gpios = <&gpioa 1 GPIO_ACTIVE_LOW>;  // Use PA1 as the CS pin
+};

@@ -12,6 +12,7 @@
 #define INC_SPI_MB_H_
 
 #include <zephyr/drivers/spi.h>
+#include <zephyr/drivers/gpio.h>
 
 // ADBMS Register Addresses
 // DATASHEET ADBMS1818 by Analog Devices p. 61
@@ -105,8 +106,7 @@
 #define NUM_OF_CLIENTS 8
 #define DUMMY 0xAA
 // Wakeup Frequency in Hz
-#define WAKEUP_FREQ 1000000
-#define COMMAND_FREQ 2000000
+#define SPI_FREQ 1000000
 
 // HAL Handle
 extern SPI_HandleTypeDef hspi1; // delete this line new: device *spi1_dev is the zephyr version
@@ -129,5 +129,6 @@ HAL_StatusTypeDef ADBMS_HW_Init();
 /* SPI configuration */
 
 int spi_test_physical_loopback(void);
+void spi_wakeup_adbms1818();
 
 #endif /* INC_SPI_MB_H_ */

@@ -14,6 +14,36 @@
 // define spi1 device
 const struct device *spi1_dev = DEVICE_DT_GET(SPI_DEVICE);
 
+// Define the CS control
+struct spi_cs_control cs_ctrl = {
+	// Get the CS pin from the device tree
+    .gpio = GPIO_DT_SPEC_GET(DT_NODELABEL(spi1), cs_gpios), 
+	// Delay before CS is set 
+    .delay = 0,  
+};
+
+struct spi_config spi_cfg= {
+	// 8-bit word size, MSB first, Master mode  
+    .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_OP_MODE_MASTER,
+	// Frequency in Hz
+    .frequency = SPI_FREQ,
+	// Chip select control  
+    .cs = &cs_ctrl,
+};
+
+struct spi_config spi_cfg_test= {
+	// 8-bit word size, MSB first, Master mode  
+    .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_OP_MODE_MASTER,
+	// Frequency in Hz
+    .frequency = SPI_FREQ,
+	// Chip select control  
+    .cs = NULL,
+};
+
+
+
+//define Test Variables
+#define SPI_WAKEUP_LOOPBACK_TEST true
 
 #define ISO_SPI_CS1_Pin GPIO_PIN_1
 
@@ -52,18 +82,6 @@ HAL_StatusTypeDef SPI_Transceive(uint8_t *tx_data, uint8_t *rx_data, uint16_t si
 	GPIOB->BSRR = ISO_SPI_CS1_Pin;	// CS high
 	return status;
 }
-
-//NEW TRANSCEIVE FUNCTION
-/* int spiTransceive(const struct device *spi_dev, const struct spi_config *spi_cfg, const struct spi_buf_set *tx_bufs, const struct spi_buf_set *rx_bufs)
-{
-	// Send and receive SPI data
-	int ret = spi_transceive(spi_dev, spi_cfg, tx_bufs, rx_bufs);
-	if (ret < 0) {
-		printk("SPI Transceive failed\n");
-		return ret;
-	}
-	return 0;
-} */
 
 /*
 uint16_t Calculate_CRC(uint8_t* data, uint16_t size) {
@@ -335,22 +353,8 @@ HAL_StatusTypeDef ADBMS_HW_Init(){
 
 
 
-struct spi_config spi_cfg_wakeup = {
-    .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB,
-    .frequency = WAKEUP_FREQ,  // Start with 1 MHz for wakeup
-    .slave = 0
-};
-struct spi_config spi_cfg_command = {
-	.operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB,
-	.frequency = COMMAND_FREQ,  // 2 MHz for commands
-	.slave = 0
-};
-
-struct spi_buf_set rx_test_buf;
-#define SPI_WAKEUP_TEST 
-
 // Wake-up sequence Daisy Chain Method
-void wakeup_adbms1818() {
+void spi_wakeup_adbms1818() {
 	// Wake-up message
     uint8_t wakeup_msg_data[2] = {0xFF, 0xFF};
 	// SPI buffer
@@ -359,19 +363,18 @@ void wakeup_adbms1818() {
     struct spi_buf_set tx = {.buffers = &tx_buf, .count = 1};
 
 	// Send wake-up message
-	#ifdef SPI_WAKEUP_TEST
+	#if SPI_WAKEUP_LOOPBACK_TEST
+		struct spi_buf_set rx_test_buf;
 		uint8_t rx_wakeup_data[sizeof(wakeup_msg_data)] = { 0 };
 		struct spi_buf rx_bufs[] = { { .buf = rx_wakeup_data, .len = sizeof(rx_wakeup_data) } };
 		rx_test_buf.buffers = rx_bufs;
 		rx_test_buf.count = 1;
-		spi_transceive(spi1_dev, &spi_cfg_wakeup, &tx, &rx_test_buf);
-		printk("w Test defined\n");
-
+		spi_transceive(spi1_dev, &spi_cfg_test, &tx, &rx_test_buf);
 	    // Check if the received data matches the sent wake-up message
 		bool wakeup_match = (memcmp(wakeup_msg_data, rx_wakeup_data, sizeof(wakeup_msg_data)) == 0);
 		
 		// Print results
-        printk("\nSPI Loopback Test");
+        printk("\nSPI Wakeup Loopback Test");
         printk("\nSent:    %02X %02X", wakeup_msg_data[0], wakeup_msg_data[1]);
         printk("\nReceived:%02X %02X", rx_wakeup_data[0], rx_wakeup_data[1]);
 
@@ -382,13 +385,13 @@ void wakeup_adbms1818() {
         }
 		
 	#else 
-		spi_transceive(spi1_dev, &spi_cfg_wakeup, &tx, NULL);
-		printk("w Test not defined\n");
+		spi_transceive(spi1_dev, &spi_cfg, &tx, NULL);
 
 	#endif
     
     k_sleep(K_MSEC(2));  // Small delay after wakeup
 }
+
 // SPI Physical Loopback Test (MOSI -> MISO)
 int spi_test_physical_loopback(void)
 {
@@ -452,18 +455,9 @@ int spi_test_physical_loopback(void)
     return 0;
 }
 
-// SPI Wake-up Loopback Test
-int spi_test_wakeup_loopback(void)
-{	
-    printk("\n--- Running SPI Wake-up Verification Test ---\n");
-	
-    // Step 1: Send wake-up signal
-    wakeup_adbms1818();
-    return 0;
-}
 
 // Function to compute CRC-15
-uint16_t compute_crc15(const uint8_t *data, uint8_t len) {
+uint16_t spi_compute_crc15(const uint8_t *data, uint8_t len) {
 	// CRC-15 parameters
     uint16_t remainder = 0x0000;
 	// CRC-15 polynomial
@@ -484,7 +478,7 @@ uint16_t compute_crc15(const uint8_t *data, uint8_t len) {
 }
 
 // Function to send command
-void send_command(uint8_t cmd_high, uint8_t cmd_low) {
+HAL_StatusTypeDef spi_send_command(uint8_t cmd_high, uint8_t cmd_low) {
 	// Command buffer
     uint8_t cmd[4] = {cmd_high, cmd_low, 0, 0};
 	// Compute CRC-15 for command
@@ -496,16 +490,23 @@ void send_command(uint8_t cmd_high, uint8_t cmd_low) {
     struct spi_buf tx_buf = {.buf = cmd, .len = sizeof(cmd)};
     struct spi_buf_set tx = {.buffers = &tx_buf, .count = 1};
 
-    spi_transceive(spi1_dev, &spi_cfg_command, &tx, NULL);
+    int ret = spi_transceive(spi1_dev, &spi_cfg, &tx, NULL);
+    
+	if (ret < 0) {
+        printk("SPI Transceive failed: %d\n", ret);
+        return HAL_ERROR;
+    }
+
+    return HAL_OK;
 }
 
 // Function to read response
-int read_response(uint8_t *data, size_t len) {
+int spi_read_response(uint8_t *data, size_t len) {
     uint8_t response[len + 2];  // Data + 2 bytes PEC
     struct spi_buf rx_buf = {.buf = response, .len = sizeof(response)};
     struct spi_buf_set rx = {.buffers = &rx_buf, .count = 1};
 
-    if (spi_read(spi1_dev, &spi_cfg_command, &rx) != 0) {
+    if (spi_read(spi1_dev, &spi_cfg, &rx) != 0) {
         return -1;  // SPI error
     }
 

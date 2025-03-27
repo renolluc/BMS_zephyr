@@ -19,11 +19,10 @@ static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 
 void spiThread()
 {
-	printk("SPI Thread started1\n");
 	while(1){
 	//spi_test_physical_loopback();
-	spi_test_wakeup_loopback();
-	printk("SPI Thread started2\n");
+	//spi_test_wakeup_loopback();
+	spi_wakeup_adbms1818();
 	k_msleep(1000);
 }
 }
