@@ -15,9 +15,11 @@
 
 #include <CAN_Bus.h>
 
-#define LED_MSG_ID 0x10
 #define CAN_MSG_ID 0x12345
 #define SLEEP_TIME_MS 1000
+
+//define loopback mode for testing
+#define CONFIG_LOOPBACK_MODE
 
 //Thread defines
 #define RX_THREAD_STACK_SIZE 512
@@ -62,15 +64,20 @@ void rx_thread(void *arg1, void *arg2, void *arg3)
 
 	//add filter to message queue and initialize queue
 	filter_id = can_add_rx_filter_msgq(can_dev, &can_msgq, &filter);
-	printk("Counter filter id: %d\n", filter_id);
+	printk("filter id: %d\n", filter_id);
 
 	//while loop to receive messages
 	while (1) {
 	    if (k_msgq_get(&can_msgq, &frame, K_FOREVER) == 0) {
-			printf("Message received: %02X\n", frame.data[0]);
+			//printf("Message received: %02X\n", frame.data[0]);
+			printk("received CAN message: ID=0x%X, DLC=%d, Data=", frame.id, frame.dlc);
+			for (int i = 0; i < frame.dlc; i++) {
+				printk("%02X ", frame.data[i]);
+			}
+			printk("\n");
 		} 
 		else {
-			printf("No message in queue\n");
+			printk("No message in queue\n");
 		}
 		//printf("watchdog\n");
 		//k_msleep(SLEEP_TIME_MS); 
@@ -83,11 +90,21 @@ int send_can_message(const uint8_t *data)
 	struct can_frame frame = {
 		.flags = CAN_FRAME_IDE,
 		.id = CAN_MSG_ID,
-		.dlc = 2};
+		.dlc = 8};
 
-	frame.data[0] = data;
+	memset(frame.data, 0, sizeof(frame.data)); // Clear all bytes in the frame data
+	memcpy(frame.data, data, frame.dlc);      // Copy only the specified number of bytes
+
+	
+    // Debug: Print the data being sent
+    printf("Sending CAN message: ID=0x%X, DLC=%d, Data=", frame.id, frame.dlc);
+    for (int i = 0; i < 8; i++) {
+        printf("%02X ", frame.data[i]);
+    }
+    printf("\n");
+
 	/* This sending call is none blocking. */
-	if (can_send(can_dev, &frame, K_FOREVER, tx_irq_callback, "test message") == 0)
+	if (can_send(can_dev, &frame, K_NO_WAIT, tx_irq_callback, "AMS-CB") == 0)
 	{
 		printf("CAN message sent\n");
 	};
@@ -99,6 +116,7 @@ int BMS_CAN_INIT()
 {
 	int ret;
 
+//loopback mode for routing messages directly to msgq
 #ifdef CONFIG_LOOPBACK_MODE
 	ret = can_set_mode(can_dev, CAN_MODE_LOOPBACK);
 	if (ret != 0)
@@ -133,3 +151,4 @@ int BMS_CAN_INIT()
 
 	return 0;
 }
+
