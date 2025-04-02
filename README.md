@@ -110,3 +110,29 @@ sequenceDiagram
     end
 
 ```
+## Class Diagram
+The class diagram shows the different classes used and their depencies to each other. As a first instance only public function are declared to get an overall view of the program.
+
+```mermaid
+classDiagram
+
+    class main
+    main: BMS_CAN_INIT()
+
+    class Can_Bus
+
+    class spiMB
+
+    class battery
+
+    class serialmonitor
+
+    class shutdowncircuit
+
+    main ..> battery : uses
+    main ..> Can_Bus : uses
+    main ..> serialmonitor : uses
+    main ..> shutdowncircuit : uses
+    battery ..> spiMB : uses
+
+```
