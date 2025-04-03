@@ -1,0 +1,53 @@
+cmake:
+  application:
+    configuration-dir: /home/falu/zephyrproject/BMS_zephyr/tests
+    source-dir: /home/falu/zephyrproject/BMS_zephyr/tests
+  board:
+    name: native_sim
+    path:
+     - /home/falu/zephyrproject/zephyr/boards/native/native_sim
+    qualifiers: native
+    revision: 
+  devicetree:
+    bindings-dirs:
+     - /home/falu/zephyrproject/zephyr/dts/bindings
+    files:
+     - /home/falu/zephyrproject/zephyr/boards/native/native_sim/native_sim.dts
+    include-dirs:
+     - /home/falu/zephyrproject/modules/hal/atmel/include
+     - /home/falu/zephyrproject/modules/hal/gigadevice/include
+     - /home/falu/zephyrproject/modules/hal/microchip/include
+     - /home/falu/zephyrproject/modules/hal/microchip/dts
+     - /home/falu/zephyrproject/modules/hal/nuvoton/dts
+     - /home/falu/zephyrproject/modules/hal/nxp/dts
+     - /home/falu/zephyrproject/modules/hal/stm32/dts
+     - /home/falu/zephyrproject/zephyr/include
+     - /home/falu/zephyrproject/zephyr/include/zephyr
+     - /home/falu/zephyrproject/zephyr/dts/common
+     - /home/falu/zephyrproject/zephyr/dts/x86
+     - /home/falu/zephyrproject/zephyr/dts/xtensa
+     - /home/falu/zephyrproject/zephyr/dts/sparc
+     - /home/falu/zephyrproject/zephyr/dts/riscv
+     - /home/falu/zephyrproject/zephyr/dts/posix
+     - /home/falu/zephyrproject/zephyr/dts/nios2
+     - /home/falu/zephyrproject/zephyr/dts/arm64
+     - /home/falu/zephyrproject/zephyr/dts/arm
+     - /home/falu/zephyrproject/zephyr/dts/arc
+     - /home/falu/zephyrproject/zephyr/dts
+  kconfig:
+    files:
+     - /home/falu/zephyrproject/zephyr/boards/native/native_sim/native_sim_defconfig
+     - /home/falu/zephyrproject/BMS_zephyr/tests/prj.conf
+    user-files:
+     - /home/falu/zephyrproject/BMS_zephyr/tests/prj.conf
+  toolchain:
+    name: host
+    path: 
+  zephyr:
+    version: 4.1.99
+    zephyr-base: /home/falu/zephyrproject/zephyr
+version: 0.1.0
+west:
+  command: /home/falu/zephyrproject/.venv/bin/west build -p always -b native_sim tests/ -d build_test
+  topdir: /home/falu/zephyrproject
+  version: 1.3.0

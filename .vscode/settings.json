@@ -6,6 +6,7 @@
         "gpio.h": "c",
         "log.h": "c",
         "spi.h": "c",
-        "cstdlib": "c"
+        "cstdlib": "c",
+        "stats.h": "c"
     }
 }

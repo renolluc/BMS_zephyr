@@ -105,7 +105,7 @@
 // Settings
 #define NUM_OF_CLIENTS 8
 #define DUMMY 0xAA
-// Wakeup Frequency in Hz
+// requency in Hz
 #define SPI_FREQ 1000000
 
 // HAL Handle
@@ -129,6 +129,6 @@ HAL_StatusTypeDef ADBMS_HW_Init();
 /* SPI configuration */
 
 int spi_test_physical_loopback(void);
-void spi_wakeup_adbms1818();
+int spi_wakeup_adbms1818();
 
 #endif /* INC_SPI_MB_H_ */

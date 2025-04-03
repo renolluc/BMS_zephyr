@@ -21,8 +21,8 @@ void spiThread()
 {
 	while(1){
 	//spi_test_physical_loopback();
-	//spi_test_wakeup_loopback();
 	spi_wakeup_adbms1818();
+
 	k_msleep(1000);
 }
 }

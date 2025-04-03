@@ -11,24 +11,18 @@
 #include <SPI_MB.h>
 #include <zephyr/logging/log.h>
 
+
 // define spi1 device
 const struct device *spi1_dev = DEVICE_DT_GET(SPI_DEVICE);
 
-// Define the CS control
-struct spi_cs_control cs_ctrl = {
-	// Get the CS pin from the device tree
-    .gpio = GPIO_DT_SPEC_GET(DT_NODELABEL(spi1), cs_gpios), 
-	// Delay before CS is set 
-    .delay = 0,  
-};
 
 struct spi_config spi_cfg= {
 	// 8-bit word size, MSB first, Master mode  
     .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_OP_MODE_MASTER,
 	// Frequency in Hz
     .frequency = SPI_FREQ,
-	// Chip select control  
-    .cs = &cs_ctrl,
+	// Chip select control
+	// DEFAULT PIN A3/PA4
 };
 
 struct spi_config spi_cfg_test= {
@@ -43,7 +37,7 @@ struct spi_config spi_cfg_test= {
 
 
 //define Test Variables
-#define SPI_WAKEUP_LOOPBACK_TEST true
+#define SPI_WAKEUP_LOOPBACK_TEST false
 
 #define ISO_SPI_CS1_Pin GPIO_PIN_1
 
@@ -354,7 +348,13 @@ HAL_StatusTypeDef ADBMS_HW_Init(){
 
 
 // Wake-up sequence Daisy Chain Method
-void spi_wakeup_adbms1818() {
+int spi_wakeup_adbms1818() {
+	
+	if (!device_is_ready(spi1_dev)) {
+        printk("SPI device is not ready\n");
+        return -ENODEV;
+    }
+	
 	// Wake-up message
     uint8_t wakeup_msg_data[2] = {0xFF, 0xFF};
 	// SPI buffer
@@ -384,32 +384,26 @@ void spi_wakeup_adbms1818() {
             printk("\nSPI Loopback FAILED! Check MOSI-MISO wiring.\n");
         }
 		
-	#else 
+	#else
 		spi_transceive(spi1_dev, &spi_cfg, &tx, NULL);
+		printk("\nSPI Wakeup Message Sent: %02X %02X\n", wakeup_msg_data[0], wakeup_msg_data[1]);
 
 	#endif
     
-    k_sleep(K_MSEC(2));  // Small delay after wakeup
+    k_sleep(K_USEC(10));  // Small delay after wakeup
+	return 0;
 }
 
+
+/* Kann gelöscht werden ist nun in spi_wakeup_adbms1818 drin mit Test Variabel*/
 // SPI Physical Loopback Test (MOSI -> MISO)
-int spi_test_physical_loopback(void)
+/*int spi_test_physical_loopback(void)
 {
 	
     if (!device_is_ready(spi1_dev)) {
         printk("SPI device is not ready\n");
         return -ENODEV;
     }
-
-	// SPI Configuration
-    struct spi_config spi_cfg = {
-		// 2 MHz
-        .frequency = 2000000U,
-		// 8-bit word size, MSB first, Master mode  
-        .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_OP_MODE_MASTER,
-		// No chip select needed for loopback
-        .cs = NULL, 
-    };
 	
 	// Create test pattern
     uint8_t tx_data[] = { 0xA5, 0x5A, 0xC3, 0x3C };
@@ -454,12 +448,12 @@ int spi_test_physical_loopback(void)
   
     return 0;
 }
-
+*/
 
 // Function to compute CRC-15
-uint16_t spi_compute_crc15(const uint8_t *data, uint8_t len) {
+uint16_t spi_generate_pec(const uint8_t *data, uint8_t len) {
 	// CRC-15 parameters
-    uint16_t remainder = 0x0000;
+    uint16_t remainder = 0x0010;
 	// CRC-15 polynomial
     uint16_t polynomial = 0x4599;  
 
