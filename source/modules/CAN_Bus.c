@@ -5,150 +5,213 @@
  */
 
 #include <stdio.h>
-
 #include <zephyr/kernel.h>
 #include <zephyr/sys/printk.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/can.h>
-#include <zephyr/drivers/gpio.h>
 #include <zephyr/sys/byteorder.h>
-
 #include <CAN_Bus.h>
 
 #define CAN_MSG_ID 0x12345
 #define SLEEP_TIME_MS 1000
 
-//define loopback mode for testing
+// Define loopback mode for testing
 #define CONFIG_LOOPBACK_MODE
 
-//Thread defines
+// Thread defines
 #define RX_THREAD_STACK_SIZE 512
 #define RX_THREAD_PRIORITY 2
 K_THREAD_STACK_DEFINE(rx_thread_stack, RX_THREAD_STACK_SIZE);
 struct k_thread rx_thread_data;
 
-//get CAN device
+// Get CAN device
 const struct device *const can_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_canbus));
 
-//define message queue
+// Define message queue
 CAN_MSGQ_DEFINE(can_msgq, 2);
 
-//Callback function for sending messages
+// Callback function for sending messages
 void tx_irq_callback(const struct device *dev, int error, void *arg)
 {
-	char *sender = (char *)arg;
+    char *sender = (char *)arg;
 
-	ARG_UNUSED(dev);
+    ARG_UNUSED(dev);
 
-	if (error != 0)
-	{
-		printf("Callback! error-code: %d\nSender: %s\n",
-			   error, sender);
-	}
+    if (error != 0)
+    {
+        printk("Callback! error-code: %d\nSender: %s\n", error, sender);
+    }
 }
 
-//Thread for receiving CAN messages
+// Thread for receiving CAN messages
 void rx_thread(void *arg1, void *arg2, void *arg3)
 {
-	ARG_UNUSED(arg1);
-	ARG_UNUSED(arg2);
-	ARG_UNUSED(arg3);
+    ARG_UNUSED(arg1);
+    ARG_UNUSED(arg2);
+    ARG_UNUSED(arg3);
 
-	const struct can_filter filter = {
-		.flags = CAN_FILTER_IDE,
-		.id = CAN_MSG_ID,
-		.mask = CAN_EXT_ID_MASK
-	};
-	struct can_frame frame;
-	int filter_id;
+    const struct can_filter filter = {
+        .flags = CAN_FILTER_IDE,
+        .id = CAN_MSG_ID,
+        .mask = CAN_EXT_ID_MASK
+    };
+    struct can_frame frame;
+    int filter_id;
 
-	//add filter to message queue and initialize queue
-	filter_id = can_add_rx_filter_msgq(can_dev, &can_msgq, &filter);
-	printk("filter id: %d\n", filter_id);
+    // Add filter to message queue and initialize queue
+    filter_id = can_add_rx_filter_msgq(can_dev, &can_msgq, &filter);
+    printk("filter id: %d\n", filter_id);
 
-	//while loop to receive messages
-	while (1) {
-	    if (k_msgq_get(&can_msgq, &frame, K_FOREVER) == 0) {
-			//printf("Message received: %02X\n", frame.data[0]);
-			printk("received CAN message: ID=0x%X, DLC=%d, Data=", frame.id, frame.dlc);
-			for (int i = 0; i < frame.dlc; i++) {
-				printk("%02X ", frame.data[i]);
-			}
-			printk("\n");
-		} 
-		else {
-			printk("No message in queue\n");
-		}
-		//printf("watchdog\n");
-		//k_msleep(SLEEP_TIME_MS); 
-	}
-}
-
-//Function to send CAN messages
-int send_can_message(const uint8_t *data)
-{
-	struct can_frame frame = {
-		.flags = CAN_FRAME_IDE,
-		.id = CAN_MSG_ID,
-		.dlc = 8};
-
-	memset(frame.data, 0, sizeof(frame.data)); // Clear all bytes in the frame data
-	memcpy(frame.data, data, frame.dlc);      // Copy only the specified number of bytes
-
-	
-    // Debug: Print the data being sent
-    printf("Sending CAN message: ID=0x%X, DLC=%d, Data=", frame.id, frame.dlc);
-    for (int i = 0; i < 8; i++) {
-        printf("%02X ", frame.data[i]);
+    // While loop to receive messages
+    while (1) {
+        if (k_msgq_get(&can_msgq, &frame, K_FOREVER) == 0) {
+            printk("Received CAN message: ID=0x%X, DLC=%d, Data=", frame.id, frame.dlc);
+            for (int i = 0; i < frame.dlc; i++) {
+                printk("%02X ", frame.data[i]);
+            }
+            printk("\n");
+        } else {
+            printk("No message in queue\n");
+        }
     }
-    printf("\n");
-
-	/* This sending call is none blocking. */
-	if (can_send(can_dev, &frame, K_NO_WAIT, tx_irq_callback, "AMS-CB") == 0)
-	{
-		printf("CAN message sent\n");
-	};
-	return 0;
 }
 
-//Function to initialize CAN Bus
+// Function to send CAN messages
+int send_CAN(uint32_t address, uint8_t *TxBuffer)
+{
+    struct can_frame frame = {
+        .id = address,
+        .dlc = 8,
+        .flags = CAN_FRAME_IDE
+    };
+
+    memcpy(frame.data, TxBuffer, frame.dlc);
+
+    // Debug: Print the data being sent
+    printk("Sending CAN message: ID=0x%X, DLC=%d, Data=", frame.id, frame.dlc);
+    for (int i = 0; i < frame.dlc; i++) {
+        printk("%02X ", frame.data[i]);
+    }
+    printk("\n");
+
+    // Send the CAN message (non-blocking)
+    int ret = can_send(can_dev, &frame, K_NO_WAIT, tx_irq_callback, "AMS-CB");
+    if (ret != 0) {
+        printk("Error sending CAN message: %d\n", ret);
+        return ret;
+    }
+
+    printk("CAN message sent successfully\n");
+    return 0;
+}
+
+int send_CAN_IVT_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length)
+{
+    struct can_frame frame = {
+        .id = address,
+        .dlc = length,
+        .flags = CAN_FRAME_IDE
+    };
+
+    memcpy(frame.data, TxBuffer, frame.dlc);
+
+    // Debug: Print the data being sent
+    printk("Sending CAN message: ID=0x%X, DLC=%d, Data=", frame.id, frame.dlc);
+    for (int i = 0; i < frame.dlc; i++) {
+        printk("%02X ", frame.data[i]);
+    }
+    printk("\n");
+
+    // Send the CAN message (non-blocking)
+    int ret = can_send(can_dev, &frame, K_NO_WAIT, tx_irq_callback, "AMS-CB");
+    if (ret != 0) {
+        printk("Error sending CAN message: %d\n", ret);
+        return ret;
+    }
+
+    printk("CAN message sent successfully\n");
+    return 0;
+}
+
+int send_data2ECU(uint16_t GPIO_Input)
+{
+    uint8_t can_data[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+/*     can_data[0] |= get_battery_status_code(GPIO_Input);
+    can_data[1] |= get_battery_error_code();
+    uint16_t total_volt = battery_values.totalVoltage;
+    can_data[2] = total_volt & 0xFF;
+    can_data[3] = total_volt >> 8;
+    uint16_t actualCurrent = battery_values.actualCurrent;
+    can_data[4] = (uint8_t)(actualCurrent / 1000);
+    can_data[5] = volt2celsius(battery_values.highestCellTemp);
+    if (battery_values.CurrentCounter > AKKU_CAPACITANCE) {
+        can_data[6] = 0;
+    } else {
+        can_data[6] = 100 - (uint8_t)(battery_values.CurrentCounter / AKKU_CAPACITANCE);
+    } */
+    return send_CAN(ADDR_ECU_TX, can_data);
+}
+
+int ISA_IVT_Init()
+{
+    int status = 0;
+    uint8_t RxData[8];
+
+    // Set sensor mode to STOP
+    uint8_t can_data0[] = {SET_MODE, 0x00, 0x01, 0x00, 0x00};
+    status |= send_CAN_IVT_nbytes(IVT_MSG_COMMAND, can_data0, 5);
+    k_msleep(10);
+
+    // Set current measurement to CYCLIC 100 Hz
+    uint8_t can_data1[] = {(MUX_SETCONFIG | IVT_NCURRENT), CYCLIC, (CYCLETIME >> 8) & 0xFF, CYCLETIME & 0xFF};
+    status |= send_CAN_IVT_nbytes(IVT_MSG_COMMAND, can_data1, 4);
+    k_msleep(10);
+
+    // Disable Voltage Measurement
+    uint8_t can_data2[] = {(MUX_SETCONFIG | IVT_NU1), DISABLED, (CYCLETIME >> 8) & 0xFF, CYCLETIME & 0xFF};
+    status |= send_CAN_IVT_nbytes(IVT_MSG_COMMAND, can_data2, 4);
+    k_msleep(10);
+
+    // Set sensor mode to RUN
+    k_msleep(100);
+    uint8_t can_datan[] = {SET_MODE, 0x01, 0x01, 0x00, 0x00};
+    status |= send_CAN_IVT_nbytes(IVT_MSG_COMMAND, can_datan, 5);
+    k_msleep(10);
+
+    return status;
+}
+
+// Function to initialize CAN Bus
 int BMS_CAN_INIT()
 {
-	int ret;
+    int ret;
 
-//loopback mode for routing messages directly to msgq
+    // Loopback mode for routing messages directly to msgq
 #ifdef CONFIG_LOOPBACK_MODE
-	ret = can_set_mode(can_dev, CAN_MODE_LOOPBACK);
-	if (ret != 0)
-	{
-		printf("Error setting CAN mode [%d]", ret);
-		return 0;
-	}
+    ret = can_set_mode(can_dev, CAN_MODE_LOOPBACK);
+    if (ret != 0) {
+        printk("Error setting CAN mode [%d]\n", ret);
+        return ret;
+    }
 #endif
 
-	ret = can_start(can_dev);
-	if (ret != 0)
-	{
-		printf("Error starting CAN controller [%d]", ret);
-		return 0;
-	}
-	printf("CAN Bus initialized\n");
+    ret = can_start(can_dev);
+    if (ret != 0) {
+        printk("Error starting CAN controller [%d]\n", ret);
+        return ret;
+    }
+    printk("CAN Bus initialized\n");
 
-	k_tid_t rx_tid;
+    k_tid_t rx_tid = k_thread_create(&rx_thread_data, rx_thread_stack,
+                                     K_THREAD_STACK_SIZEOF(rx_thread_stack),
+                                     rx_thread, NULL, NULL, NULL,
+                                     RX_THREAD_PRIORITY, 0, K_NO_WAIT);
+    if (!rx_tid) {
+        printk("ERROR spawning RX thread\n");
+        return -1;
+    }
+    printk("RX thread spawned\n");
 
-	rx_tid = k_thread_create(&rx_thread_data, rx_thread_stack,
-							 K_THREAD_STACK_SIZEOF(rx_thread_stack),
-							 rx_thread, NULL, NULL, NULL,
-							 RX_THREAD_PRIORITY, 0, K_NO_WAIT);
-	if (!rx_tid)
-	{
-		printf("ERROR spawning rx thread\n");
-	}
-	printf("RX thread spawned\n");
-
-	// not needed anymore for thread implementation but leaving it for a while
-	// k_thread_start(rx_thread);
-
-	return 0;
+    return 0;
 }
 

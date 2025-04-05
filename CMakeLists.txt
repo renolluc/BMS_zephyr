@@ -7,9 +7,15 @@ project(app)
 
 target_sources(app
         PRIVATE
-        source/main.c
-        source/modules/CAN_Bus.c
-        
+        source/modules/CAN_Bus.c        
 )
 
 zephyr_include_directories(include)
+
+if (NOT CONFIG_ZTEST)
+    target_sources(app PRIVATE source/main.c)
+endif()
+
+if (CONFIG_ZTEST)
+    add_subdirectory(tests)
+endif()

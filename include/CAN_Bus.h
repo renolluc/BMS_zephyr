@@ -9,13 +9,13 @@
 #define INC_CAN_BUS_H
 
 #include <stdint.h>
+#include <battery.h>
 
-//can1 ist die Verküpfung im Device Tree
-#define CAN_DEVICE DT_LABEL(DT_NODELABEL(can1))  // Zephyr CAN-Device
+// CAN device
+#define CAN_DEVICE DT_LABEL(DT_NODELABEL(can1))
 
-
-#define ADDR_ECU_RX 0x410		// addres used ECU => CB
-#define ADDR_ECU_TX 0x310		// addres used CB => ECU
+#define ADDR_ECU_RX 0x410 // Address used ECU => CB
+#define ADDR_ECU_TX 0x310 // Address used CB => ECU
 
 //>> ISA defines
 // adresses
@@ -67,11 +67,17 @@
 // settings
 #define CYCLETIME 100  // in ms
 
-// CAN receive Flags in 8 bit format, can byte 0 LSB
+//CAN receive Flags in 8 bit format, can byte 0 LSB neue Flags nur für Akku ein- und ausschalten
+#define BATTERY_ON 		(1<<0)
+#define BATTERY_OFF 	(0<<0)
+
+// CAN receive Flags in 8 bit format, can byte 0 LSB wird von obigen Flags ersetzt
+/*
 #define AIR_POSITIVE 		(1<<0)
 #define AIR_NEGATIVE 		(1<<1)
 #define PRECHARGE_RELAY 	(1<<2)
-#define BATTERY_SW_RESET	(1<<3)
+#define BATTERY_SW_RESET	(1<<3) 
+*/
 
 // CAN send data frame
 // 0 status flags
@@ -83,8 +89,13 @@
 // 6 SOC
 // 7 reserved
 
+//wird vermutlich nicht mehr gebraucht
+//extern CAN_HandleTypeDef hcan1;
 
 int BMS_CAN_INIT(void);
-int send_can_message(const uint8_t *data);
+int send_CAN(uint32_t address, uint8_t *TxBuffer);
+int send_CAN_IVT_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length);
+int send_data2ECU(uint16_t GPIO_Input);
+int ISA_IVT_Init(void);
 
 #endif

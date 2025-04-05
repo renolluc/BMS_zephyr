@@ -52,9 +52,9 @@ int main(void)
 		k_msleep(SLEEP_TIME_MS);
 		
 		// define the data to be sent
-		uint8_t can_data[8] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+		//uint8_t can_data[8] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
 		//uint8_t *data = can_data;
-		send_can_message(can_data);
+		//send_can_message(can_data);
 	}
 
 	return 0;
