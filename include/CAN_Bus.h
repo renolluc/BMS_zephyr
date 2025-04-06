@@ -10,6 +10,11 @@
 
 #include <stdint.h>
 #include <battery.h>
+#include <zephyr/drivers/can.h>
+#include <zephyr/kernel.h>
+
+// Expose the CAN message queue for testing purposes
+extern struct k_msgq can_msgq;
 
 // CAN device
 #define CAN_DEVICE DT_LABEL(DT_NODELABEL(can1))
@@ -68,8 +73,9 @@
 #define CYCLETIME 100  // in ms
 
 //CAN receive Flags in 8 bit format, can byte 0 LSB neue Flags nur für Akku ein- und ausschalten
-#define BATTERY_ON 		(1<<0)
-#define BATTERY_OFF 	(0<<0)
+#define BATTERY_ON 		 (1<<0)
+#define BATTERY_OFF 	 (0<<0)
+#define BATTERY_SW_RESET (1<<3) 
 
 // CAN receive Flags in 8 bit format, can byte 0 LSB wird von obigen Flags ersetzt
 /*

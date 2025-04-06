@@ -53,8 +53,7 @@ void rx_thread(void *arg1, void *arg2, void *arg3)
     const struct can_filter filter = {
         .flags = CAN_FILTER_IDE,
         .id = CAN_MSG_ID,
-        .mask = CAN_EXT_ID_MASK
-    };
+        .mask = CAN_EXT_ID_MASK};
     struct can_frame frame;
     int filter_id;
 
@@ -63,15 +62,52 @@ void rx_thread(void *arg1, void *arg2, void *arg3)
     printk("filter id: %d\n", filter_id);
 
     // While loop to receive messages
-    while (1) {
-        if (k_msgq_get(&can_msgq, &frame, K_FOREVER) == 0) {
+    while (1)
+    {
+        if (k_msgq_get(&can_msgq, &frame, K_FOREVER) == 0)
+        {
             printk("Received CAN message: ID=0x%X, DLC=%d, Data=", frame.id, frame.dlc);
-            for (int i = 0; i < frame.dlc; i++) {
+            for (int i = 0; i < frame.dlc; i++)
+            {
                 printk("%02X ", frame.data[i]);
             }
             printk("\n");
-        } else {
+        }
+        else
+        {
             printk("No message in queue\n");
+        }
+        // Process received message
+        if (frame.id == ADDR_ECU_RX)
+        {
+            //set_relays(frame.data[0]);
+            if (frame.data[0] & BATTERY_SW_RESET)
+            {
+                //SDC_reset();
+            }
+        }
+        else if (frame.id == IVT_MSG_RESPONSE)
+        {
+            return;
+        }
+        else if (frame.id == IVT_MSG_RESULT_I)
+        {
+            //TIM16->CNT = 0; nicht sicher ob noch nötig
+            if (frame.data[0] == IVT_NCURRENT)
+            {
+                //battery_values.actualCurrent = frame.data[5] | frame.data[4] << 8 | frame.data[3] << 16 | frame.data[2] << 24;
+            }
+        }
+        else if (frame.id == IVT_MSG_RESULT_T)
+        {
+            return;
+        }
+        else if (frame.id == IVT_MSG_RESULT_AS)
+        {
+            if (frame.data[0] == IVT_NQ)
+            {
+                //battery_values.CurrentCounter = frame.data[5] | frame.data[4] << 8 | frame.data[3] << 16 | frame.data[2] << 24;
+            }
         }
     }
 }
