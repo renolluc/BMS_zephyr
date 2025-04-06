@@ -117,15 +117,40 @@ The class diagram shows the different classes used and their depencies to each o
 classDiagram
 
     class main
-    main: BMS_CAN_INIT()
 
-    class Can_Bus
+    class Can_Bus{
+        int BMS_CAN_INIT(void);
+        int send_CAN(uint32_t address, uint8_t *TxBuffer);
+        int send_CAN_IVT_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length);
+        int send_data2ECU(uint16_t GPIO_Input);
+        int ISA_IVT_Init(void);
+    }
 
-    class spiMB
+    class spiMB{
+        HAL_StatusTypeDef Read_Voltages(uint16_t *data_buffer);
+        HAL_StatusTypeDef Read_Temp(uint16_t *data_buffer);
+        uint16_t read_ADBMS_Temp();
+        HAL_StatusTypeDef set_DCCx(uint32_t *cells_to_balance);
+        HAL_StatusTypeDef ADBMS_HW_Init();
+    }
 
-    class battery
+    class battery{
+        uint8_t get_battery_status_code(uint16_t GPIO_Input);
+        void battery_reset_error_flags();
+        uint8_t get_battery_error_code();
+        void set_battery_error_flag(uint8_t mask);
+        uint8_t volt2celsius(uint16_t volt_100uV);
+        Battery_StatusTypeDef SDC_reset();
+        void check_SDC_Feedback(uint32_t input_data);
+        Battery_StatusTypeDef check_battery();
+        void set_relays(uint8_t CAN_Data);
+        void charging(uint32_t input_data);
+        void set_time_per_measurement(uint16_t time_ms);
+    }
 
-    class serialmonitor
+    class serialmonitor{
+        void SerialMonitor(uint8_t* data, uint16_t size);
+    }
 
     class shutdowncircuit
 
