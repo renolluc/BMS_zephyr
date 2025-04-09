@@ -12,7 +12,7 @@
 #include <zephyr/sys/byteorder.h>
 #include <CAN_Bus.h>
 
-#define CAN_MSG_ID 0x12345
+#define CAN_MSG_ID 0x123
 #define SLEEP_TIME_MS 1000
 
 // Define loopback mode for testing
@@ -26,6 +26,7 @@ struct k_thread rx_thread_data;
 
 // Get CAN device
 const struct device *const can_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_canbus));
+
 
 // Define message queue
 CAN_MSGQ_DEFINE(can_msgq, 10);
@@ -51,9 +52,8 @@ void rx_thread(void *arg1, void *arg2, void *arg3)
     ARG_UNUSED(arg3);
 
     const struct can_filter filter = {
-        .flags = CAN_FILTER_IDE,
         .id = CAN_MSG_ID,
-        .mask = CAN_EXT_ID_MASK};
+        .mask = CAN_STD_ID_MASK};
     struct can_frame frame;
     int filter_id;
 
@@ -62,9 +62,10 @@ void rx_thread(void *arg1, void *arg2, void *arg3)
     printk("filter id: %d\n", filter_id);
 
     // While loop to receive messages
+    /*
     while (1)
     {
-        if (k_msgq_get(&can_msgq, &frame, K_FOREVER) == 0)
+         if (k_msgq_get(&can_msgq, &frame, K_FOREVER) == 0)
         {
             printk("Received CAN message: ID=0x%X, DLC=%d, Data=", frame.id, frame.dlc);
             for (int i = 0; i < frame.dlc; i++)
@@ -125,7 +126,7 @@ void rx_thread(void *arg1, void *arg2, void *arg3)
                 //battery_values.CurrentCounter = frame.data[5] | frame.data[4] << 8 | frame.data[3] << 16 | frame.data[2] << 24;
             }
         }
-    }
+    }*/
 }
 
 // Function to send CAN messages
@@ -247,6 +248,14 @@ int BMS_CAN_INIT()
     }
 #endif
 
+    // Ensure CAN device is ready
+    if (!device_is_ready(can_dev))
+    {
+        printk("CAN device is not ready\n");
+        return -ENODEV;
+    }
+    printk("CAN device is ready\n");
+    
     ret = can_start(can_dev);
     if (ret != 0) {
         printk("Error starting CAN controller [%d]\n", ret);

@@ -4,7 +4,7 @@
 #include <zephyr/drivers/can.h>
 #include <CAN_Bus.h>
 
-#define TEST_CAN_MSG_ID 0x12345
+#define TEST_CAN_MSG_ID 0x123
 #define TEST_CAN_DATA_LEN 8
 
 ZTEST(can_bus_tests, test_send_CAN)
@@ -53,20 +53,19 @@ ZTEST(can_bus_tests, test_rx_thread)
     struct can_frame test_frame = {
         .id = TEST_CAN_MSG_ID,
         .dlc = 8,
-        .flags = CAN_FRAME_IDE,
         .data = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x11, 0x22}
     };
 
-    // Send a test CAN message
+    printk("Sending test CAN message\n");
     int ret = can_send(can_dev, &test_frame, K_NO_WAIT, NULL, NULL);
     zassert_equal(ret, 0, "Failed to send test CAN message: %d", ret);
 
-    // Wait for the message to be received by the rx_thread
     struct can_frame received_frame;
+    printk("Waiting for message in rx_thread\n");
     ret = k_msgq_get(&can_msgq, &received_frame, K_MSEC(500)); // Increased timeout
-    zassert_equal(ret, 0, "Failed to receive CAN message in rx_thread");
+    zassert_equal(ret, 0, "Failed to receive CAN message in rx_thread: %d", ret);
 
-    // Verify the received message
+    printk("Verifying received message\n");
     zassert_equal(received_frame.id, test_frame.id, "Message ID mismatch");
     zassert_equal(received_frame.dlc, test_frame.dlc, "Message DLC mismatch");
     for (int i = 0; i < test_frame.dlc; i++) {
