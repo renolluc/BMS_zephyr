@@ -77,12 +77,6 @@ HAL_StatusTypeDef SPI_Transceive(uint8_t *tx_data, uint8_t *rx_data, uint16_t si
 	return status;
 }
 
-/*
-uint16_t Calculate_CRC(uint8_t* data, uint16_t size) {
-	uint16_t dat[] = {0x0001};
-    return (uint16_t)(HAL_CRC_Calculate(&hcrc, (uint32_t *)dat, 1)) & 0xFE;
-}
-*/
 // Function to generate 15-bit packet error code
 uint16_t generatePEC(uint8_t data[], size_t length) {
     // Initial value of PEC
@@ -450,25 +444,44 @@ int spi_wakeup_adbms1818() {
 }
 */
 
-// Function to compute CRC-15
-uint16_t spi_generate_pec(const uint8_t *data, uint8_t len) {
-	// CRC-15 parameters
-    uint16_t remainder = 0x0010;
-	// CRC-15 polynomial
-    uint16_t polynomial = 0x4599;  
+// Function to generate 15-bit packet error code (PEC)
+uint16_t spi_generate_pec(const uint8_t data[], size_t length) {
+	// Initial value of PEC (Packet Error Code)
+	uint16_t pec = 0x0010;
 
-	// Compute CRC-15
-    for (uint8_t i = 0; i < len; i++) {
-        remainder ^= (data[i] << 7);
-        for (uint8_t bit = 0; bit < 8; bit++) {
-            if (remainder & 0x4000) {
-                remainder = (remainder << 1) ^ polynomial;
-            } else {
-                remainder = (remainder << 1);
-            }
-        }
-    }
-    return remainder & 0x7FFF;
+	// Characteristic polynomial: x^15 + x^14 + x^10 + x^8 + x^7 + x^4 + x^3 + 1
+	for (size_t i = 0; i < length; ++i) {
+		for (int bit = 7; bit >= 0; --bit) {
+			// XOR the input bit with the MSB of the current PEC
+			uint16_t in0 = ((data[i] >> bit) & 0x01) ^ ((pec >> 14) & 0x01);
+			
+
+			// Update specific bits of the PEC based on the polynomial
+			uint16_t in3 = in0 ^ ((pec >> 2) & 0x01);
+			uint16_t in4 = in0 ^ ((pec >> 3) & 0x01);
+			uint16_t in7 = in0 ^ ((pec >> 6) & 0x01);
+			uint16_t in8 = in0 ^ ((pec >> 7) & 0x01);
+			uint16_t in10 = in0 ^ ((pec >> 9) & 0x01);
+			uint16_t in14 = in0 ^ ((pec >> 13) & 0x01);
+
+			// Shift the PEC left by 1 bit
+			pec <<= 1;
+
+			// Apply the polynomial updates to the PEC
+			pec = (pec & 0x3FFF) | (in14 << 14); // Update bit 14
+			pec = (pec & 0xFBFF) | (in10 << 10); // Update bit 10
+			pec = (pec & 0xFEFF) | (in8 << 8);   // Update bit 8
+			pec = (pec & 0xFF7F) | (in7 << 7);   // Update bit 7
+			pec = (pec & 0xFFEF) | (in4 << 4);   // Update bit 4
+			pec = (pec & 0xFFF7) | (in3 << 3);   // Update bit 3
+			pec = (pec & 0xFFFE) | (in0 << 0);   // Update bit 0
+		}
+	}
+
+	// Shift the PEC left by 1 bit to finalize the calculation
+	pec <<= 1;
+
+	return pec;
 }
 
 // Function to send command
@@ -476,7 +489,7 @@ HAL_StatusTypeDef spi_send_command(uint8_t cmd_high, uint8_t cmd_low) {
 	// Command buffer
     uint8_t cmd[4] = {cmd_high, cmd_low, 0, 0};
 	// Compute CRC-15 for command
-    uint16_t crc = compute_crc15(cmd, 2);
+    uint16_t crc = spi_generate_pec(cmd, 2);
 	// Add CRC to command buffer
     cmd[2] = (crc >> 8) & 0xFF;
     cmd[3] = crc & 0xFF;
@@ -504,10 +517,10 @@ int spi_read_response(uint8_t *data, size_t len) {
         return -1;  // SPI error
     }
 
-    // Validate CRC
-    uint16_t received_crc = (response[len] << 8) | response[len + 1];
-    if (compute_crc15(response, len) != received_crc) {
-        return -2;  // CRC error
+    // Validate PEC
+    uint16_t received_pec = (response[len] << 8) | response[len + 1];
+    if (spi_generate_pec(response, len) != received_pec) {
+        return -2;  // PEC error
     }
 
     // Copy valid data

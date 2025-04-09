@@ -1,5 +1,0 @@
-west:
-  command: /home/falu/zephyrproject/.venv/bin/west build -p always -b native_sim tests/
-    -d build_test
-  topdir: /home/falu/zephyrproject
-  version: 1.3.0

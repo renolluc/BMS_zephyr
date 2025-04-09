@@ -130,5 +130,7 @@ HAL_StatusTypeDef ADBMS_HW_Init();
 
 int spi_test_physical_loopback(void);
 int spi_wakeup_adbms1818();
+extern uint16_t spi_generate_pec(const uint8_t data[], size_t len);
+uint16_t generatePEC(uint8_t data[], size_t len);
 
 #endif /* INC_SPI_MB_H_ */
