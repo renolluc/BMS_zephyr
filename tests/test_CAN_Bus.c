@@ -52,9 +52,9 @@ ZTEST(can_bus_tests, test_rx_thread)
 
     struct can_frame test_frame = {
         .id = TEST_CAN_MSG_ID,
-        .dlc = 6,
+        .dlc = 8,
         .flags = CAN_FRAME_IDE,
-        .data = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF}
+        .data = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x11, 0x22}
     };
 
     // Send a test CAN message

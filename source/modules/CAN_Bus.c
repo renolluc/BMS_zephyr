@@ -19,7 +19,7 @@
 #define CONFIG_LOOPBACK_MODE
 
 // Thread defines
-#define RX_THREAD_STACK_SIZE 512
+#define RX_THREAD_STACK_SIZE 1024
 #define RX_THREAD_PRIORITY 2
 K_THREAD_STACK_DEFINE(rx_thread_stack, RX_THREAD_STACK_SIZE);
 struct k_thread rx_thread_data;
@@ -28,7 +28,7 @@ struct k_thread rx_thread_data;
 const struct device *const can_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_canbus));
 
 // Define message queue
-CAN_MSGQ_DEFINE(can_msgq, 2);
+CAN_MSGQ_DEFINE(can_msgq, 10);
 
 // Callback function for sending messages
 void tx_irq_callback(const struct device *dev, int error, void *arg)
@@ -96,6 +96,22 @@ void rx_thread(void *arg1, void *arg2, void *arg3)
             if (frame.data[0] == IVT_NCURRENT)
             {
                 //battery_values.actualCurrent = frame.data[5] | frame.data[4] << 8 | frame.data[3] << 16 | frame.data[2] << 24;
+            }
+        }
+        //Spannungen der ISA-IVT einlesen
+        else if (frame.id == IVT_MSG_RESULT_U1 || frame.id == IVT_MSG_RESULT_U2 || frame.id == IVT_MSG_RESULT_U3)
+        {
+            if (frame.data[0] == IVT_NU1)
+            {
+                //battery_values.actualVoltages[0] = frame.data[5] | frame.data[4] << 8 | frame.data[3] << 16 | frame.data[2] << 24;
+            }
+            else if (frame.data[0] == IVT_NU2)
+            {
+                //battery_values.actualVoltages[1] = frame.data[5] | frame.data[4] << 8 | frame.data[3] << 16 | frame.data[2] << 24;
+            }
+            else if (frame.data[0] == IVT_NU3)
+            {
+                //battery_values.actualVoltages[2] = frame.data[5] | frame.data[4] << 8 | frame.data[3] << 16 | frame.data[2] << 24;
             }
         }
         else if (frame.id == IVT_MSG_RESULT_T)
