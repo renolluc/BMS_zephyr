@@ -20,9 +20,7 @@ struct spi_config spi_cfg= {
 	// 8-bit word size, MSB first, Master mode  
     .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_OP_MODE_MASTER,
 	// Frequency in Hz
-    .frequency = SPI_FREQ,
-	// Chip select control
-	// DEFAULT PIN A3/PA4
+    .frequency = SPI_FREQ
 };
 
 struct spi_config spi_cfg_test= {
@@ -444,86 +442,262 @@ int spi_wakeup_adbms1818() {
 }
 */
 
-// Function to generate 15-bit packet error code (PEC)
+/**
+ * @brief Generate a 15-bit Packet Error Code (PEC) for a data buffer.
+ *
+ * This function calculates a 15-bit PEC using the polynomial:
+ *   x^15 + x^14 + x^10 + x^8 + x^7 + x^4 + x^3 + 1.
+ *
+ * The PEC is initialized to 0x0010 and then updated bit-by-bit for each bit in the
+ * data array. For each byte, the function iterates from the most-significant bit (bit 7)
+ * to the least-significant bit (bit 0), computing intermediate values and updating
+ * specific bits of the PEC according to the polynomial. Finally, the result is shifted
+ * one last time to finalize the PEC value.
+ *
+ * @param data   Pointer to the input data bytes over which the PEC is computed.
+ * @param length Number of bytes in the input data array.
+ *
+ * @return The computed 15-bit PEC, stored in a 16-bit unsigned integer.
+ */
 uint16_t spi_generate_pec(const uint8_t data[], size_t length) {
-	// Initial value of PEC (Packet Error Code)
-	uint16_t pec = 0x0010;
+    // Initial value of PEC (Packet Error Code)
+    uint16_t pec = 0x0010;
 
-	// Characteristic polynomial: x^15 + x^14 + x^10 + x^8 + x^7 + x^4 + x^3 + 1
-	for (size_t i = 0; i < length; ++i) {
-		for (int bit = 7; bit >= 0; --bit) {
-			// XOR the input bit with the MSB of the current PEC
-			uint16_t in0 = ((data[i] >> bit) & 0x01) ^ ((pec >> 14) & 0x01);
+    // Characteristic polynomial: x^15 + x^14 + x^10 + x^8 + x^7 + x^4 + x^3 + 1
+    for (size_t i = 0; i < length; ++i) {
+        for (int bit = 7; bit >= 0; --bit) {
+            // XOR the current data bit with the MSB (bit 14) of the current PEC value.
+            uint16_t in0 = ((data[i] >> bit) & 0x01) ^ ((pec >> 14) & 0x01);
 			
+            // Compute intermediate values to update the PEC based on the polynomial.
+            uint16_t in3 = in0 ^ ((pec >> 2) & 0x01);
+            uint16_t in4 = in0 ^ ((pec >> 3) & 0x01);
+            uint16_t in7 = in0 ^ ((pec >> 6) & 0x01);
+            uint16_t in8 = in0 ^ ((pec >> 7) & 0x01);
+            uint16_t in10 = in0 ^ ((pec >> 9) & 0x01);
+            uint16_t in14 = in0 ^ ((pec >> 13) & 0x01);
 
-			// Update specific bits of the PEC based on the polynomial
-			uint16_t in3 = in0 ^ ((pec >> 2) & 0x01);
-			uint16_t in4 = in0 ^ ((pec >> 3) & 0x01);
-			uint16_t in7 = in0 ^ ((pec >> 6) & 0x01);
-			uint16_t in8 = in0 ^ ((pec >> 7) & 0x01);
-			uint16_t in10 = in0 ^ ((pec >> 9) & 0x01);
-			uint16_t in14 = in0 ^ ((pec >> 13) & 0x01);
+            // Shift the current PEC value left by 1 bit.
+            pec <<= 1;
 
-			// Shift the PEC left by 1 bit
-			pec <<= 1;
+            // Update specific bits of the PEC based on the intermediate XOR results.
+            pec = (pec & 0x3FFF) | (in14 << 14); // Update bit 14
+            pec = (pec & 0xFBFF) | (in10 << 10);   // Update bit 10
+            pec = (pec & 0xFEFF) | (in8 << 8);     // Update bit 8
+            pec = (pec & 0xFF7F) | (in7 << 7);     // Update bit 7
+            pec = (pec & 0xFFEF) | (in4 << 4);     // Update bit 4
+            pec = (pec & 0xFFF7) | (in3 << 3);     // Update bit 3
+            pec = (pec & 0xFFFE) | (in0 << 0);     // Update bit 0
+        }
+    }
 
-			// Apply the polynomial updates to the PEC
-			pec = (pec & 0x3FFF) | (in14 << 14); // Update bit 14
-			pec = (pec & 0xFBFF) | (in10 << 10); // Update bit 10
-			pec = (pec & 0xFEFF) | (in8 << 8);   // Update bit 8
-			pec = (pec & 0xFF7F) | (in7 << 7);   // Update bit 7
-			pec = (pec & 0xFFEF) | (in4 << 4);   // Update bit 4
-			pec = (pec & 0xFFF7) | (in3 << 3);   // Update bit 3
-			pec = (pec & 0xFFFE) | (in0 << 0);   // Update bit 0
-		}
-	}
+    // Finalize the PEC calculation by shifting left by 1 bit.
+    pec <<= 1;
 
-	// Shift the PEC left by 1 bit to finalize the calculation
-	pec <<= 1;
-
-	return pec;
+    return pec;
 }
 
-// Function to send command
-HAL_StatusTypeDef spi_send_command(uint8_t cmd_high, uint8_t cmd_low) {
-	// Command buffer
-    uint8_t cmd[4] = {cmd_high, cmd_low, 0, 0};
-	// Compute CRC-15 for command
-    uint16_t crc = spi_generate_pec(cmd, 2);
-	// Add CRC to command buffer
-    cmd[2] = (crc >> 8) & 0xFF;
-    cmd[3] = crc & 0xFF;
 
-    struct spi_buf tx_buf = {.buf = cmd, .len = sizeof(cmd)};
-    struct spi_buf_set tx = {.buffers = &tx_buf, .count = 1};
+/**
+ * @brief Creates a 4-byte SPI command for the ADBMS1818.
+ *
+ * This function takes a 16-bit input command and constructs a 4-byte command packet.
+ * The packet consists of a 2-byte command (transmitted most significant byte first)
+ * followed by a 2-byte CRC/PEC, which is calculated over the command bytes using the
+ * generatePEC function.
+ *
+ * The packet format is:
+ * @code
+ * [CMD_MSB][CMD_LSB][PEC_MSB][PEC_LSB]
+ * @endcode
+ *
+ * @param cmd_in The 16-bit command to be sent.
+ * @param cmd_out Pointer to an output buffer that must be at least 4 bytes long.
+ */
+void spi_create_command(uint16_t cmd_in, uint8_t *cmd_out) {
+    /* Prepare an array to hold the two command bytes for PEC calculation */
+    uint8_t crc_data[2];
+    uint16_t crc;
 
-    int ret = spi_transceive(spi1_dev, &spi_cfg, &tx, NULL);
-    
-	if (ret < 0) {
-        printk("SPI Transceive failed: %d\n", ret);
-        return HAL_ERROR;
-    }
+    /* Split the 16-bit command into two 8-bit values */
+    crc_data[0] = cmd_in >> 8;        // Most significant byte (MSB)
+    crc_data[1] = cmd_in & 0xFF;        // Least significant byte (LSB)
 
-    return HAL_OK;
+    /* Compute the CRC/PEC for the 2-byte command */
+    crc = generatePEC(crc_data, 2);
+
+    /* Build the command packet:
+     * - Bytes 0-1: the command (MSB first)
+     * - Bytes 2-3: the computed CRC/PEC (MSB first)
+     */
+    cmd_out[0] = cmd_in >> 8;
+    cmd_out[1] = cmd_in & 0xFF;
+    cmd_out[2] = crc >> 8;   // PEC MSB
+    cmd_out[3] = crc & 0xFF;   // PEC LSB
 }
 
-// Function to read response
-int spi_read_response(uint8_t *data, size_t len) {
-    uint8_t response[len + 2];  // Data + 2 bytes PEC
-    struct spi_buf rx_buf = {.buf = response, .len = sizeof(response)};
-    struct spi_buf_set rx = {.buffers = &rx_buf, .count = 1};
 
-    if (spi_read(spi1_dev, &spi_cfg, &rx) != 0) {
-        return -1;  // SPI error
+/**
+ * @brief Write a group of registers via SPI.
+ *
+ * This function performs a SPI transaction to write register data to multiple clients.
+ * The transmit buffer is organized as follows:
+ * - 4 bytes for the SPI command (which includes a 2-byte command and 2-byte PEC).
+ * - For each client, 8 bytes are allocated, where the first 6 bytes are the data to be written
+ *   and the last 2 bytes are the computed PEC for the data.
+ *
+ * The function uses the Zephyr SPI API by encapsulating the transmit and receive buffers
+ * in spi_buf and spi_buf_set structures.
+ *
+ * @param command A 16-bit command to be sent.
+ * @param data Pointer to the data buffer containing 6 bytes for each client.
+ *
+ * @return 0 on success, or a negative errno value if an error occurs during the SPI transaction.
+ */
+int spi_write_registergroup(uint16_t command, uint8_t *data) {
+    /* Create a transmit buffer that includes:
+     * - 4 bytes for the command (with PEC)
+     * - 8 bytes per client (6 data bytes + 2 PEC bytes)
+     */
+    uint8_t tx_data[4 + NUM_OF_CLIENTS * 8];
+
+    /* Insert the command and its PEC into the beginning of the transmit buffer */
+    spi_create_command(command, tx_data);
+
+    /* For each client, copy 6 data bytes into the transmit buffer and compute the PEC for these bytes */
+    for (uint16_t i = 0; i < NUM_OF_CLIENTS; i++) {
+        for (uint16_t j = 0; j < 6; j++) {
+            tx_data[4 + i * 8 + j] = data[i * 6 + j];
+        }
+        /* Compute the PEC for the data block and store it in the next 2 bytes */
+        uint16_t crc = spi_generate_pec(&data[i * 6], 6);
+        tx_data[4 + i * 8 + 6] = crc >> 8;
+        tx_data[4 + i * 8 + 7] = crc & 0xFF;
     }
 
-    // Validate PEC
-    uint16_t received_pec = (response[len] << 8) | response[len + 1];
-    if (spi_generate_pec(response, len) != received_pec) {
-        return -2;  // PEC error
+    /* Create a receive buffer of the same size as the transmit buffer */
+    uint8_t rx_data[sizeof(tx_data)];
+
+    /* Wrap the transmit buffer in an spi_buf structure */
+    struct spi_buf tx_buf = {
+        .buf = tx_data,
+        .len = sizeof(tx_data)
+    };
+    /* Create a spi_buf_set for the transmit buffer */
+    struct spi_buf_set tx_buf_set = {
+        .buffers = &tx_buf,
+        .count = 1
+    };
+
+    /* Wrap the receive buffer in an spi_buf structure */
+    struct spi_buf rx_buf = {
+        .buf = rx_data,
+        .len = sizeof(rx_data)
+    };
+    /* Create a spi_buf_set for the receive buffer */
+    struct spi_buf_set rx_buf_set = {
+        .buffers = &rx_buf,
+        .count = 1
+    };
+
+    /* Execute the SPI transceive operation using the Zephyr API */
+    int ret = spi_transceive(spi1_dev, &spi_cfg, &tx_buf_set, &rx_buf_set);
+    if (ret < 0) {
+        printk("SPI transceive failed: %d\n", ret);
+        return ret;  /* Return the negative errno code */
     }
 
-    // Copy valid data
-    memcpy(data, response, len);
+    return 0;  /* Success */
+}
+
+/**
+ * @brief Read a group of registers via SPI.
+ *
+ * This function performs a SPI transaction to read register data from
+ * multiple clients. The transmit data consists of a 4-byte command (command
+ * plus PEC) followed by a dummy-filled area (8 bytes per client, representing
+ * 6 bytes of expected data and 2 bytes for the PEC).
+ *
+ * The SPI API is utilized by wrapping the transmit and receive arrays in
+ * spi_buf and spi_buf_set structures. After the SPI transceive call, the function
+ * validates the PEC for each client by computing the PEC over the received data and
+ * comparing it with the received PEC bytes. If the CRC check passes for each client,
+ * the 6 data bytes per client are copied into the user-provided data buffer.
+ *
+ * @param command The 16-bit command to be sent.
+ * @param data Pointer to the buffer where the read register data for all clients will be stored.
+ *             The buffer should be large enough to accommodate 6 bytes per client.
+ *
+ * @return 0 on success, or a negative errno value (e.g. -EIO) if an error occurs.
+ */
+int spi_read_registergroup(uint16_t command, uint8_t *data) {
+    /* Allocate a transmit buffer containing:
+     *  - 4 bytes for the command (command + PEC)
+     *  - 8 bytes per client (6 bytes expected data + 2 bytes PEC)
+     */
+    uint8_t tx_data[4 + NUM_OF_CLIENTS * 8];
+
+    /* Initialize the data area (after the first 4 bytes for the command)
+     * with dummy values.
+     */
+    for (uint16_t i = 0; i < (sizeof(tx_data) - 4); i++) {
+        tx_data[i + 4] = DUMMY;
+    }
+
+    /* Fill the first 4 bytes with the SPI command and its calculated PEC */
+    spi_create_command(command, tx_data);
+
+    /* Allocate a corresponding receive buffer */
+    uint8_t rx_data[sizeof(tx_data)];
+
+    /* Wrap the transmit buffer into an SPI buffer structure */
+    struct spi_buf tx_buf = {
+        .buf = tx_data,
+        .len = sizeof(tx_data)
+    };
+    /* Group the transmit buffer in a buffer set */
+    struct spi_buf_set tx_buf_set = {
+        .buffers = &tx_buf,
+        .count = 1
+    };
+
+    /* Wrap the receive buffer in an SPI buffer structure */
+    struct spi_buf rx_buf = {
+        .buf = rx_data,
+        .len = sizeof(rx_data)
+    };
+    /* Group the receive buffer into a buffer set */
+    struct spi_buf_set rx_buf_set = {
+        .buffers = &rx_buf,
+        .count = 1
+    };
+
+    /* Execute the SPI transaction */
+    int ret = spi_transceive(spi1_dev, &spi_cfg, &tx_buf_set, &rx_buf_set);
+    if (ret < 0) {
+        printk("SPI transceive failed: %d\n", ret);
+        return ret;
+    }
+
+    /* Process each client's received data.
+     * For each client, compute the PEC over 6 bytes of data and compare it with the received PEC.
+     * If the PEC matches, copy the 6 data bytes to the output buffer.
+     */
+    for (uint16_t i = 0; i < NUM_OF_CLIENTS; i++) {
+        uint16_t computed_crc = spi_generate_pec(&rx_data[4 + i * 8], 6);
+        uint16_t received_crc = (rx_data[4 + i * 8 + 6] << 8) | rx_data[4 + i * 8 + 7];
+
+        if (computed_crc != received_crc) {
+            printk("CRC check failed for client %d: computed 0x%04x, received 0x%04x\n",
+                   i, computed_crc, received_crc);
+            return -EIO;
+        }
+
+        for (uint16_t j = 0; j < 6; j++) {
+            data[i * 6 + j] = rx_data[4 + i * 8 + j];
+        }
+    }
     return 0;
 }
+
+
