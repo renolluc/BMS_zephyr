@@ -337,110 +337,89 @@ HAL_StatusTypeDef ADBMS_HW_Init(){
 	}
 }
 
+/**NEUE FUNKTIONEN
+ * 
+ * 
+ * 
+ * **/
 
-
-// Wake-up sequence Daisy Chain Method
+/**
+ * @brief Send a wake-up sequence to the ADBMS1818 using the Daisy Chain method.
+ *
+ * This function initiates the wake-up process for the ADBMS1818 devices in a daisy chain.
+ * It sends a wake-up message (two bytes of 0xFF) over the SPI bus. The function checks if the
+ * SPI device is ready before performing the transmission.
+ *
+ * When the SPI_WAKEUP_LOOPBACK_TEST flag is enabled, the function performs a loopback test:
+ * it receives the sent wake-up message, compares the received data with the transmitted data,
+ * and prints a success or failure message based on the comparison. This test helps verify proper
+ * wiring (i.e., MOSI to MISO connection).
+ *
+ * In the normal operation mode (when SPI_WAKEUP_LOOPBACK_TEST is disabled), the wake-up message is
+ * simply transmitted without expecting a response.
+ *
+ * A short delay (10 microseconds) is inserted after the message transmission to allow the devices to
+ * settle after waking up.
+ *
+ * @return 0 on success, or a negative errno error code on failure.
+ */
 int spi_wakeup_adbms1818() {
-	
-	if (!device_is_ready(spi1_dev)) {
+    // Check if the SPI device is ready. If not, log an error message and return -ENODEV.
+    if (!device_is_ready(spi1_dev)) {
         printk("SPI device is not ready\n");
         return -ENODEV;
     }
-	
-	// Wake-up message
+    
+    // Define the wake-up message (2 bytes with value 0xFF each).
     uint8_t wakeup_msg_data[2] = {0xFF, 0xFF};
-	// SPI buffer
-    struct spi_buf tx_buf = {.buf = wakeup_msg_data, .len = sizeof(wakeup_msg_data)};
-	// SPI buffer set
-    struct spi_buf_set tx = {.buffers = &tx_buf, .count = 1};
 
-	// Send wake-up message
-	#if SPI_WAKEUP_LOOPBACK_TEST
-		struct spi_buf_set rx_test_buf;
-		uint8_t rx_wakeup_data[sizeof(wakeup_msg_data)] = { 0 };
-		struct spi_buf rx_bufs[] = { { .buf = rx_wakeup_data, .len = sizeof(rx_wakeup_data) } };
-		rx_test_buf.buffers = rx_bufs;
-		rx_test_buf.count = 1;
-		spi_transceive(spi1_dev, &spi_cfg_test, &tx, &rx_test_buf);
-	    // Check if the received data matches the sent wake-up message
-		bool wakeup_match = (memcmp(wakeup_msg_data, rx_wakeup_data, sizeof(wakeup_msg_data)) == 0);
-		
-		// Print results
+    // Initialize the SPI transmit buffer with the wake-up message.
+    struct spi_buf tx_buf = {
+        .buf = wakeup_msg_data,
+        .len = sizeof(wakeup_msg_data)
+    };
+    // Wrap the transmit buffer in a SPI buffer set.
+    struct spi_buf_set tx = {
+        .buffers = &tx_buf,
+        .count = 1
+    };
+
+    #if SPI_WAKEUP_LOOPBACK_TEST
+        // If loopback test is enabled, prepare a receive buffer to capture the echoed data.
+        struct spi_buf_set rx_test_buf;
+        uint8_t rx_wakeup_data[sizeof(wakeup_msg_data)] = { 0 };
+        struct spi_buf rx_bufs[] = {
+            { .buf = rx_wakeup_data, .len = sizeof(rx_wakeup_data) }
+        };
+        rx_test_buf.buffers = rx_bufs;
+        rx_test_buf.count = 1;
+        
+        // Perform the SPI transceive using the test configuration.
+        spi_transceive(spi1_dev, &spi_cfg_test, &tx, &rx_test_buf);
+        
+        // Compare the transmitted wake-up message with the received message.
+        bool wakeup_match = (memcmp(wakeup_msg_data, rx_wakeup_data, sizeof(wakeup_msg_data)) == 0);
+        
+        // Log the results of the loopback test.
         printk("\nSPI Wakeup Loopback Test");
         printk("\nSent:    %02X %02X", wakeup_msg_data[0], wakeup_msg_data[1]);
         printk("\nReceived:%02X %02X", rx_wakeup_data[0], rx_wakeup_data[1]);
-
         if (wakeup_match) {
             printk("\nSPI Loopback SUCCESS!\n");
         } else {
             printk("\nSPI Loopback FAILED! Check MOSI-MISO wiring.\n");
         }
-		
-	#else
-		spi_transceive(spi1_dev, &spi_cfg, &tx, NULL);
-		printk("\nSPI Wakeup Message Sent: %02X %02X\n", wakeup_msg_data[0], wakeup_msg_data[1]);
+    #else
+        // In normal operation, perform the SPI transceive without a receive buffer.
+        spi_transceive(spi1_dev, &spi_cfg, &tx, NULL);
+        printk("\nSPI Wakeup Message Sent: %02X %02X\n", wakeup_msg_data[0], wakeup_msg_data[1]);
+    #endif
 
-	#endif
+    // Wait a short period (10 microseconds) after sending the wake-up message.
+    k_sleep(K_USEC(10));
     
-    k_sleep(K_USEC(10));  // Small delay after wakeup
-	return 0;
-}
-
-
-/* Kann gelöscht werden ist nun in spi_wakeup_adbms1818 drin mit Test Variabel*/
-// SPI Physical Loopback Test (MOSI -> MISO)
-/*int spi_test_physical_loopback(void)
-{
-	
-    if (!device_is_ready(spi1_dev)) {
-        printk("SPI device is not ready\n");
-        return -ENODEV;
-    }
-	
-	// Create test pattern
-    uint8_t tx_data[] = { 0xA5, 0x5A, 0xC3, 0x3C };
-	// Create receive Array with size of test pattern
-    uint8_t rx_data[sizeof(tx_data)] = {0};
-
-	// Create SPI TX buffers
-    struct spi_buf tx_bufs[] = {
-        { .buf = tx_data, .len = sizeof(tx_data) }
-    };
-
-	// Create SPI RX buffers
-    struct spi_buf rx_bufs[] = {
-        { .buf = rx_data, .len = sizeof(rx_data) }
-    };
-
-	// Create SPI buffer sets
-    struct spi_buf_set tx = { .buffers = tx_bufs, .count = 1 };
-    struct spi_buf_set rx = { .buffers = rx_bufs, .count = 1 };
-
-        // Send and receive SPI data
-        int ret = spi_transceive(spi1_dev, &spi_cfg, &tx, &rx);
-        if (ret < 0) {
-            printk("SPI Transceive failed\n");
-            return ret;
-        }
-
-        // Check if received data matches sent data
-        bool match = (memcmp(tx_data, rx_data, sizeof(tx_data)) == 0);
-
-		// Print results
-        printk("\nSPI Loopback Test");
-        printk("\nSent:    %02X %02X %02X %02X", tx_data[0], tx_data[1], tx_data[2], tx_data[3]);
-        printk("\nReceived:%02X %02X %02X %02X", rx_data[0], rx_data[1], rx_data[2], rx_data[3]);
-
-        if (match) {
-            printk("\nSPI Loopback SUCCESS!\n");
-        } else {
-            printk("\nSPI Loopback FAILED! Check MOSI-MISO wiring.\n");
-        }
-
-  
     return 0;
 }
-*/
 
 /**
  * @brief Generate a 15-bit Packet Error Code (PEC) for a data buffer.
@@ -497,7 +476,6 @@ uint16_t spi_generate_pec(const uint8_t data[], size_t length) {
     return pec;
 }
 
-
 /**
  * @brief Creates a 4-byte SPI command for the ADBMS1818.
  *
@@ -536,6 +514,32 @@ void spi_create_command(uint16_t cmd_in, uint8_t *cmd_out) {
     cmd_out[3] = crc & 0xFF;   // PEC LSB
 }
 
+/**
+ * @brief Sends a 16-bit command over SPI.
+ *
+ * This helper function builds a 4-byte command packet using spi_create_command,
+ * then transmits it over SPI using Zephyr’s spi_transceive API. The response is
+ * discarded (or could be used for validation if needed).
+ *
+ * @param command The 16-bit command to send.
+ * @return 0 on success, or a negative errno error code on failure.
+ */
+int spi_send_command(uint16_t command) {
+    uint8_t cmd[4];
+    uint8_t rx[4];
+    
+    // Build the command packet (command + PEC)
+    spi_create_command(command, cmd);
+    
+    // Wrap the command packet into SPI buffer structures
+    struct spi_buf tx_buf = { .buf = cmd, .len = sizeof(cmd) };
+    struct spi_buf_set tx_buf_set = { .buffers = &tx_buf, .count = 1 };
+    struct spi_buf rx_buf = { .buf = rx, .len = sizeof(rx) };
+    struct spi_buf_set rx_buf_set = { .buffers = &rx_buf, .count = 1 };
+    
+    // Transmit the command over SPI
+    return spi_transceive(spi1_dev, &spi_cfg, &tx_buf_set, &rx_buf_set);
+}
 
 /**
  * @brief Write a group of registers via SPI.
@@ -552,7 +556,7 @@ void spi_create_command(uint16_t cmd_in, uint8_t *cmd_out) {
  * @param command A 16-bit command to be sent.
  * @param data Pointer to the data buffer containing 6 bytes for each client.
  *
- * @return 0 on success, or a negative errno value if an error occurs during the SPI transaction.
+ * @return 0 on success, or a negative errno error code on failure.
  */
 int spi_write_registergroup(uint16_t command, uint8_t *data) {
     /* Create a transmit buffer that includes:
@@ -628,7 +632,7 @@ int spi_write_registergroup(uint16_t command, uint8_t *data) {
  * @param data Pointer to the buffer where the read register data for all clients will be stored.
  *             The buffer should be large enough to accommodate 6 bytes per client.
  *
- * @return 0 on success, or a negative errno value (e.g. -EIO) if an error occurs.
+ * @return 0 on success, or a negative errno error code on failure.
  */
 int spi_read_registergroup(uint16_t command, uint8_t *data) {
     /* Allocate a transmit buffer containing:
@@ -700,4 +704,158 @@ int spi_read_registergroup(uint16_t command, uint8_t *data) {
     return 0;
 }
 
+/**
+ * @brief Reads voltage measurements from multiple clients.
+ *
+ * This function performs the following sequence:
+ * 1. Wakes up the devices using spi_wake_up().
+ * 2. Sends the ADC voltage conversion command using spi_send_command(ADCV), which internally
+ *    builds and sends the command using spi_create_command.
+ * 3. Waits 3 milliseconds for the ADC conversion to complete (using Zephyr's k_msleep).
+ * 4. Reads voltage data from 6 different register groups (one per voltage channel) via Read_Registergroup.
+ *    Each register group read returns a 6-byte block per client.
+ * 5. If the read is successful for a channel, the 6-byte block for each client is placed into the
+ *    output buffer in a byte-wise manner. Each client has 36 bytes allocated in the output (6 channels * 6 bytes each).
+ * 6. On any read error, the entire output buffer is cleared and the function returns the error status.
+ *
+ * The input parameter, data_buffer, is declared as a pointer to uint16_t; however, the underlying
+ * byte-wise storage is used. This is why a cast to a uint8_t pointer is performed.
+ *
+ * @param data_buffer Pointer to a 16-bit data buffer that will receive the voltage measurements.
+ *                    The buffer must be large enough to hold NUM_OF_CLIENTS * 36 bytes.
+ *
+ * @return 0 on success, or a negative errno error code on failure.
+ */
+int spi_read_voltages(uint16_t *data_buffer) {
+    /* Cast the 16-bit pointer to an 8-bit pointer to allow for byte-wise access. */
+    uint8_t *buffer = (uint8_t*)(data_buffer);
+    int status = ETIME;
+    /* Temporary buffer for a single transmission (6 bytes per client). */
+    uint8_t short_buffer[NUM_OF_CLIENTS * 6];
 
+    /* Wake up the devices. */
+    spi_wake_up();
+    
+    /* Send the ADC conversion command using the new command function which uses spi_create_command internally. */
+    spi_send_command(ADCV);
+
+    /* Use Zephyr's delay function instead of HAL_Delay to integrate properly with the system scheduler. */
+    k_msleep(3);
+
+    /* Loop over the 6 voltage channels (or register groups). */
+    for (uint16_t i = 0; i < 6; i++) {
+        status = spi_read_registergroup(RDCV[i], short_buffer);
+		if(status < 0) {
+            /* On error, clear the entire output buffer and return the error status. */
+            memset(buffer, 0, NUM_OF_CLIENTS * 36);
+            return status;
+        }
+        else{
+            /* For each client, copy the 6-byte data block from the temporary buffer to the correct 
+             * position in the output buffer.
+             * Each client receives 36 bytes in total, with each of the 6 channels contributing 6 bytes.
+             */
+            for (uint16_t j = 0; j < NUM_OF_CLIENTS; j++) {
+                for (uint16_t k = 0; k < 6; k++) {
+                    buffer[j * 36 + i * 6 + k] = short_buffer[j * 6 + k];
+                }
+            }
+        } 
+    }
+    return 0;
+}
+
+
+/**
+ * @brief Reads auxiliary registers (temperatures) via SPI and stores the results in the provided buffer.
+ *
+ * This function reads temperature and auxiliary data by executing a sequence of SPI transactions.
+ * The overall workflow is as follows:
+ *  1. Wake up the device chain using spi_wake_up().
+ *  2. Send the ADC auxiliary conversion command using spi_send_command(ADAX).
+ *  3. Wait 3 ms (using k_msleep) to allow the conversion to complete.
+ *  4. For each of 4 register groups (corresponding to AUX registers AUXA through AUXD):
+ *     - For AUXA to AUXC (i.e. i < 3), read 6 bytes per client.
+ *     - For AUXD (i.e. i == 3), read 2 bytes per client.
+ *     The read data is temporarily stored in a short buffer (sbuffer) and then copied into the 
+ *     output buffer.
+ *  5. Finally, the function rearranges the output buffer to remove the reference voltage data
+ *     and certain GPIO values (e.g., values at positions 5 and 9) by shifting data within the buffer.
+ *
+ * @note The output buffer is passed as a pointer to uint16_t but is accessed on a byte-level
+ *       by casting it to uint8_t*. The expected size of the output buffer is assumed here to be
+ *       NUM_OF_CLIENTS * 20 bytes (although the initial comment states NUM_OF_CLIENTS * 10, this
+ *       seems inconsistent with the later usage).
+ *
+ * @param data_buffer Pointer to a data buffer (of type uint16_t) that will receive the auxiliary data.
+ *                    The underlying layout must be large enough to hold NUM_OF_CLIENTS * 20 bytes.
+ *
+ * @return 0 on success, or a negative errno error code on failure.
+ */
+int spi_read_temp(uint16_t *data_buffer) {
+    // Cast the 16-bit data buffer to a byte pointer to enable byte-wise access.
+    uint8_t *buffer = (uint8_t*)(data_buffer);
+    int status;
+    
+    // Temporary buffer to hold the data from a single SPI register group read.
+    // Each transmission for a register group returns 6 bytes per client.
+    uint8_t short_buffer[NUM_OF_CLIENTS * 6];
+    
+    // Wake up the devices on the SPI bus.
+    spi_wake_up();
+    
+    // Send the ADC auxiliary conversion command.
+    spi_send_command(ADAX);
+    
+    // Wait 3 ms using Zephyr's delay function for the conversion to complete.
+    k_msleep(3);
+    
+    // Loop over the 4 auxiliary register groups (AUXA, AUXB, AUXC, AUXD)
+    for (uint16_t i = 0; i < 4; i++) {
+        // Read the register group identified by RDCV[i] into the temporary buffer.
+        status = spi_read_registergroup(RDAUX[i], short_buffer);
+        
+        // If the read fails, clear the entire output buffer (assumed size is NUM_OF_CLIENTS*20 bytes)
+        // and return the error status.
+        if (status < 0) {
+            for (uint16_t j = 0; j < (NUM_OF_CLIENTS * 20); j++) {
+                buffer[j] = 0;
+            }
+            return status;
+        } else {
+            // For AUXA to AUXC: each register group is 6 bytes per client.
+            if (i < 3) {
+                for (uint16_t j = 0; j < NUM_OF_CLIENTS; j++) {
+                    for (uint16_t k = 0; k < 6; k++) {
+                        buffer[j * 20 + i * 6 + k] = short_buffer[j * 6 + k];
+                    }
+                }
+            }
+            // For AUXD: only 2 bytes per client are read.
+            else {
+                for (uint16_t j = 0; j < NUM_OF_CLIENTS; j++) {
+                    for (uint16_t k = 0; k < 2; k++) {
+                        buffer[j * 20 + i * 6 + k] = short_buffer[j * 6 + k];
+                    }
+                }
+            }
+        }
+    }
+    
+    // Rearrange the output buffer to remove reference voltage and certain GPIO data.
+    // This section shifts the values such that specific positions (e.g., values at index 5 and 9)
+    // are omitted or overwritten. The starting source index is set to 12.
+    uint16_t j = 12;
+    for (uint16_t i = 10; i < 16 * NUM_OF_CLIENTS; i++) {
+        buffer[i] = buffer[j];
+        // When j modulo 20 equals 9 or 17, skip ahead by 3 bytes; otherwise, increment by 1.
+        // This logic is designed to remove unwanted bytes from the reference voltage section.
+        if ((j % 20 == 9) || (j % 20 == 17)) {
+            j += 3;
+        } else {
+            j++;
+        }
+    }
+    
+    return status;
+}
