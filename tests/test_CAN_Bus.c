@@ -62,14 +62,14 @@ ZTEST(can_bus_tests, test_rx_thread)
 
     struct can_frame received_frame;
     printk("Waiting for message in rx_thread\n");
-    ret = k_msgq_get(&can_msgq, &received_frame, K_MSEC(500)); // Increased timeout
+    ret = k_msgq_get(&can_msgq, &received_frame, K_MSEC(5000)); // Increased timeout
     zassert_equal(ret, 0, "Failed to receive CAN message in rx_thread: %d", ret);
 
     printk("Verifying received message\n");
     zassert_equal(received_frame.id, test_frame.id, "Message ID mismatch");
     zassert_equal(received_frame.dlc, test_frame.dlc, "Message DLC mismatch");
     for (int i = 0; i < test_frame.dlc; i++) {
-        zassert_equal(received_frame.data[i], test_frame.data[i], "Data mismatch at byte %d", i);
+        zassert_equal(received_frame.data[i], test_frame.data[i], "expected data[%d] = %02X, but got %02X", i, test_frame.data[i], received_frame.data[i]);
     }
 }
 

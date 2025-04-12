@@ -16,7 +16,7 @@
 #define SLEEP_TIME_MS 1000
 
 // Define loopback mode for testing
-#define CONFIG_LOOPBACK_MODE
+//#define CONFIG_LOOPBACK_MODE
 
 // Thread defines
 #define RX_THREAD_STACK_SIZE 1024
@@ -52,8 +52,8 @@ void rx_thread(void *arg1, void *arg2, void *arg3)
     ARG_UNUSED(arg3);
 
     const struct can_filter filter = {
-        .id = CAN_MSG_ID,
-        .mask = CAN_STD_ID_MASK};
+        .id = 0x000,
+        .mask = 0x000};
     struct can_frame frame;
     int filter_id;
 
@@ -62,10 +62,9 @@ void rx_thread(void *arg1, void *arg2, void *arg3)
     printk("filter id: %d\n", filter_id);
 
     // While loop to receive messages
-    /*
     while (1)
     {
-         if (k_msgq_get(&can_msgq, &frame, K_FOREVER) == 0)
+        if (k_msgq_get(&can_msgq, &frame, K_MSEC(5000)) == 0)
         {
             printk("Received CAN message: ID=0x%X, DLC=%d, Data=", frame.id, frame.dlc);
             for (int i = 0; i < frame.dlc; i++)
@@ -125,8 +124,8 @@ void rx_thread(void *arg1, void *arg2, void *arg3)
             {
                 //battery_values.CurrentCounter = frame.data[5] | frame.data[4] << 8 | frame.data[3] << 16 | frame.data[2] << 24;
             }
-        }
-    }*/
+        }       
+    }
 }
 
 // Function to send CAN messages
@@ -135,7 +134,6 @@ int send_CAN(uint32_t address, uint8_t *TxBuffer)
     struct can_frame frame = {
         .id = address,
         .dlc = 8,
-        .flags = CAN_FRAME_IDE
     };
 
     memcpy(frame.data, TxBuffer, frame.dlc);
@@ -163,7 +161,6 @@ int send_CAN_IVT_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length)
     struct can_frame frame = {
         .id = address,
         .dlc = length,
-        .flags = CAN_FRAME_IDE
     };
 
     memcpy(frame.data, TxBuffer, frame.dlc);
