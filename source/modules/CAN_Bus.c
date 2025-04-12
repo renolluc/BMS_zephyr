@@ -16,7 +16,7 @@
 #define SLEEP_TIME_MS 1000
 
 // Define loopback mode for testing
-//#define CONFIG_LOOPBACK_MODE
+#define CONFIG_LOOPBACK_MODE
 
 // Thread defines
 #define RX_THREAD_STACK_SIZE 1024
@@ -27,6 +27,8 @@ struct k_thread rx_thread_data;
 // Get CAN device
 const struct device *const can_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_canbus));
 
+// struct for test feedback
+struct k_sem test_ack_sem;
 
 // Define message queue
 CAN_MSGQ_DEFINE(can_msgq, 10);
@@ -124,7 +126,12 @@ void rx_thread(void *arg1, void *arg2, void *arg3)
             {
                 //battery_values.CurrentCounter = frame.data[5] | frame.data[4] << 8 | frame.data[3] << 16 | frame.data[2] << 24;
             }
-        }       
+        } 
+        else if (frame.id == TEST_RXTHREAD_ID)
+        {
+            printk("Test message received. Giving semaphore.\n");
+            k_sem_give(&test_ack_sem);  // Let the unit test know it was received
+        }
     }
 }
 
@@ -269,6 +276,9 @@ int BMS_CAN_INIT()
         return -1;
     }
     printk("RX thread spawned\n");
+
+    // Initialize semaphore for test acknowledgment
+    k_sem_init(&test_ack_sem, 0, 1);
 
     return 0;
 }

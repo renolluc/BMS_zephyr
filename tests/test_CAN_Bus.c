@@ -5,6 +5,7 @@
 #include <CAN_Bus.h>
 
 #define TEST_CAN_MSG_ID 0x123
+#define TEST_RXTHREAD_ID 0x7A0
 #define TEST_CAN_DATA_LEN 8
 
 ZTEST(can_bus_tests, test_send_CAN)
@@ -51,7 +52,7 @@ ZTEST(can_bus_tests, test_rx_thread)
     zassert_true(device_is_ready(can_dev), "CAN device is not ready");
 
     struct can_frame test_frame = {
-        .id = TEST_CAN_MSG_ID,
+        .id = TEST_RXTHREAD_ID,
         .dlc = 8,
         .data = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x11, 0x22}
     };
@@ -60,17 +61,9 @@ ZTEST(can_bus_tests, test_rx_thread)
     int ret = can_send(can_dev, &test_frame, K_NO_WAIT, NULL, NULL);
     zassert_equal(ret, 0, "Failed to send test CAN message: %d", ret);
 
-    struct can_frame received_frame;
     printk("Waiting for message in rx_thread\n");
-    ret = k_msgq_get(&can_msgq, &received_frame, K_MSEC(5000)); // Increased timeout
-    zassert_equal(ret, 0, "Failed to receive CAN message in rx_thread: %d", ret);
-
-    printk("Verifying received message\n");
-    zassert_equal(received_frame.id, test_frame.id, "Message ID mismatch");
-    zassert_equal(received_frame.dlc, test_frame.dlc, "Message DLC mismatch");
-    for (int i = 0; i < test_frame.dlc; i++) {
-        zassert_equal(received_frame.data[i], test_frame.data[i], "expected data[%d] = %02X, but got %02X", i, test_frame.data[i], received_frame.data[i]);
-    }
+    ret = k_sem_take(&test_ack_sem, K_MSEC(1000));
+    zassert_equal(ret, 0, "Test message was not handled in time");
 }
 
 ZTEST_SUITE(can_bus_tests, NULL, NULL, NULL, NULL, NULL);

@@ -19,6 +19,9 @@ extern struct k_msgq can_msgq;
 // CAN device
 #define CAN_DEVICE DT_LABEL(DT_NODELABEL(can1))
 
+extern struct k_sem test_ack_sem;
+#define TEST_RXTHREAD_ID 0x7A0
+
 #define ADDR_ECU_RX 0x410 // Address used ECU => CB
 #define ADDR_ECU_TX 0x310 // Address used CB => ECU
 
