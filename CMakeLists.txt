@@ -9,12 +9,13 @@ project(app)
 
 target_sources(app
         PRIVATE
-        source/modules/CAN_Bus.c
+        source/modules/CAN_Bus.c        
         source/modules/SPI_MB.c
-        
 )
 
+
 zephyr_include_directories(./include)
+
 
 if (NOT CONFIG_ZTEST)
     target_sources(app PRIVATE source/main.c)
