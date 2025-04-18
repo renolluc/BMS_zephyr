@@ -17,7 +17,7 @@
                 "${userHome}/zephyr-sdk-0.17.0/sysroots/x86_64-pokysdk-linux/usr/share/openocd/scripts/target/stm32l4x.cfg"
             ],
 
-            "showDevDebugOutput": "raw"
+            //"showDevDebugOutput": "raw"
         },
 ]
 }
