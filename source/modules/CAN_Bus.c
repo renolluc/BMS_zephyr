@@ -224,9 +224,15 @@ int ISA_IVT_Init()
     status |= send_CAN_IVT_nbytes(IVT_MSG_COMMAND, can_data1, 4);
     k_msleep(10);
 
-    // Disable Voltage Measurement
-    uint8_t can_data2[] = {(MUX_SETCONFIG | IVT_NU1), DISABLED, (CYCLETIME >> 8) & 0xFF, CYCLETIME & 0xFF};
+    // Enable Voltage Measurement
+    uint8_t can_data2[] = {(MUX_SETCONFIG | IVT_NU1), CYCLIC, (CYCLETIME >> 8) & 0xFF, CYCLETIME & 0xFF};
     status |= send_CAN_IVT_nbytes(IVT_MSG_COMMAND, can_data2, 4);
+    k_msleep(10);
+    uint8_t can_data3[] = {(MUX_SETCONFIG | IVT_NU2), CYCLIC, (CYCLETIME >> 8) & 0xFF, CYCLETIME & 0xFF};
+    status |= send_CAN_IVT_nbytes(IVT_MSG_COMMAND, can_data3, 4);
+    k_msleep(10);
+    uint8_t can_data4[] = {(MUX_SETCONFIG | IVT_NU3), CYCLIC, (CYCLETIME >> 8) & 0xFF, CYCLETIME & 0xFF};
+    status |= send_CAN_IVT_nbytes(IVT_MSG_COMMAND, can_data4, 4);
     k_msleep(10);
 
     // Set sensor mode to RUN

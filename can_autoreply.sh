@@ -39,6 +39,7 @@ REPLY_CAN_STRING="${REPLY_ID}#$(echo ${REPLY_DATA} | sed 's/ //g')"
 echo "[INFO] Checking if $CAN_INTERFACE is up..."
 if ! ip link show "$CAN_INTERFACE" | grep -q "state UP"; then
     echo "[WARN] $CAN_INTERFACE is down. Attempting to bring it up..."
+    sudo modprobe peak_usb
     sudo ip link set "$CAN_INTERFACE" up type can bitrate $BITRATE
     if [ $? -ne 0 ]; then
         echo "[ERROR] Failed to bring up $CAN_INTERFACE. Exiting."
