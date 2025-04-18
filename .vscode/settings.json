@@ -10,6 +10,7 @@
         "stats.h": "c",
         "compare": "c",
         "cstdint": "c",
-        "crc.h": "c"
+        "crc.h": "c",
+        "device.h": "c"
     }
 }

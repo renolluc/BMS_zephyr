@@ -116,7 +116,6 @@ extern SPI_HandleTypeDef hspi1; // delete this line new: device *spi1_dev is the
 extern const struct device *spi1_dev;
 
 
-
 // SPI MB Functions
 HAL_StatusTypeDef Read_Voltages(uint16_t *data_buffer);
 HAL_StatusTypeDef Read_Temp(uint16_t *data_buffer);
@@ -128,9 +127,10 @@ HAL_StatusTypeDef ADBMS_HW_Init();
 // First SPI Test
 /* SPI configuration */
 
-int spi_test_physical_loopback(void);
 int spi_wakeup_adbms1818();
 extern uint16_t spi_generate_pec(const uint8_t data[], size_t len);
 uint16_t generatePEC(uint8_t data[], size_t len);
+void spi_wakeup();
+int spi_adbms1818_hw_init();
 
 #endif /* INC_SPI_MB_H_ */

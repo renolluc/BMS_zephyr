@@ -6,30 +6,14 @@
 #include <zephyr/device.h>
 #include <SPI_MB.h>
 
-LOG_MODULE_REGISTER(mainLog);
 
 /* LED configuration */
 #define LED0_NODE DT_ALIAS(led0)
 static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 
+
 /* 1000 msec = 1 sec */
 #define SLEEP_TIME_MS   1000
-#define THREAD_STACKSIZE 512
-#define PRIORITY_SPI 7
-
-void spiThread()
-{
-	while(1){
-	//spi_test_physical_loopback();
-	spi_wakeup_adbms1818();
-
-	k_msleep(1000);
-}
-}
-
-K_THREAD_DEFINE(spi_thread_id, THREAD_STACKSIZE, spiThread, NULL, NULL, NULL,
-	PRIORITY_SPI, 0, 0);
-
 
 int main(void)
 {
@@ -55,6 +39,8 @@ int main(void)
 	}
     */
 
+	spi_adbms1818_hw_init();
+	
 	while (1) {
 		ret = gpio_pin_toggle_dt(&led);
 		if (ret < 0) {
