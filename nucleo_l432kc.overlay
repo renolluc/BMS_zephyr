@@ -1,0 +1,3 @@
+&gpiob {
+    status = "okay";
+};

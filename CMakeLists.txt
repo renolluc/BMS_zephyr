@@ -13,7 +13,9 @@ target_sources(app
         source/modules/SPI_MB.c
 )
 
-zephyr_include_directories(include)
+
+zephyr_include_directories(./include)
+
 
 if (NOT CONFIG_ZTEST)
     target_sources(app PRIVATE source/main.c)

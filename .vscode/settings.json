@@ -6,6 +6,12 @@
         "gpio.h": "c",
         "can.h": "c"
         "log.h": "c",
-        "spi.h": "c"
+        "spi.h": "c",
+        "cstdlib": "c",
+        "stats.h": "c",
+        "compare": "c",
+        "cstdint": "c",
+        "crc.h": "c",
+        "device.h": "c"
     }
 }
