@@ -13,20 +13,20 @@
 #include <zephyr/drivers/can.h>
 #include <zephyr/kernel.h>
 
-// Expose the CAN message queue for testing purposes
-extern struct k_msgq can_msgq;
-
-// CAN device
+/** @brief CAN device label for Zephyr device tree */
 #define CAN_DEVICE DT_LABEL(DT_NODELABEL(can1))
 
+/** @brief Semaphore for RX thread test acknowledgment */
 extern struct k_sem test_ack_sem;
+
+/** @brief Message ID used by RX thread test communication */
 #define TEST_RXTHREAD_ID 0x7A0
 
-//>> ECU defines
+/** @brief Message ID used for ECU communication */
 #define ADDR_ECU_RX 0x410 // Address used ECU => CB
 #define ADDR_ECU_TX 0x310 // Address used CB => ECU
 
-//>> ISA defines
+/** @brief Message ID used for IVT communication */
 // adresses
 #define IVT_MSG_COMMAND   0x411		// CB => ISA
 #define IVT_MSG_RESPONSE  0x511		// ISA => CB
@@ -102,10 +102,45 @@ extern struct k_sem test_ack_sem;
 //wird vermutlich nicht mehr gebraucht
 //extern CAN_HandleTypeDef hcan1;
 
+/**
+ * @brief Initializes CAN controller and receive thread.
+ *
+ * @return 0 on success, error code otherwise.
+ */
 int BMS_CAN_INIT(void);
+
+/**
+ * @brief Sends an 8-byte CAN frame to the specified address.
+ *
+ * @param address Target CAN ID.
+ * @param TxBuffer Pointer to 8-byte data buffer.
+ * @return 0 on success, error code otherwise.
+ */
 int send_CAN(uint32_t address, uint8_t *TxBuffer);
+
+/**
+ * @brief Sends a CAN frame with specified byte length.
+ *
+ * @param address Target CAN ID.
+ * @param TxBuffer Pointer to data buffer.
+ * @param length Number of bytes to send.
+ * @return 0 on success, error code otherwise.
+ */
 int send_CAN_IVT_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length);
+
+/**
+ * @brief Formats and sends sensor data to the ECU.
+ *
+ * @param GPIO_Input GPIO input encoding system status.
+ * @return 0 on success, error code otherwise.
+ */
 int send_data2ECU(uint16_t GPIO_Input);
+
+/**
+ * @brief Initializes IVT sensor with measurement configurations.
+ *
+ * @return 0 on success, error code otherwise.
+ */
 int ISA_IVT_Init(void);
 
 #endif

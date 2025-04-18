@@ -51,8 +51,7 @@ int main(void)
 		printk("LED state: %s\n", led_state ? "ON" : "OFF");
 		k_msleep(SLEEP_TIME_MS);
 		
-		uint8_t test_data[8] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
-		send_CAN(0x123, test_data);
+
 	}
 
 	return 0;

@@ -4,6 +4,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/**
+ * @file CAN_Bus.c
+ * @brief CAN Bus communication module for Zephyr RTOS.
+ *
+ * This file implements functions to initialize and use the CAN interface,
+ * send and receive messages, and process responses from IVT and ECU modules.
+ * It includes a receiver thread, transmit callback, and utility functions
+ * specific to an automotive battery management system.
+ */
+
 #include <stdio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/sys/printk.h>
@@ -16,7 +26,7 @@
 #define SLEEP_TIME_MS 1000
 
 // Define loopback mode for testing
-#define CONFIG_LOOPBACK_MODE
+//#define CONFIG_LOOPBACK_MODE
 
 // Thread defines
 #define RX_THREAD_STACK_SIZE 1024
@@ -208,6 +218,7 @@ int send_data2ECU(uint16_t GPIO_Input)
     } */
     return send_CAN(ADDR_ECU_TX, can_data);
 }
+
 
 int ISA_IVT_Init()
 {
