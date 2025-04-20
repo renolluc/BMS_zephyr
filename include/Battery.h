@@ -1,8 +1,11 @@
 /*
- * battery.h
+ * Battery.h
  *
- *  Created on: 12.04.2024
- *      Author: jansc
+ * Description: This module handles the Batteries for the BMS system.
+ *
+ * Author: renolluc / grossfa2
+ * Date: 20.04.2025
+ *
  */
 
 #ifndef INC_BATTERY_H_
@@ -10,6 +13,7 @@
 
 #include "SPI_MB.h"
 #include "CAN_Bus.h"
+#include <zephyr/drivers/gpio.h>
 
 /**
   * @brief  Battery Status
@@ -78,4 +82,10 @@ Battery_StatusTypeDef check_battery();
 void set_relays(uint8_t CAN_Data);
 void charging(uint32_t input_data);
 void set_time_per_measurement(uint16_t time_ms);
+
+
+
+
+
+
 #endif /* INC_BATTERY_H_ */

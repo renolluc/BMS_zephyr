@@ -9,7 +9,7 @@
 #define INC_CAN_BUS_H
 
 #include <stdint.h>
-#include <battery.h>
+#include <Battery.h>
 #include <zephyr/drivers/can.h>
 #include <zephyr/kernel.h>
 
