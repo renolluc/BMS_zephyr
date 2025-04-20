@@ -11,34 +11,57 @@
  #include "Battery.h"
  #include "Status_error_flags.h"
  
+ #define GPIOA_DEVICE DT_NODELABEL(gpioa)
+ #define GPIOB_DEVICE DT_NODELABEL(gpiob)
 
-/* Bring in the devicetree spec for each signal via its alias */
-static const struct gpio_dt_spec charge_en_spec =
-    GPIO_DT_SPEC_GET(DT_ALIAS(charge_en), gpios);
-static const struct gpio_dt_spec charger_con_spec =
-    GPIO_DT_SPEC_GET(DT_ALIAS(charger_connect), gpios);
-static const struct gpio_dt_spec precharge_en_spec =
-    GPIO_DT_SPEC_GET(DT_ALIAS(precharge_enable), gpios);
-static const struct gpio_dt_spec drive_precharge_spec =
-    GPIO_DT_SPEC_GET(DT_ALIAS(drive_precharge), gpios);
+ static const struct device *gpioa_dev;
+ static const struct device *gpiob_dev;
+ 
 
-int battery_gpio_init(void)
-{
-    if (!device_is_ready(charge_en_spec.port) ||
-        !device_is_ready(charger_con_spec.port) ||
-        !device_is_ready(precharge_en_spec.port) ||
-        !device_is_ready(drive_precharge_spec.port)) {
-        return -ENODEV;
-    }
+ /**
+ * @brief Initialize the GPIO inputs for battery status pins.
+ *
+ * Must be called once during system init before reading status.
+ *
+ * @return 0 on success, negative errno otherwise.
+ */
+ int battery_status_gpio_init(void)
+ {
+     int ret;
+ 
+     /* bind each port by its label */
+     gpioa_dev  = DEVICE_DT_GET(GPIOA_DEVICE);
+     gpiob_dev = DEVICE_DT_GET(GPIOB_DEVICE);
+     
 
-    /* configure all four lines as outputs (or input where appropriate) */
-    gpio_pin_configure_dt(&charge_en_spec, GPIO_OUTPUT_INACTIVE);
-    gpio_pin_configure_dt(&charger_con_spec, GPIO_INPUT);
-    gpio_pin_configure_dt(&precharge_en_spec, GPIO_OUTPUT_INACTIVE);
-    gpio_pin_configure_dt(&drive_precharge_spec, GPIO_OUTPUT_INACTIVE);
+ 
+     if (!gpioa_dev || !gpiob_dev) {
+         printk("ERROR: GPIO ports not found\n");
+         return -ENODEV;
+     }
+ 
+     /* configure each pin as input */
+     ret = gpio_pin_configure(gpioa_dev, V_FB_AIR_positive_Pin, GPIO_INPUT);
+     if (ret) return ret;
+ 
+     ret = gpio_pin_configure(gpioa_dev, V_FB_AIR_negative_Pin, GPIO_INPUT);
+     if (ret) return ret;
+ 
+     ret = gpio_pin_configure(gpioa_dev, V_FB_PC_Relay_Pin, GPIO_INPUT);
+     if (ret) return ret;
 
-    return 0;
-}
+     ret = gpio_pin_configure(gpiob_dev, Drive_AIR_positive_Pin, GPIO_OUTPUT);
+     if (ret) return ret;
+ 
+     ret = gpio_pin_configure(gpiob_dev, Drive_AIR_negative_Pin, GPIO_OUTPUT);
+     if (ret) return ret;
+ 
+     ret = gpio_pin_configure(gpiob_dev, Drive_Precharge_Relay_Pin, GPIO_OUTPUT);
+     if (ret) return ret;
+ 
+     return 0;
+ }
+
 
 
 
@@ -65,14 +88,43 @@ int battery_gpio_init(void)
      }
  }
  
- uint8_t battery_get_status_code(uint16_t GPIO_Input){
-     battery_set_reset_status_flag((battery_values.error&0x1F)==0 ? 1 : 0, STATUS_BATTERY_OK);
-     battery_set_reset_status_flag(battery_values.adbms_itemp<=85 ? 1 : 0, STATUS_MB_TEMP_OK);
-     battery_set_reset_status_flag((GPIO_Input&V_FB_AIR_positive_Pin)==V_FB_AIR_positive_Pin ? 1 : 0, STATUS_AIR_POSITIVE);
-     battery_set_reset_status_flag((GPIO_Input&V_FB_AIR_negative_Pin)==V_FB_AIR_negative_Pin ? 1 : 0, STATUS_AIR_NEGATIVE);
-     battery_set_reset_status_flag((GPIO_Input&V_FB_PC_Relay_Pin)==V_FB_PC_Relay_Pin ? 1 : 0, STATUS_PRECHARGE);
-     return battery_values.status;
- }
+/**
+ * @brief Update and return the aggregated battery status flags.
+ *
+ * Reads the error state, ADBMS internal temperature, and the three GPIO status inputs
+ * (AIR positive, AIR negative, Precharge) via Zephyr's GPIO API, and sets or clears
+ * the corresponding bits in battery_values.status.
+ *
+ * @return The current battery status bitfield.
+ */
+uint8_t battery_get_status_code(void)
+{
+    bool ok;
+    int val;
+
+    /* STATUS_BATTERY_OK: no error bits set in lower 5 bits */
+    ok = ((battery_values.error & 0x1F) == 0);
+    battery_set_reset_status_flag(ok, STATUS_BATTERY_OK);
+
+    /* STATUS_MB_TEMP_OK: internal temperature <= 85°C */
+    ok = (battery_values.adbms_itemp <= 85);
+    battery_set_reset_status_flag(ok, STATUS_MB_TEMP_OK);
+
+    /* STATUS_AIR_POSITIVE: read v_fb_air_positive pin */
+    val = gpio_pin_get(gpioa_dev, V_FB_AIR_positive_Pin);
+    battery_set_reset_status_flag(val > 0, STATUS_AIR_POSITIVE);
+
+    /* STATUS_AIR_NEGATIVE: read v_fb_air_negative pin */
+    val = gpio_pin_get(gpioa_dev, V_FB_AIR_negative_Pin);
+    battery_set_reset_status_flag(val > 0, STATUS_AIR_NEGATIVE);
+
+    /* STATUS_PRECHARGE: read v_fb_pc_relay pin */
+    val = gpio_pin_get(gpioa_dev, V_FB_PC_Relay_Pin);
+    battery_set_reset_status_flag(val > 0, STATUS_PRECHARGE);
+
+    return battery_values.status;
+}
+
   
  BatterySystemTypeDef* battery_calc_values(uint16_t *volt_data, uint16_t *temp_data){
      // get total, mean, min, max

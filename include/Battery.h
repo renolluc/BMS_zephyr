@@ -84,6 +84,30 @@ void charging(uint32_t input_data);
 void set_time_per_measurement(uint16_t time_ms);
 
 
+/*ALLES DURCH ZEPHYR ERSETZEN*/
+#define V_FB_AIR_negative_Pin 1
+#define V_FB_AIR_negative_GPIO_Port GPIOA
+#define V_FB_AIR_positive_Pin 3
+#define V_FB_AIR_positive_GPIO_Port GPIOA
+#define V_FB_PC_Relay_Pin 4
+#define V_FB_PC_Relay_GPIO_Port GPIOA
+#define Charge_EN_Pin GPIO_PIN_9
+#define Charge_EN_GPIO_Port GPIOA
+#define Charger_Con_Pin GPIO_PIN_10
+#define Charger_Con_GPIO_Port GPIOA
+#define Drive_AIR_positive_Pin 4
+#define Drive_AIR_positive_GPIO_Port GPIOB
+#define Drive_AIR_negative_Pin 5
+#define Drive_AIR_negative_GPIO_Port GPIOB
+#define Drive_Precharge_Relay_Pin 6
+#define Drive_Precharge_Relay_GPIO_Port GPIOB
+#define Precharge_EN_Pin GPIO_PIN_7
+#define Precharge_EN_GPIO_Port GPIOB
+//AUS CAN.h
+#define AIR_POSITIVE 		(1<<0)
+#define AIR_NEGATIVE 		(1<<1)
+#define PRECHARGE_RELAY 	(1<<2)
+#define BATTERY_SW_RESET	(1<<3) 
 
 
 
