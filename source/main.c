@@ -35,6 +35,8 @@ int main(void)
 	BMS_CAN_INIT();
 
 	spi_adbms1818_hw_init();
+
+	serial_monitor_init();
 	
 	while (1) {
  		ret = gpio_pin_toggle_dt(&led);

@@ -11,6 +11,7 @@ target_sources(app
         PRIVATE
         source/modules/CAN_Bus.c        
         source/modules/SPI_MB.c
+        source/modules/serial_monitor.c
 )
 
 
