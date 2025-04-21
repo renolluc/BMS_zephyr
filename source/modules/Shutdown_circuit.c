@@ -69,7 +69,6 @@ Battery_StatusTypeDef SDC_reset(){
     }
 }
 
- // IN CAN FUNKTION UMDISPONIEREN
  void set_relays(uint8_t CAN_Data){
     static uint64_t last_value = 0;
     if(last_value != CAN_Data){

@@ -85,15 +85,35 @@ void set_time_per_measurement(uint16_t time_ms);
 
 
 /*ALLES DURCH ZEPHYR ERSETZEN*/
-#define V_FB_AIR_negative_Pin 1
-#define V_FB_AIR_negative_GPIO_Port GPIOA
+
+static const struct gpio_dt_spec vfb_air_pos_spec = 
+    GPIO_DT_SPEC_GET(DT_ALIAS(vfbairpositive), gpios);
+static const struct gpio_dt_spec vfb_air_neg_spec = 
+    GPIO_DT_SPEC_GET(DT_ALIAS(vfbairnegative), gpios);
+static const struct gpio_dt_spec vfb_pc_relay_spec = 
+    GPIO_DT_SPEC_GET(DT_ALIAS(vfbpcrelay), gpios);
+static const struct gpio_dt_spec charger_con_spec = 
+    GPIO_DT_SPEC_GET(DT_ALIAS(chargerconnect), gpios);
+static const struct gpio_dt_spec precharge_en_spec = 
+    GPIO_DT_SPEC_GET(DT_ALIAS(prechargeenable), gpios);
+static const struct gpio_dt_spec drive_air_pos_spec = 
+    GPIO_DT_SPEC_GET(DT_ALIAS(driveairpositive), gpios);
+static const struct gpio_dt_spec drive_air_neg_spec = 
+    GPIO_DT_SPEC_GET(DT_ALIAS(driveairnegative), gpios);
+static const struct gpio_dt_spec drive_precharge_spec = 
+    GPIO_DT_SPEC_GET(DT_ALIAS(driveprecharge), gpios);
+
+int battery_status_gpio_init(void);
+
+#define V_FB_AIR_NEGATIVE_PIN 1
+#define V_FB_AIR_NEGATIVE_GPIO_Port GPIOA
 #define V_FB_AIR_positive_Pin 3
 #define V_FB_AIR_positive_GPIO_Port GPIOA
 #define V_FB_PC_Relay_Pin 4
 #define V_FB_PC_Relay_GPIO_Port GPIOA
 #define Charge_EN_Pin GPIO_PIN_9
 #define Charge_EN_GPIO_Port GPIOA
-#define Charger_Con_Pin GPIO_PIN_10
+#define Charger_Con_Pin 10
 #define Charger_Con_GPIO_Port GPIOA
 #define Drive_AIR_positive_Pin 4
 #define Drive_AIR_positive_GPIO_Port GPIOB
@@ -101,7 +121,7 @@ void set_time_per_measurement(uint16_t time_ms);
 #define Drive_AIR_negative_GPIO_Port GPIOB
 #define Drive_Precharge_Relay_Pin 6
 #define Drive_Precharge_Relay_GPIO_Port GPIOB
-#define Precharge_EN_Pin GPIO_PIN_7
+#define Precharge_EN_Pin 7
 #define Precharge_EN_GPIO_Port GPIOB
 //AUS CAN.h
 #define AIR_POSITIVE 		(1<<0)
