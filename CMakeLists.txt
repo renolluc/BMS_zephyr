@@ -12,7 +12,7 @@ target_sources(app
         source/modules/CAN_Bus.c        
         source/modules/SPI_MB.c
         source/modules/Battery.c
-        #source/modules/Shutdown_circuit.c
+        source/modules/Shutdown_circuit.c
 )
 
 

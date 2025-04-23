@@ -6,7 +6,6 @@
             gpios = <&gpioa 3 GPIO_ACTIVE_HIGH>;   /* PA3, V_FB_AIR_positive */
             label  = "V FB AIR positive";
         };
-        
         vfb_air_neg: vfb_air_neg {
             gpios = <&gpioa 1 GPIO_ACTIVE_HIGH>;   /* PA1, V_FB_AIR_negative */
             label  = "V FB AIR negative";
@@ -35,6 +34,14 @@
             gpios = <&gpiob 6 GPIO_ACTIVE_HIGH>;   /* PB6, Drive Precharge Relay */
             label  = "Drive Precharge Relay";
         };
+        sdc_in: sdc_in {
+            gpios = <&gpioa 0 GPIO_ACTIVE_HIGH>;   /* PB0, SD Card In */
+            label  = "SDC In";
+        };
+        sdc_out: sdc_out {
+            gpios = <&gpioa 8 GPIO_ACTIVE_HIGH>;   /* PB2, SD Card Out */
+            label  = "SDC Out";
+        };
     };
 
     aliases {
@@ -46,6 +53,8 @@
         driveairpositive = &drive_air_pos;
         driveairnegative = &drive_air_neg;
         driveprecharge    = &drive_precharge;
+        sdcin = &sdc_in;
+        sdcout = &sdc_out;
     };
 };
 

@@ -8,9 +8,12 @@
  *
  */
 
- #ifndef INC_SHUTDOWN_CIRCUIT_H_
- #define INC_SHUTDOWN_CIRCUIT_H_
+#ifndef INC_SHUTDOWN_CIRCUIT_H_
+#define INC_SHUTDOWN_CIRCUIT_H_
 
+#include "Battery_types.h"
+#include "Status_error_flags.h"
+#include "CAN_Bus.h"
 
 #define SDC_IN_Pin GPIO_PIN_0
 #define SDC_IN_GPIO_Port GPIOA
@@ -25,5 +28,13 @@
 #define CHARGER_CONNECTED_PA10 10
 #define PRECHARGE_ENAABLE_PB7 7
 #define DRIVE_PRECHARGE_PB6 6
+
+static const struct gpio_dt_spec sdc_in_spec = 
+    GPIO_DT_SPEC_GET(DT_ALIAS(sdcin), gpios);
+static const struct gpio_dt_spec sdc_out_spec = 
+    GPIO_DT_SPEC_GET(DT_ALIAS(sdcout), gpios);
+
+extern Battery_StatusTypeDef refresh_sdc();
+extern void sdc_set_relays(uint8_t CAN_Data);
 
 #endif /* INC_SHUTDOWN_CIRCUIT_H_ */

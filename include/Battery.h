@@ -13,7 +13,11 @@
 
 #include "SPI_MB.h"
 #include "CAN_Bus.h"
+#include "Shutdown_circuit.h" 
+#include "Battery_types.h"
 #include <zephyr/drivers/gpio.h>
+#include "Status_error_flags.h"
+#include "zephyr/logging/log.h"
 
 /**
   * @brief  Battery Status
@@ -31,6 +35,7 @@
 // extern handle
 extern TIM_HandleTypeDef htim16;
 
+/*
 typedef enum {
   BATTERY_OK       		= 0x00,
   BATTERY_ERROR    		= 0x01,
@@ -38,7 +43,7 @@ typedef enum {
   BATTERY_VOLT_ERROR    = 0x05,
   BATTERY_VT_ERROR    	= 0x07,
 } Battery_StatusTypeDef;
-
+*/
 
 // struct for the battery
 typedef struct {
@@ -69,6 +74,7 @@ typedef struct {
 // extern variables
 extern BatterySystemTypeDef battery_values;
 
+/*
 // external Function prototypes
 uint8_t get_battery_status_code(uint16_t GPIO_Input);
 void battery_reset_error_flags();
@@ -82,7 +88,7 @@ Battery_StatusTypeDef check_battery();
 void set_relays(uint8_t CAN_Data);
 void charging(uint32_t input_data);
 void set_time_per_measurement(uint16_t time_ms);
-
+*/
 
 /*ALLES DURCH ZEPHYR ERSETZEN*/
 

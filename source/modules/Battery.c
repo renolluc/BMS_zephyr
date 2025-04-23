@@ -9,10 +9,8 @@
  */
 
  #include "Battery.h"
- #include "Status_error_flags.h"
- #include "zephyr/logging/log.h"
- #include "SPI_MB.h"
- 
+
+  
  #define GPIOA_DEVICE DT_NODELABEL(gpioa)
  #define GPIOB_DEVICE DT_NODELABEL(gpiob)
 
@@ -477,24 +475,24 @@ void battery_precharge_logic(void)
 
     /* Rising edge: start precharge sequence */
     if ( curr_state && !prev_state) {
-        set_relays(AIR_NEGATIVE | PRECHARGE_RELAY);
+        sdc_set_relays(AIR_NEGATIVE | PRECHARGE_RELAY);
         cnt_100ms = 0U;
     }
     /* Line held high: advance through timed sequence */
     else if (curr_state) {
         if (cnt_100ms > 55U) {
-            set_relays(AIR_NEGATIVE | AIR_POSITIVE);
+            sdc_set_relays(AIR_NEGATIVE | AIR_POSITIVE);
         } else if (cnt_100ms > 50U) {
-            set_relays(AIR_NEGATIVE | AIR_POSITIVE | PRECHARGE_RELAY);
+            sdc_set_relays(AIR_NEGATIVE | AIR_POSITIVE | PRECHARGE_RELAY);
             cnt_100ms++;
         } else {
-            set_relays(AIR_NEGATIVE);
+            sdc_set_relays(AIR_NEGATIVE);
             cnt_100ms++;
         }
     }
     /* Falling edge: clear all relays */
     else if (!curr_state && prev_state) {
-        set_relays(0U);
+        sdc_set_relays(0U);
     }
 
     prev_state = curr_state;
@@ -548,7 +546,6 @@ void battery_charging(void)
         }
     }
 }
-
 
 /**
  * @brief Set the measurement interval for the battery monitoring cycle.
