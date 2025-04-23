@@ -25,12 +25,9 @@ static int64_t ivt_deadline_ms;
 static uint8_t  sdc_error_counter;
 
 /**
- * @brief Initialisiert das SDC-Output-GPIO und interne Zeitgeber.
+ * @brief Initializes the SDC output GPIO and internal timers.
  *
- * Diese Funktion wird via SYS_INIT() automatisch vor main() aufgerufen.
- *
- * @param dev Nicht verwendet (SYS_INIT-Parameter).
- * @return 0 bei Erfolg, negativer errno sonst.
+ * @return 0 on success, negative errno otherwise.
  */
 static int sdc_init(void)
 {
@@ -69,17 +66,19 @@ static int sdc_init(void)
 }
 
 /**
- * @brief Überprüft die IVT-Timeout-Bedingung und steuert das SDC-Signal.
+ * @brief Checks the IVT timeout condition and controls the SDC signal.
  *
- * - Wenn seit letzter IVT-Reset länger als IVT_TIMEOUT_MS vergangen ist,  
- *   wird ERROR_IVT gesetzt und die Deadline neu justiert.  
- * - Liegen keine kritischen Fehler (Mask 0x47) vor, wird SDC high gesetzt,
- *   der IVT-Timer zurückgesetzt und der Fehler-Counter gelöscht.  
- * - Bei Fehlern wird der Counter inkrementiert; ab 3 aufeinanderfolgenden  
- *   Fehlern wird SDC low gesetzt und ERROR_SDC ausgelöst.  
+ * - If more than IVT_TIMEOUT_MS has elapsed since the last IVT reset, 
+ * ERROR_IVT is set and the deadline is readjusted.  
+ * 
+ * - If there are no critical errors (mask 0x47), SDC is set high,
+ * the IVT timer is reset and the error counter is cleared.  
+ * 
+ * - In the event of errors, the counter is incremented; from 3 consecutive 
+ * errors, SDC is set low and ERROR_SDC is triggered.  
  *
- * @return BATTERY_OK   Wenn SDC-Out high oder Fehler noch nicht latched  
- * @return BATTERY_ERROR Wenn SDC-Error latched (nach ≥3 Fehlern)
+ * @return BATTERY_OK If SDC-Out high or error not yet latched or 
+ * BATTERY_ERROR If SDC-Error latched (after ≥3 errors)
  */
 Battery_StatusTypeDef refresh_sdc(void)
 {
@@ -254,6 +253,6 @@ void sdc_set_relays(uint8_t can_data)
     } else {
         gpio_pin_set_dt(&drive_precharge_spec, 0);
     }
-    
+
     last_value = can_data;
 }
