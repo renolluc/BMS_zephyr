@@ -11,6 +11,8 @@ target_sources(app
         PRIVATE
         source/modules/CAN_Bus.c        
         source/modules/SPI_MB.c
+        source/modules/Battery.c
+        source/modules/Shutdown_circuit.c
 )
 
 

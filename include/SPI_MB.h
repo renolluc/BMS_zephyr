@@ -108,27 +108,17 @@
 // requency in Hz
 #define SPI_FREQ 1000000
 
-// HAL Handle
-extern SPI_HandleTypeDef hspi1; // delete this line new: device *spi1_dev is the zephyr version
-
 // Zephyr SPI device binding
 #define SPI_DEVICE DT_NODELABEL(spi1)
 extern const struct device *spi1_dev;
 
 
-// SPI MB Functions
-HAL_StatusTypeDef Read_Voltages(uint16_t *data_buffer);
-HAL_StatusTypeDef Read_Temp(uint16_t *data_buffer);
-uint16_t read_ADBMS_Temp();
-HAL_StatusTypeDef set_DCCx(uint32_t *cells_to_balance);
-HAL_StatusTypeDef ADBMS_HW_Init();
-
-
-// First SPI Test
-/* SPI configuration */
-
 int spi_wakeup_adbms1818();
 extern uint16_t spi_generate_pec(const uint8_t data[], size_t len);
+extern int spi_read_voltages(uint16_t *data_buffer);
+extern int spi_read_temp(uint16_t *data_buffer);
+extern uint16_t spi_read_adbms_temp();
+extern int spi_set_discharge_cell_x(uint32_t *data_buffer);
 uint16_t generatePEC(uint8_t data[], size_t len);
 void spi_wakeup();
 int spi_adbms1818_hw_init();
