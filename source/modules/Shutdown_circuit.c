@@ -12,12 +12,8 @@
 
 LOG_MODULE_REGISTER(shutdown_circuit, LOG_LEVEL_ERR);
 
-#define GPIOA_DEVICE DT_NODELABEL(gpioa)
-
 static const struct device *gpioa_dev;
-static uint8_t error_counter = 2;
-
-static uint8_t  sdc_error_counter;
+static uint8_t  sdc_error_counter = 2;
 
 /**
  * @brief Initializes the SDC output GPIO and internal timers.
@@ -31,7 +27,6 @@ static int sdc_init(void)
     /* bind each port by its label */
     gpioa_dev  = DEVICE_DT_GET(GPIOA_DEVICE);
     
-
 
     #define CHECK_READY(spec)                                          \
     do {                                                               \
@@ -172,7 +167,7 @@ Battery_StatusTypeDef sdc_reset(void)
     bool success;
 
     /* 1) Reset error counter */
-    error_counter = 2;
+    sdc_error_counter = 2;
 
     /* 2) SPI ADBMS1818 hardware init */
     spi_ret = spi_adbms1818_hw_init();
@@ -208,6 +203,12 @@ Battery_StatusTypeDef sdc_reset(void)
     }
 }
 
+/**
+ * @brief Reset the IVT timer.
+ *
+ * This function resets the IVT timer to the current time plus the IVT_TIMEOUT_MS
+ * 
+ */
 void sdc_refresh_ivt_timer(void)
 {
     int64_t now = k_uptime_get();

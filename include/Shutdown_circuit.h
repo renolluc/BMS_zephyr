@@ -21,11 +21,11 @@
 #define IVT_TIMEOUT_MS 400
 #define BATTERY_TIMEOUT_MS 400
 
-static const struct gpio_dt_spec sdc_in_spec = 
-    GPIO_DT_SPEC_GET(DT_ALIAS(sdcin), gpios);
-static const struct gpio_dt_spec sdc_out_spec = 
-    GPIO_DT_SPEC_GET(DT_ALIAS(sdcout), gpios);
+#define GPIOA_DEVICE DT_NODELABEL(gpioa)
 
+static const struct gpio_dt_spec sdc_in_spec = GPIO_DT_SPEC_GET(DT_ALIAS(sdcin), gpios);
+static const struct gpio_dt_spec sdc_out_spec = GPIO_DT_SPEC_GET(DT_ALIAS(sdcout), gpios);
+    
 static uint64_t ivt_deadline_ms;
 static uint64_t battery_deadline_ms;
 

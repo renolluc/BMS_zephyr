@@ -27,7 +27,6 @@
 #define MIN_VOLT 30000
 #define MIN_TEMP 16725		// min temperature at 20°
 #define MAX_TEMP 6115		// max temperature at 60°
-
 #define AKKU_CAPACITANCE 45000		// in As ≙ 12.5 Ah
 
 
@@ -83,24 +82,17 @@ static const struct gpio_dt_spec drive_precharge_spec =
 int battery_status_gpio_init(void);
 
 #define V_FB_AIR_NEGATIVE_PIN 1
-#define V_FB_AIR_NEGATIVE_GPIO_Port GPIOA
 #define V_FB_AIR_positive_Pin 3
-#define V_FB_AIR_positive_GPIO_Port GPIOA
 #define V_FB_PC_Relay_Pin 4
-#define V_FB_PC_Relay_GPIO_Port GPIOA
-#define Charge_EN_Pin GPIO_PIN_9
-#define Charge_EN_GPIO_Port GPIOA
+//nicht benutzt ?? ///////////////
+#define Charge_EN_Pin GPIO_PIN_9//
+//////////////////////////////////
 #define Charger_Con_Pin 10
-#define Charger_Con_GPIO_Port GPIOA
 #define Drive_AIR_positive_Pin 4
-#define Drive_AIR_positive_GPIO_Port GPIOB
 #define Drive_AIR_negative_Pin 5
-#define Drive_AIR_negative_GPIO_Port GPIOB
 #define Drive_Precharge_Relay_Pin 6
-#define Drive_Precharge_Relay_GPIO_Port GPIOB
 #define Precharge_EN_Pin 7
-#define Precharge_EN_GPIO_Port GPIOB
-//AUS CAN.h
+
 #define AIR_POSITIVE 		(1<<0)
 #define AIR_NEGATIVE 		(1<<1)
 #define PRECHARGE_RELAY 	(1<<2)
