@@ -30,20 +30,8 @@
 
 #define AKKU_CAPACITANCE 45000		// in As ≙ 12.5 Ah
 
-#define IVT_TIMEOUT 400
 
-// extern handle
-extern TIM_HandleTypeDef htim16;
 
-/*
-typedef enum {
-  BATTERY_OK       		= 0x00,
-  BATTERY_ERROR    		= 0x01,
-  BATTERY_TEMP_ERROR    = 0x03,
-  BATTERY_VOLT_ERROR    = 0x05,
-  BATTERY_VT_ERROR    	= 0x07,
-} Battery_StatusTypeDef;
-*/
 
 // struct for the battery
 typedef struct {
@@ -74,23 +62,6 @@ typedef struct {
 // extern variables
 extern BatterySystemTypeDef battery_values;
 
-/*
-// external Function prototypes
-uint8_t get_battery_status_code(uint16_t GPIO_Input);
-void battery_reset_error_flags();
-uint8_t get_battery_error_code();
-void set_battery_error_flag(uint8_t mask);
-//void set_reset_battery_status_flag(uint8_t set, uint8_t mask);
-uint8_t volt2celsius(uint16_t volt_100uV);
-Battery_StatusTypeDef SDC_reset();
-void check_SDC_Feedback(uint32_t input_data);
-Battery_StatusTypeDef check_battery();
-void set_relays(uint8_t CAN_Data);
-void charging(uint32_t input_data);
-void set_time_per_measurement(uint16_t time_ms);
-*/
-
-/*ALLES DURCH ZEPHYR ERSETZEN*/
 
 static const struct gpio_dt_spec vfb_air_pos_spec = 
     GPIO_DT_SPEC_GET(DT_ALIAS(vfbairpositive), gpios);
