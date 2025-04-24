@@ -1,4 +1,11 @@
-# BMS_zephyr
+```ASCII
+     _    __  __ ____         ____ ____    _____          _                
+    / \  |  \/  / ___|       / ___| __ )  |__  /___ _ __ | |__  _   _ _ __ 
+   / _ \ | |\/| \___ \ _____| |   |  _ \    / // _ \ '_ \| '_ \| | | | '__|
+  / ___ \| |  | |___) |_____| |___| |_) |  / /|  __/ |_) | | | | |_| | |   
+ /_/   \_\_|  |_|____/       \____|____/  /____\___| .__/|_| |_|\__, |_|   
+                                                   |_|          |___/   
+```
 
 ## Software Deployment
 To install the necessary software on your Ubuntu system, follow these steps:
@@ -127,37 +134,47 @@ classDiagram
     }
 
     class spiMB{
-        HAL_StatusTypeDef Read_Voltages(uint16_t *data_buffer);
-        HAL_StatusTypeDef Read_Temp(uint16_t *data_buffer);
-        uint16_t read_ADBMS_Temp();
-        HAL_StatusTypeDef set_DCCx(uint32_t *cells_to_balance);
-        HAL_StatusTypeDef ADBMS_HW_Init();
+        int spi_wakeup_adbms1818();
+        extern uint16_t spi_generate_pec(const uint8_t data[], size_t len);
+        extern int spi_read_voltages(uint16_t *data_buffer);
+        extern int spi_read_temp(uint16_t *data_buffer);
+        extern uint16_t spi_read_adbms_temp();
+        extern int spi_set_discharge_cell_x(uint32_t *data_buffer);
+        uint16_t generatePEC(uint8_t data[], size_t len);
+        void spi_wakeup();
+        int spi_adbms1818_hw_init();
     }
 
     class battery{
-        uint8_t get_battery_status_code(uint16_t GPIO_Input);
-        void battery_reset_error_flags();
-        uint8_t get_battery_error_code();
-        void set_battery_error_flag(uint8_t mask);
-        uint8_t volt2celsius(uint16_t volt_100uV);
-        Battery_StatusTypeDef SDC_reset();
-        void check_SDC_Feedback(uint32_t input_data);
-        Battery_StatusTypeDef check_battery();
-        void set_relays(uint8_t CAN_Data);
-        void charging(uint32_t input_data);
-        void set_time_per_measurement(uint16_t time_ms);
+        int spi_wakeup_adbms1818();
+        extern uint16_t spi_generate_pec(const uint8_t data[], size_t len);
+        extern int spi_read_voltages(uint16_t *data_buffer);
+        extern int spi_read_temp(uint16_t *data_buffer);
+        extern uint16_t spi_read_adbms_temp();
+        extern int spi_set_discharge_cell_x(uint32_t *data_buffer);
+        uint16_t generatePEC(uint8_t data[], size_t len);
+        void spi_wakeup();
+        int spi_adbms1818_hw_init();
+    }
+
+    class shutdowncircuit{
+        extern Battery_StatusTypeDef refresh_sdc();
+        extern void sdc_set_relays(uint8_t CAN_Data);
     }
 
     class serialmonitor{
         void SerialMonitor(uint8_t* data, uint16_t size);
     }
 
-    class shutdowncircuit
+
 
     main ..> battery : uses
     main ..> Can_Bus : uses
     main ..> serialmonitor : uses
     main ..> shutdowncircuit : uses
     battery ..> spiMB : uses
+    Can_Bus ..> shutdowncircuit : uses
+    battery ..> shutdowncircuit : uses
 
 ```
+
