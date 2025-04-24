@@ -17,11 +17,6 @@ LOG_MODULE_REGISTER(shutdown_circuit, LOG_LEVEL_ERR);
 static const struct device *gpioa_dev;
 static uint8_t error_counter = 2;
 
-
-#define IVT_TIMEOUT_MS   400
-static struct k_timer ivt_timer;
-
-static int64_t ivt_deadline_ms;
 static uint8_t  sdc_error_counter;
 
 /**
@@ -58,6 +53,7 @@ static int sdc_init(void)
 
     /* Start-Deadline initial setzen */
     ivt_deadline_ms     = k_uptime_get() + IVT_TIMEOUT_MS;
+    battery_deadline_ms = k_uptime_get() + IVT_TIMEOUT_MS;
     sdc_error_counter   = 0U;
 
     LOG_INF("SDC initialized, timeout %d ms", IVT_TIMEOUT_MS);
@@ -95,7 +91,7 @@ Battery_StatusTypeDef refresh_sdc(void)
     if ((battery_values.error & 0x47) == 0) {
         /* OK-Pfad: SDC high, Deadline & Fehler-Counter zurücksetzen */
         gpio_pin_set(gpioa_dev, SDC_Out_Pin, 1);
-        ivt_deadline_ms   = now + IVT_TIMEOUT_MS;
+        battery_deadline_ms = now + BATTERY_TIMEOUT_MS;
         sdc_error_counter = 0U;
         return BATTERY_OK;
     }else{
@@ -192,15 +188,16 @@ Battery_StatusTypeDef sdc_reset(void)
 
     /* 4) IVT timeout check */
     if (now >= ivt_deadline_ms) {
+        ivt_deadline_ms = now + IVT_TIMEOUT_MS;
         battery_set_error_flag(ERROR_IVT);
     }
 
     /* Determine overall success */
-    success = (spi_ret == 0) &&(batt_ret == BATTERY_OK) && ((battery_values.error & 0x47) == 0);
+    success = (spi_ret == 0) && (batt_ret == BATTERY_OK) && ((battery_values.error & 0x47) == 0);
 
     if (success) {
         /* SDC OK: drive high, restart IVT deadline */
-        ivt_deadline_ms = now + IVT_TIMEOUT;
+        battery_deadline_ms = now + BATTERY_TIMEOUT_MS;
         gpio_pin_set_dt(&sdc_out_spec, 1);
         return BATTERY_OK;
     } else {
@@ -211,6 +208,13 @@ Battery_StatusTypeDef sdc_reset(void)
     }
 }
 
+void sdc_refresh_ivt_timer(void)
+{
+    int64_t now = k_uptime_get();
+
+    /* Reset the IVT deadline */
+    ivt_deadline_ms = now + IVT_TIMEOUT_MS;
+}
 
 /**
  * @brief Drive the AIR and precharge relays based on a CAN-data bitmask.
