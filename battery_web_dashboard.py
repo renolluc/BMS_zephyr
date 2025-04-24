@@ -1,6 +1,5 @@
 
-from flask import Flask, Response, stream_with_context
-from flask import jsonify
+from flask import Flask, Response, stream_with_context, jsonify
 import threading
 import time
 import serial
@@ -11,6 +10,7 @@ import re
 app = Flask(__name__)
 console_lines = []
 battery_data = "<b>Waiting for data...</b>"
+voltage_grid = [[0.0 for _ in range(18)] for _ in range(8)]  # default 8x18 grid
 lock = threading.Lock()
 
 BAUDRATE = 115200
@@ -19,26 +19,13 @@ STOP_FRAME = b'\xFF\xB3'
 
 ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
 
-coeff = [6.87565181e-40,-9.27411410e-35,5.48516319e-30,-1.87118391e-25,4.07565006e-21,-5.93033515e-17,
-         5.86752736e-13,-3.95278974e-09,1.80075051e-05,-5.76649020e-02,1.65728946e+02]
-
 def parse_frame(data):
-    global voltage_grid
-    voltage_grid = [[0.0 for _ in range(18)] for _ in range(8)]
     try:
         totalVoltage = (data[0] + data[1]*256) * 0.1
         highestCellVoltage = (data[2] + data[3]*256) * 0.0001
         lowestCellVoltage = (data[4] + data[5]*256) * 0.0001
         meanCellVoltage = (data[6] + data[7]*256) * 0.0001
-    except Exception as e:
-        return f"<b>Parse error:</b> {e}"
-    try:
-        for i in range(8):
-            for j in range(18):
-                idx = 28 + (i * 18 + j) * 2
-                if idx + 1 < len(data):
-                    voltage = (data[idx] + data[idx+1] * 256) * 0.0001
-                    voltage_grid[i][j] = round(voltage, 3)
+
         html = f"<b>Battery Monitor</b><br>"
         html += f"Total Voltage: {totalVoltage:.2f} V<br>"
         html += f"Highest Cell Voltage: {highestCellVoltage:.2f} V<br>"
@@ -51,7 +38,7 @@ def parse_frame(data):
         return f"<b>Parse error:</b> {e}"
 
 def uart_reader(port):
-    global battery_data, console_lines
+    global battery_data, console_lines, voltage_grid
     try:
         ser = serial.Serial(port, BAUDRATE, timeout=0.5)
         buffer = bytearray()
@@ -64,19 +51,26 @@ def uart_reader(port):
                 continue
             buffer += chunk
 
+            line_buffer = bytearray()
             for b in chunk:
                 line_buffer.append(b)
-                if b == 10:
+                if b == 10:  # Newline indicates end of line
                     try:
                         line = line_buffer.decode(errors='ignore').strip()
-                        if line:
-                            clean = ansi_escape.sub('', line)
-                            console_lines.append(clean)
+
+                        # Allow only fully printable ASCII lines (32–126) or those with Zephyr tags
+                        if line and (
+                            all(32 <= ord(c) <= 126 for c in line) or
+                            any(tag in line for tag in ["<inf>", "<err>", "<dbg>", "<wrn>"])
+                        ):
+                            console_lines.append(line)
                             if len(console_lines) > 200:
                                 console_lines = console_lines[-200:]
                     except Exception as e:
                         print("[UART] Decode error:", e)
                     line_buffer.clear()
+
+
 
             while True:
                 start = buffer.find(START_FRAME)
@@ -87,10 +81,22 @@ def uart_reader(port):
                     break
                 frame = buffer[start+2:end]
                 buffer = buffer[end+2:]
-                if len(frame) >= 28:
-                    html = parse_frame(frame)
-                    with lock:
-                        battery_data = html
+                if len(frame) >= 28 + 8 * 18 * 2:
+                    battery_data = parse_frame(frame)
+
+                    new_grid = []
+                    for row in range(8):
+                        row_data = []
+                        for col in range(18):
+                            idx = 28 + (row * 18 + col) * 2
+                            if idx + 1 < len(frame):
+                                raw = frame[idx] + (frame[idx + 1] << 8)
+                                voltage = round(raw / 10000, 3)
+                                row_data.append(voltage)
+                            else:
+                                row_data.append(0.0)
+                        new_grid.append(row_data)
+                    voltage_grid[:] = new_grid
     except Exception as e:
         print("[UART] Error:", e)
 
@@ -102,6 +108,13 @@ def index():
 def battery():
     with lock:
         return battery_data
+
+@app.route("/battery-json")
+def battery_json():
+    with lock:
+        return jsonify({
+            "voltage_grid": voltage_grid
+        })
 
 @app.route("/console-log")
 def stream_logs():
@@ -115,20 +128,10 @@ def stream_logs():
                 for line in console_lines[last_idx:]:
                     yield f"data: {line}\n\n"
                 last_idx = len(console_lines)
-            else:
-                yield "data: \n\n"
+
             time.sleep(0.5)
     return Response(stream_with_context(event_stream()), mimetype="text/event-stream")
 
-
-from flask import jsonify
-
-@app.route("/battery-json")
-def battery_json():
-    with lock:
-        return jsonify({
-            "voltage_grid": voltage_grid
-        })
 def select_serial_port():
     ports = list(serial.tools.list_ports.comports())
     for i, port in enumerate(ports):

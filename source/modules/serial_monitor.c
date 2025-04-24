@@ -60,11 +60,6 @@
         return;
     }
 
-    if (!device_is_ready(uart_dev)) {
-        LOG_ERR("UART device not ready");
-        return;
-    }
-
     // Send start frame
     uart_poll_out(uart_dev, start[0]);
     uart_poll_out(uart_dev, start[1]);
