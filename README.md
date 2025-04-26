@@ -61,7 +61,7 @@ The used Ubuntu version for this project was **Ubuntu 24.04**
     west flash
     ```
 
-## Class Diagram
+# Class Diagram
 The class diagram shows the different classes used and their depencies to each other. As a first instance only public function are declared to get an overall view of the program.
 
 ```mermaid
@@ -121,6 +121,7 @@ classDiagram
     battery ..> shutdowncircuit : uses
 
 ```
+---
 
 # 🖥️ Battery Dashboard — Deployment Guide
 
@@ -170,8 +171,6 @@ python3 battery_web_dashboard.py
 ```
 http://localhost:5000
 ```
-
----
 
 ## 🌐 Features
 
