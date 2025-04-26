@@ -11,6 +11,7 @@ app = Flask(__name__)
 console_lines = []
 battery_data = "<b>Waiting for data...</b>"
 voltage_grid = [[0.0 for _ in range(18)] for _ in range(8)]  # default 8x18 grid
+temperature_grid = [[0.0 for _ in range(3)] for _ in range(8)]  # default 8x3 grid
 lock = threading.Lock()
 
 BAUDRATE = 115200
@@ -81,22 +82,37 @@ def uart_reader(port):
                     break
                 frame = buffer[start+2:end]
                 buffer = buffer[end+2:]
-                if len(frame) >= 28 + 8 * 18 * 2:
+                
+                if len(frame) >= 28 + (8 * 18 + 8 * 3) * 2:
                     battery_data = parse_frame(frame)
 
-                    new_grid = []
+                    voltage_offset = 28
+                    temperature_offset = voltage_offset + 8 * 18 * 2
+
+                    new_voltage_grid = []
+                    new_temperature_grid = []
+
                     for row in range(8):
-                        row_data = []
+                        voltage_row = []
                         for col in range(18):
-                            idx = 28 + (row * 18 + col) * 2
-                            if idx + 1 < len(frame):
-                                raw = frame[idx] + (frame[idx + 1] << 8)
-                                voltage = round(raw / 10000, 3)
-                                row_data.append(voltage)
-                            else:
-                                row_data.append(0.0)
-                        new_grid.append(row_data)
-                    voltage_grid[:] = new_grid
+                            idx = voltage_offset + 2 * (row * 18 + col)
+                            raw = frame[idx] + (frame[idx + 1] << 8)
+                            voltage = round(raw / 10000, 3)
+                            voltage_row.append(voltage)
+                        new_voltage_grid.append(voltage_row)
+
+                        temp_row = []
+                        for col in range(3):
+                            idx = temperature_offset + 2 * (row * 3 + col)
+                            raw = frame[idx] + (frame[idx + 1] << 8)
+                            temp = round(raw / 100, 1)
+                            temp_row.append(temp)
+                        new_temperature_grid.append(temp_row)
+
+                    with lock:
+                        voltage_grid[:] = new_voltage_grid
+                        temperature_grid[:] = new_temperature_grid
+
     except Exception as e:
         print("[UART] Error:", e)
 
@@ -113,7 +129,8 @@ def battery():
 def battery_json():
     with lock:
         return jsonify({
-            "voltage_grid": voltage_grid
+            "voltage_grid": voltage_grid,
+            "temperature_grid": temperature_grid
         })
 
 @app.route("/console-log")

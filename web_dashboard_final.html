@@ -22,6 +22,8 @@
     <h2>Battery Monitor</h2>
     <div id="monitor">Loading battery data...</div>
     <canvas id="voltageCanvas" width="600" height="300"></canvas>
+<h3>Temperature Map</h3>
+<canvas id="temperatureCanvas" width="200" height="300"></canvas>
     <hr>
     <h3>Console Output</h3>
     <pre id="console-output">Connecting...</pre>
@@ -64,13 +66,41 @@
         }
     }
 
-    function updateGraphics() {
+    function drawTemperatureHeatmap(tempArray) {
+    const canvas = document.getElementById("temperatureCanvas");
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const cols = 3, rows = 8;
+    const cellW = canvas.width / cols;
+    const cellH = canvas.height / rows;
+    const flat = tempArray.flat();
+    const maxT = Math.max(...flat);
+    const minT = Math.min(...flat);
+
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            const t = tempArray[r][c];
+            const norm = (t - minT) / (maxT - minT);
+            const blue = Math.floor(255 * (1 - norm));
+            const red = Math.floor(255 * norm);
+            ctx.fillStyle = `rgb(${red}, 0, ${blue})`;
+            ctx.fillRect(c * cellW, r * cellH, cellW, cellH);
+            ctx.fillStyle = "white";
+            ctx.fillText(t.toFixed(1) + "°C", c * cellW + 5, r * cellH + 15);
+        }
+    }
+}
+
+function updateGraphics() {
         fetch("/battery-json")
             .then(r => r.json())
             .then(data => {
                 if (data.voltage_grid) {
                     drawVoltageHeatmap(data.voltage_grid);
                 }
+                if (data.temperature_grid) {
+                drawTemperatureHeatmap(data.temperature_grid);
+                }   
             });
     }
 

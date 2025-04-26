@@ -7,9 +7,10 @@
 #include <zephyr/device.h>
 #include <zephyr/drivers/uart.h>
 
-#define CAN_DEVICE DT_LABEL(DT_NODELABEL(usart2))
+#define SERIAL_DEVICE DT_LABEL(DT_NODELABEL(usart2))
 
 void serial_monitor_init(void);
-void SerialMonitor(const uint8_t *data, uint16_t size);
+void serial_monitor(const uint8_t *data, uint16_t size);
+void serial_generate_test_frame(uint8_t *data, size_t len);
 
 #endif /* SERIAL_MONITOR_H */

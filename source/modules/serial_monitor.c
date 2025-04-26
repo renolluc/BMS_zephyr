@@ -4,10 +4,12 @@
  */
 
  #include <zephyr/kernel.h>
+ #include <serial_monitor.h>
  #include <zephyr/device.h>
  #include <zephyr/drivers/uart.h>
  #include <string.h>
  #include <zephyr/logging/log.h>
+ #include <stdlib.h>
 
  /* LOG Module initialization */
  LOG_MODULE_REGISTER(serial_monitor, LOG_LEVEL_DBG);
@@ -50,7 +52,7 @@
      uart_callback_set(uart_dev, uart_callback, NULL);
  }
  
- void SerialMonitor(const uint8_t *data, uint16_t size)
+ void serial_monitor(const uint8_t *data, uint16_t size)
  {
     static const uint8_t start[] = {0xFF, 0xA3};
     static const uint8_t stop[]  = {0xFF, 0xB3};
@@ -75,4 +77,42 @@
 
     LOG_INF("UART poll TX done: %d bytes sent", size + 4);
 }
- 
+
+void serial_generate_test_frame(uint8_t *data, size_t len) {
+    if (len < 476) return;
+
+    // Clear full buffer
+    memset(data, 0, len);
+
+    // Fixed header values
+    data[0] = 0xE8; data[1] = 0x03;                     // totalVoltage = 100.0 V
+    data[2] = 0x10; data[3] = 0xA4;                     // highest = 4.2 V
+    data[4] = 0x88; data[5] = 0x79;                     // lowest = 3.1 V
+    data[6] = 0x3D; data[7] = 0x8E;                     // mean = 3.65 V
+    data[8] = 0x40; data[9] = 0x1F;                     // temp1 dummy
+    data[10] = 0x40; data[11] = 0x1F;                   // temp2 dummy
+    data[12] = 0x40; data[13] = 0x1F;                   // temp3 dummy
+    data[14] = 0x1F; data[15] = 0x02;                   // status/error
+    data[16] = 0x10; data[17] = 0x00;                   // current low
+    data[18] = 0x00; data[19] = 0x00;                   // current high
+    data[20] = 0x20; data[21] = 0x00;                   // counter low
+    data[22] = 0x00; data[23] = 0x00;                   // counter high
+    data[24] = 0x64; data[25] = 0x00;                   // 100 ms
+    data[26] = 0x55; data[27] = 0x00;                   // adbms temp
+
+    // Fill 8x18 = 144 voltages starting at byte 28
+    for (int i = 0; i < 8 * 18; i++) {
+        float v = 3.0f + ((float)rand() / RAND_MAX) * 1.2f;  // 3.0 - 4.2 V
+        uint16_t mv = (uint16_t)(v * 10000);                // e.g. 4.123 V → 41230
+        data[28 + i * 2] = mv & 0xFF;
+        data[28 + i * 2 + 1] = (mv >> 8) & 0xFF;
+    }
+    // Fill 8x3 = 24 temperatures right after voltage data
+    size_t temp_offset = 28 + (8 * 18 * 2);
+    for (int i = 0; i < 8 * 3; i++) {
+        float temp = 20.0f + ((float)rand() / RAND_MAX) * 40.0f;  // 20°C to 60°C
+        uint16_t ct = (uint16_t)(temp * 100);                    // 0.01 °C units
+        data[temp_offset + i * 2] = ct & 0xFF;
+        data[temp_offset + i * 2 + 1] = (ct >> 8) & 0xFF;
+    }
+}
