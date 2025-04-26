@@ -11,7 +11,7 @@ app = Flask(__name__)
 console_lines = []
 battery_data = "<b>Waiting for data...</b>"
 voltage_grid = [[0.0 for _ in range(18)] for _ in range(8)]  # default 8x18 grid
-temperature_grid = [[0.0 for _ in range(3)] for _ in range(8)]  # default 8x3 grid
+temperature_grid = [[0.0 for _ in range(8)] for _ in range(8)]  # default 8x8 grid
 lock = threading.Lock()
 
 BAUDRATE = 115200
@@ -26,12 +26,30 @@ def parse_frame(data):
         highestCellVoltage = (data[2] + data[3]*256) * 0.0001
         lowestCellVoltage = (data[4] + data[5]*256) * 0.0001
         meanCellVoltage = (data[6] + data[7]*256) * 0.0001
+        highestCellTemp = (data[8] + data[9]*256) * 0.01
+        lowestCellTemp = (data[10] + data[11]*256) * 0.01
+        meanCellTemp = (data[12] + data[13]*256) * 0.01
+        status = data[14]
+        error = data[15]
+        current = (data[16] + data[17]*256 + data[18]*65536 + data[19]*16777216) * 0.001
+        counter = (data[20] + data[21]*256 + data[22]*65536 + data[23]*16777216) * 0.001
+        time_per_cycle = data[24] + data[25]*256
+        adbms_temp = (data[26] + data[27]*256) * 0.01
 
-        html = f"<b>Battery Monitor</b><br>"
+        html = f""
         html += f"Total Voltage: {totalVoltage:.2f} V<br>"
         html += f"Highest Cell Voltage: {highestCellVoltage:.2f} V<br>"
         html += f"Lowest Cell Voltage: {lowestCellVoltage:.2f} V<br>"
         html += f"Mean Cell Voltage: {meanCellVoltage:.2f} V<br>"
+        html += f"Highest Cell Temperature: {highestCellTemp:.1f} °C<br>"
+        html += f"Lowest Cell Temperature: {lowestCellTemp:.1f} °C<br>"
+        html += f"Mean Cell Temperature: {meanCellTemp:.1f} °C<br>"
+        html += f"Highest ADBMS Temp: {adbms_temp:.1f} °C<br>"
+        html += f"Actual Current: {current:.2f} A<br>"
+        html += f"Current Counter: {counter:.3f} Ah<br>"
+        html += f"Status Code: 0x{status:04X}<br>"
+        html += f"Error Code: {error:04X}<br>"
+        html += f"Cycle Time: {time_per_cycle} ms<br>"
         html += f"<small>Raw data: {data[:28].hex()}</small><br>"
 
         return html
@@ -102,7 +120,7 @@ def uart_reader(port):
                         new_voltage_grid.append(voltage_row)
 
                         temp_row = []
-                        for col in range(3):
+                        for col in range(8):
                             idx = temperature_offset + 2 * (row * 3 + col)
                             raw = frame[idx] + (frame[idx + 1] << 8)
                             temp = round(raw / 100, 1)

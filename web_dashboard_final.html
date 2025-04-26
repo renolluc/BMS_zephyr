@@ -8,7 +8,11 @@
         body { font-family: monospace; padding: 20px; }
         #monitor { margin-bottom: 20px; }
         #voltageCanvas {
-            margin-top: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+        }
+        #temperatureCanvas {
+            margin-top: 5px;
             border: 1px solid #ccc;
         }
         pre {
@@ -20,10 +24,24 @@
 </head>
 <body>
     <h2>Battery Monitor</h2>
-    <div id="monitor">Loading battery data...</div>
-    <canvas id="voltageCanvas" width="600" height="300"></canvas>
-<h3>Temperature Map</h3>
-<canvas id="temperatureCanvas" width="200" height="300"></canvas>
+    
+    <div style="display: flex; gap: 40px; align-items: flex-start;">
+        <div style="display: flex; flex-direction: row; gap: 20px;">
+            <div>
+                <h3>Voltage Map</h3>
+                <canvas id="voltageCanvas" width="600" height="300"></canvas>
+            </div>
+            <div>
+                <h3>Temperature Map</h3>
+                <canvas id="temperatureCanvas" width="600" height="300"></canvas>
+            </div>
+            <div style="min-width: 300px;">
+                <h3>Battery Summary</h3>
+                <div id="monitor">Loading battery data...</div>
+            </div>
+        </div>
+    </div>
+    
     <hr>
     <h3>Console Output</h3>
     <pre id="console-output">Connecting...</pre>
@@ -70,7 +88,7 @@
     const canvas = document.getElementById("temperatureCanvas");
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const cols = 3, rows = 8;
+    const cols = 8, rows = 8;
     const cellW = canvas.width / cols;
     const cellH = canvas.height / rows;
     const flat = tempArray.flat();
@@ -96,11 +114,11 @@ function updateGraphics() {
             .then(r => r.json())
             .then(data => {
                 if (data.voltage_grid) {
-                    drawVoltageHeatmap(data.voltage_grid);
+                drawVoltageHeatmap(data.voltage_grid);
                 }
                 if (data.temperature_grid) {
                 drawTemperatureHeatmap(data.temperature_grid);
-                }   
+                }
             });
     }
 
