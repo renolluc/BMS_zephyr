@@ -1,10 +1,9 @@
 
-from flask import Flask, Response, stream_with_context, jsonify
+from flask import Flask, Response, stream_with_context, jsonify # type: ignore
 import threading
 import time
 import serial
 import serial.tools.list_ports
-import numpy as np
 import re
 
 app = Flask(__name__)
