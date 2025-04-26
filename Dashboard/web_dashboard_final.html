@@ -23,7 +23,23 @@
     </style>
 </head>
 <body>
-    <h2>Battery Monitor</h2>
+    <div id="splash-screen" style="
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    ">
+    <img src="/static/black_logo_white_background.jpg" alt="Zurich UAS Racing Logo" style="max-width: 1000px;">
+    </div>
+    
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <img src="/static/black_logo_white_background.jpg" alt="Zurich UAS Racing Logo" height="50">
+        <h2>Battery Monitor</h2>
+    </div>
+    
     
     <div style="display: flex; gap: 40px; align-items: flex-start;">
         <div style="display: flex; flex-direction: row; gap: 20px;">
@@ -49,8 +65,8 @@
     const pre = document.getElementById("console-output");
     const source = new EventSource('/console-log');
     source.onmessage = function(event) {
-        pre.innerText += event.data + "\n";
-        pre.scrollTop = pre.scrollHeight;
+        pre.innerText = event.data + "\n" + pre.innerText;
+        //pre.scrollTop = pre.scrollHeight;
     };
 
     function updateMonitor() {
@@ -129,6 +145,14 @@ function updateGraphics() {
 
     updateMonitor();
     updateGraphics();
+    window.addEventListener("load", () => {
+    const splash = document.getElementById("splash-screen");
+    if (splash) {
+        splash.style.transition = "opacity 5s ease";
+        splash.style.opacity = 0;
+        setTimeout(() => splash.remove(), 5000);
+    }
+    });
     </script>
 </body>
 </html>
