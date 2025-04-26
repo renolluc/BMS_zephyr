@@ -61,62 +61,6 @@ The used Ubuntu version for this project was **Ubuntu 24.04**
     west flash
     ```
 
-## Activation and Configuration Sequence Diagram
-The following sequence diagram illustrates the activation and configuration process, detailing the interactions between components during system initialization.
-
-```mermaid
-sequenceDiagram
-    participant ecu as ECU
-    participant ivt-s as Isabellenhütte
-    participant nucleo as AMS-CB
-    participant adbms as AMS-MB's
-    participant gpio as GPIO's
-
-    nucleo->>gpio: SET all relais FALSE
-    nucleo->>gpio: READ sdc
-    gpio->>nucleo: SDC state
-    nucleo->>ivt-s: Init config
-    nucleo->>adbms: WRITE config REGISTER
-    nucleo->>adbms: READ config REGISTER
-    adbms->>nucleo: REIGSTER state
-    nucleo->>nucleo: DIFF write and read AMS-MB's
-    nucleo->>nucleo: check CRC AMS-MB's
-    nucleo->>adbms: READ data
-    adbms->>nucleo: DATA state
-    nucleo->>nucleo: check DATA
-    nucleo->>gpio: WRITE sdc TRUE
-    nucleo->>ecu: send HV-CIRCUIT ready
-
-```
-
-
-## Loops Sequence Diagram
-The following sequence diagram illustrates the interactions between various components, including their communication loops and timings.
-
-```mermaid
-sequenceDiagram
-    participant laptop as Laptop
-    participant ecu as ECU
-    participant ivt-s as Isabellenhütte
-    participant nucleo as AMS-CB
-    participant adbms as AMS-MB's
-    participant gpio as GPIO's
-
-    ecu->>nucleo: 8 bytes
-    loop <100ms
-    nucleo->>+adbms: send Voltage and Temp.
-    adbms->>-nucleo: Voltage and Temp. data
-    end
-    nucleo->>ecu: 8 bytes
-    nucleo->>laptop: all data
-    loop 100ms
-    ivt-s->>nucleo: 6 bytes
-    end
-    loop ?ms
-    nucleo-->>gpio: read
-    end
-
-```
 ## Class Diagram
 The class diagram shows the different classes used and their depencies to each other. As a first instance only public function are declared to get an overall view of the program.
 
@@ -177,4 +121,76 @@ classDiagram
     battery ..> shutdowncircuit : uses
 
 ```
+
+# 🖥️ Battery Dashboard — Deployment Guide
+
+This guide walks you through setting up and running the Zurich UAS Racing Battery Monitoring Dashboard using Flask and Serial data.
+
+---
+
+## 📁 Project Structure
+
+```
+Dashboard/
+├── battery_web_dashboard.py            # Backend
+├── web_dashboard_final.html            # Frontend
+├── static/
+│   └── black_logo_white_background.jpg # Zurich UAS logo
+```
+
+
+## 🔧 Requirements
+
+Make sure you have the following installed:
+
+- Python 3.8+
+- pip
+- USB access to your microcontroller board
+
+### Install dependencies:
+
+```bash
+pip install flask pyserial numpy
+```
+
+
+## 🚀 Running the Dashboard
+
+1. **Connect your UART device**
+2. **Start the server**:
+
+```bash
+python3 battery_web_dashboard.py
+```
+
+3. When prompted, select the correct UART port number (e.g., `/dev/ttyACM0` or `COM3`).
+
+4. Open your browser and go to:
+
+```
+http://localhost:5000
+```
+
+---
+
+## 🌐 Features
+
+- **Live voltage & temperature heatmaps** (auto-updating)
+- **Detailed summary panel** with:
+  - Voltages (min, max, mean)
+  - Temperatures (min, max, mean)
+  - Current, cycle time, error codes, etc.
+- **Console log stream** from the device
+
+
+## ⚠️ Troubleshooting
+
+- **Blank page or 404 error?**
+  - Make sure Flask is running and port 5000 is not blocked.
+- **Logo not showing?**
+  - Ensure `black_logo_white_background.jpg` is in the `/static` directory.
+- **No UART data?**
+  - Verify the microcontroller is sending properly formatted frames.
+
+---
 
