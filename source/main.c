@@ -36,7 +36,7 @@ int main(void)
 	}
 
 	// Initialize CAN Bus
-	BMS_CAN_INIT();
+	can_init();
 
 	spi_adbms1818_hw_init();
 

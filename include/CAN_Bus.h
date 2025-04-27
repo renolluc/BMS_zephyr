@@ -8,10 +8,8 @@
 #ifndef INC_CAN_BUS_H
 #define INC_CAN_BUS_H
 
-#include <stdint.h>
-#include <Battery.h>
 #include <zephyr/drivers/can.h>
-#include <zephyr/kernel.h>
+#include <Battery.h>
 
 /** @brief CAN device label for Zephyr device tree */
 #define CAN_DEVICE DT_LABEL(DT_NODELABEL(can1))
@@ -107,7 +105,7 @@ extern struct k_sem test_ack_sem;
  *
  * @return 0 on success, error code otherwise.
  */
-int BMS_CAN_INIT(void);
+int can_init(void);
 
 /**
  * @brief Sends an 8-byte CAN frame to the specified address.
@@ -116,7 +114,7 @@ int BMS_CAN_INIT(void);
  * @param TxBuffer Pointer to 8-byte data buffer.
  * @return 0 on success, error code otherwise.
  */
-int send_CAN(uint32_t address, uint8_t *TxBuffer);
+int can_send_8bytes(uint32_t address, uint8_t *TxBuffer);
 
 /**
  * @brief Sends a CAN frame with specified byte length.
@@ -126,7 +124,7 @@ int send_CAN(uint32_t address, uint8_t *TxBuffer);
  * @param length Number of bytes to send.
  * @return 0 on success, error code otherwise.
  */
-int send_CAN_IVT_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length);
+int can_send_ivt_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length);
 
 /**
  * @brief Formats and sends sensor data to the ECU.
@@ -134,13 +132,13 @@ int send_CAN_IVT_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length);
  * @param GPIO_Input GPIO input encoding system status.
  * @return 0 on success, error code otherwise.
  */
-int send_data2ECU(uint16_t GPIO_Input);
+int can_send_ecu(uint16_t GPIO_Input);
 
 /**
  * @brief Initializes IVT sensor with measurement configurations.
  *
  * @return 0 on success, error code otherwise.
  */
-int ISA_IVT_Init(void);
+int can_ivt_init(void);
 
 #endif
