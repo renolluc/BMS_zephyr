@@ -54,6 +54,14 @@ int main(void)
 		printk("LED state: %s\n", led_state ? "ON" : "OFF");
 		k_msleep(SLEEP_TIME_MS);
 
+		// Send a test CAN message
+		uint8_t can_test_data[5] = {0x01, 0x02, 0x03, 0x04, 0x05};
+		can_send_ivt_nbytes(0x123, can_test_data, 5);
+
+		uint8_t test_data[476];
+		serial_generate_test_frame(test_data, sizeof(test_data));
+		serial_monitor(test_data, sizeof(test_data));
+
 	}
 
 	return 0;

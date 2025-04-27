@@ -77,6 +77,7 @@ def uart_reader(port):
                 if b == 10:  # Newline indicates end of line
                     try:
                         line = line_buffer.decode(errors='ignore').strip()
+                        line = ansi_escape.sub('', line)  # remove ANSI escape sequences
 
                         # Allow only fully printable ASCII lines (32–126) or those with Zephyr tags
                         if line and (

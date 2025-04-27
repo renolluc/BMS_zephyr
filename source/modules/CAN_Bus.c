@@ -17,11 +17,23 @@
 #include <CAN_Bus.h>
 #include <zephyr/logging/log.h>
 
+/**
+ * @brief Sets the name and logging levels for this module.
+ *
+ * Possible log levels:
+ * - LOG_LEVEL_NONE
+ * - LOG_LEVEL_ERR
+ * - LOG_LEVEL_WRN
+ * - LOG_LEVEL_INF
+ * - LOG_LEVEL_DBG
+ */
+LOG_MODULE_REGISTER(can, LOG_LEVEL_INF);
+
 #define CAN_MSG_ID 0x123
 #define SLEEP_TIME_MS 1000
 
 // Define loopback mode for testing
-//#define CONFIG_LOOPBACK_MODE
+#define CONFIG_LOOPBACK_MODE
 
 // Thread defines
 #define RX_THREAD_STACK_SIZE 1024
@@ -47,7 +59,7 @@ void tx_irq_callback(const struct device *dev, int error, void *arg)
 
     if (error != 0)
     {
-        printk("Callback! error-code: %d\nSender: %s\n", error, sender);
+        LOG_ERR("Callback! error-code: %d\nSender: %s\n", error, sender);
     }
 }
 
@@ -66,23 +78,19 @@ void can_rx_thread(void *arg1, void *arg2, void *arg3)
 
     // Add filter to message queue and initialize queue
     filter_id = can_add_rx_filter_msgq(can_dev, &can_msgq, &filter);
-    printk("filter id: %d\n", filter_id);
+    LOG_DBG("filter id: %d\n", filter_id);
 
     // While loop to receive messages
     while (1)
     {
         if (k_msgq_get(&can_msgq, &frame, K_MSEC(5000)) == 0)
         {
-            printk("Received CAN message: ID=0x%X, DLC=%d, Data=", frame.id, frame.dlc);
-            for (int i = 0; i < frame.dlc; i++)
-            {
-                printk("%02X ", frame.data[i]);
-            }
-            printk("\n");
+            LOG_INF("Received CAN message: ID=0x%X, DLC=%d", frame.id, frame.dlc);
+            LOG_HEXDUMP_DBG(frame.data, frame.dlc, "Data");
         }
         else
         {
-            printk("No message in queue\n");
+            LOG_DBG("No message in queue\n");
         }
         // Process received message
         if (frame.id == ADDR_ECU_RX)
@@ -144,7 +152,7 @@ void can_rx_thread(void *arg1, void *arg2, void *arg3)
         } 
         else if (frame.id == TEST_RXTHREAD_ID)
         {
-            printk("Test message received. Giving semaphore.\n");
+            LOG_DBG("Test message received. Giving semaphore.\n");
             k_sem_give(&test_ack_sem);  // Let the unit test know it was received
         }
     }
@@ -161,20 +169,22 @@ int can_send_8bytes(uint32_t address, uint8_t *TxBuffer)
     memcpy(frame.data, TxBuffer, frame.dlc);
 
     // Debug: Print the data being sent
-    printk("Sending CAN message: ID=0x%X, DLC=%d, Data=", frame.id, frame.dlc);
-    for (int i = 0; i < frame.dlc; i++) {
-        printk("%02X ", frame.data[i]);
+    char log_buf[64];  // Adjust size if needed
+    int offset = snprintf(log_buf, sizeof(log_buf),
+    "Sent CAN message: ID=0x%X, DLC=%d, Data=", frame.id, frame.dlc);
+    for (int i = 0; i < frame.dlc && offset < sizeof(log_buf); i++) {
+        offset += snprintf(log_buf + offset, sizeof(log_buf) - offset, "%02X ", frame.data[i]);
     }
-    printk("\n");
+    LOG_INF("%s", log_buf);
 
     // Send the CAN message (non-blocking)
     int ret = can_send(can_dev, &frame, K_NO_WAIT, tx_irq_callback, "AMS-CB");
     if (ret != 0) {
-        printk("Error sending CAN message: %d\n", ret);
+        LOG_ERR("Error sending CAN message: %d\n", ret);
         return ret;
     }
 
-    printk("CAN message sent successfully\n");
+    LOG_DBG("CAN message sent successfully\n");
     return 0;
 }
 
@@ -188,28 +198,30 @@ int can_send_ivt_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length)
     memcpy(frame.data, TxBuffer, frame.dlc);
 
     // Debug: Print the data being sent
-    printk("Sending CAN message: ID=0x%X, DLC=%d, Data=", frame.id, frame.dlc);
-    for (int i = 0; i < frame.dlc; i++) {
-        printk("%02X ", frame.data[i]);
+    char log_buf[64];  // Adjust size if needed
+    int offset = snprintf(log_buf, sizeof(log_buf),
+    "Sent CAN message: ID=0x%X, DLC=%d, Data=", frame.id, frame.dlc);
+    for (int i = 0; i < frame.dlc && offset < sizeof(log_buf); i++) {
+        offset += snprintf(log_buf + offset, sizeof(log_buf) - offset, "%02X ", frame.data[i]);
     }
-    printk("\n");
+    LOG_INF("%s", log_buf);
 
     // Send the CAN message (non-blocking)
     int ret = can_send(can_dev, &frame, K_NO_WAIT, tx_irq_callback, "AMS-CB");
     if (ret != 0) {
-        printk("Error sending CAN message: %d\n", ret);
+        LOG_ERR("Error sending CAN message: %d\n", ret);
         return ret;
     }
 
-    printk("CAN message sent successfully\n");
+    LOG_DBG("CAN message sent successfully\n");
     return 0;
 }
 
 int can_send_ecu(uint16_t GPIO_Input)
 {
     uint8_t can_data[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    can_data[0] |= get_battery_status_code(GPIO_Input);
-    can_data[1] |= get_battery_error_code();
+    can_data[0] |= battery_get_status_code(GPIO_Input);
+    can_data[1] |= battery_get_error_code();
     uint16_t total_volt = battery_values.totalVoltage;
     can_data[2] = total_volt & 0xFF;
     can_data[3] = total_volt >> 8;
@@ -269,7 +281,7 @@ int can_init()
 #ifdef CONFIG_LOOPBACK_MODE
     ret = can_set_mode(can_dev, CAN_MODE_LOOPBACK);
     if (ret != 0) {
-        printk("Error setting CAN mode [%d]\n", ret);
+        LOG_ERR("Error setting CAN mode [%d]\n", ret);
         return ret;
     }
 #endif
@@ -277,27 +289,27 @@ int can_init()
     // Ensure CAN device is ready
     if (!device_is_ready(can_dev))
     {
-        printk("CAN device is not ready\n");
+        LOG_ERR("CAN device is not ready\n");
         return -ENODEV;
     }
-    printk("CAN device is ready\n");
+    LOG_INF("CAN device is ready\n");
     
     ret = can_start(can_dev);
     if (ret != 0) {
-        printk("Error starting CAN controller [%d]\n", ret);
+        LOG_ERR("Error starting CAN controller [%d]\n", ret);
         return ret;
     }
-    printk("CAN Bus initialized\n");
+    LOG_INF("CAN Bus initialized\n");
 
     k_tid_t rx_tid = k_thread_create(&can_rx_thread_data, can_rx_thread_stack,
                                      K_THREAD_STACK_SIZEOF(can_rx_thread_stack),
                                      can_rx_thread, NULL, NULL, NULL,
                                      RX_THREAD_PRIORITY, 0, K_NO_WAIT);
     if (!rx_tid) {
-        printk("ERROR spawning RX thread\n");
+        LOG_ERR("ERROR spawning RX thread\n");
         return -1;
     }
-    printk("RX thread spawned\n");
+    LOG_INF("RX thread spawned\n");
 
     // Initialize semaphore for test acknowledgment
     k_sem_init(&test_ack_sem, 0, 1);

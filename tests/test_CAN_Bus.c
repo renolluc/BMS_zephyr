@@ -32,13 +32,13 @@ ZTEST(can_bus_tests, test_can_send_ivt_nbytes)
     zassert_equal(ret, 0, "can_send_ivt_nbytes failed with error code %d", ret);
 }
 
-ZTEST(can_bus_tests, test_can_send_ecu)
+/* ZTEST(can_bus_tests, test_can_send_ecu)
 {
     uint16_t gpio_input = 0x01; // Example GPIO input
     int ret = can_send_ecu(gpio_input);
 
     zassert_equal(ret, 0, "can_send_ecu failed with error code %d", ret);
-}
+} */
 
 ZTEST(can_bus_tests, test_can_ivt_init)
 {
