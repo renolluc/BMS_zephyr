@@ -40,7 +40,6 @@ int main(void)
 	spi_adbms1818_hw_init();
 
 	serial_monitor_init();
-	uint8_t test_data[476];
 
 	while (1) {
  		ret = gpio_pin_toggle_dt(&led);
@@ -51,11 +50,6 @@ int main(void)
 		led_state = !led_state;
 		printk("LED state: %s\n", led_state ? "ON" : "OFF");
 		k_msleep(SLEEP_TIME_MS);
-		
-		printk("Starting SerialMonitor test...\n");
-		serial_generate_test_frame(test_data, sizeof(test_data));
-		serial_monitor(test_data, sizeof(test_data));
-		printk("SerialMonitor test complete.\n");	
 
 	}
 

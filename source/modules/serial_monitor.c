@@ -1,6 +1,12 @@
-/* serial_monitor.c - UART asynchronous transmit using Zephyr RTOS
+/**
+ * @file serial_monitor.c
+ * @brief UART asynchronous transmission interface using Zephyr RTOS
  *
- * Author: schweja3 (adapted to Zephyr)
+ * This module provides UART communication capabilities for telemetry data,
+ * including sending framed messages and generating synthetic data for testing.
+ *
+ * @author renolluc / grossfa2
+ * @date 27.04.2025
  */
 
  #include <zephyr/kernel.h>
@@ -11,16 +17,23 @@
  #include <zephyr/logging/log.h>
  #include <stdlib.h>
 
- /* LOG Module initialization */
+ /** @brief Logger module definition for serial monitor */
  LOG_MODULE_REGISTER(serial_monitor, LOG_LEVEL_DBG);
  
- /* UART device definition (ensure usart2 is enabled in DTS) */
+ /** @brief UART device instance */
  static const struct device *uart_dev = DEVICE_DT_GET(DT_NODELABEL(usart2));
 
- /* UART transmit done flag */
+ /** @brief Flag indicating if UART transmission is complete */
  static volatile bool uart_tx_done = true;
 
- static void uart_callback(const struct device *dev, struct uart_event *evt, void *user_data)
+ /**
+ * @brief UART callback function for handling UART events
+ *
+ * @param dev Pointer to UART device
+ * @param evt UART event structure
+ * @param user_data Unused
+ */
+ static void serial_callback(const struct device *dev, struct uart_event *evt, void *user_data)
  {
      ARG_UNUSED(user_data);
  
@@ -34,13 +47,16 @@
          uart_tx_done = true;
          LOG_ERR("UART TX aborted\n");
          break;
-     case UART_RX_BUF_REQUEST:
-     case UART_RX_BUF_RELEASED:
      default:
          break;
      }
  }
  
+ /**
+ * @brief Initialize the serial monitor UART interface
+ *
+ * This function checks if the UART device is ready and sets the UART callback handler.
+ */
  void serial_monitor_init(void)
  {
      if (!device_is_ready(uart_dev)) {
@@ -49,9 +65,15 @@
      }
      LOG_INF("UART device %s is ready\n", uart_dev->name);
 
-     uart_callback_set(uart_dev, uart_callback, NULL);
+     uart_callback_set(uart_dev, serial_callback, NULL);
  }
  
+ /**
+ * @brief Transmit data over UART with start/stop framing
+ *
+ * @param data Pointer to data payload
+ * @param size Length of data payload in bytes
+ */
  void serial_monitor(const uint8_t *data, uint16_t size)
  {
     static const uint8_t start[] = {0xFF, 0xA3};
@@ -78,6 +100,12 @@
     LOG_INF("UART poll TX done: %d bytes sent", size + 4);
 }
 
+/**
+ * @brief Generate a synthetic test frame simulating battery telemetry
+ *
+ * @param data Pointer to buffer to be filled
+ * @param len Length of the buffer; must be at least 476 bytes
+ */
 void serial_generate_test_frame(uint8_t *data, size_t len) {
     if (len < 476) return;
 
@@ -89,10 +117,10 @@ void serial_generate_test_frame(uint8_t *data, size_t len) {
     data[2] = 0x10; data[3] = 0xA4;                     // highest = 4.2 V
     data[4] = 0x88; data[5] = 0x79;                     // lowest = 3.1 V
     data[6] = 0x3D; data[7] = 0x8E;                     // mean = 3.65 V
-    data[8] = 0x40; data[9] = 0x1F;                     // temp1 dummy
-    data[10] = 0x40; data[11] = 0x1F;                   // temp2 dummy
-    data[12] = 0x40; data[13] = 0x1F;                   // temp3 dummy
-    data[14] = 0x1F; data[15] = 0x02;                   // status/error
+    data[8] = 0x40; data[9] = 0x1F;                     // highest cell temp
+    data[10] = 0x40; data[11] = 0x1F;                   // lowest cell temp
+    data[12] = 0x40; data[13] = 0x1F;                   // mean cell temp
+    data[14] = 0x1F; data[15] = 0x02;                   // status and error
     data[16] = 0x10; data[17] = 0x00;                   // current low
     data[18] = 0x00; data[19] = 0x00;                   // current high
     data[20] = 0x20; data[21] = 0x00;                   // counter low
