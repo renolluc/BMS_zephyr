@@ -123,10 +123,12 @@ void serial_generate_test_frame(uint8_t *data, size_t len) {
     data[14] = 0x1F; data[15] = 0x02;                   // status and error
     data[16] = 0x10; data[17] = 0x00;                   // current low
     data[18] = 0x00; data[19] = 0x00;                   // current high
-    data[20] = 0x20; data[21] = 0x00;                   // counter low
-    data[22] = 0x00; data[23] = 0x00;                   // counter high
-    data[24] = 0x64; data[25] = 0x00;                   // 100 ms
-    data[26] = 0x55; data[27] = 0x00;                   // adbms temp
+    data[20] = 0x00; data[21] = 0x00;                   // voltage low
+    data[22] = 0x00; data[23] = 0x00;                   // voltage high
+    data[24] = 0x20; data[25] = 0x00;                   // counter low
+    data[26] = 0x00; data[27] = 0x00;                   // counter high
+    data[28] = 0x64; data[29] = 0x00;                   // 100 ms
+    data[30] = 0x55; data[31] = 0x00;                   // adbms temp
 
     // Fill 8x18 = 144 voltages starting at byte 28
     for (int i = 0; i < 8 * 18; i++) {

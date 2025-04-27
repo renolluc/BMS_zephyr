@@ -88,37 +88,48 @@ void can_rx_thread(void *arg1, void *arg2, void *arg3)
         if (frame.id == ADDR_ECU_RX)
         {
             //set_relays(frame.data[0]);
-            if (frame.data[0] & BATTERY_SW_RESET)
+            if (frame.data[0] & BATTERY_ON)
             {
-                //SDC_reset();
+                //Turn the accumulator on
+            }
+            else if (frame.data[0 & BATTERY_OFF])
+            {
+                // Turn the accumulator off
             }
         }
         else if (frame.id == IVT_MSG_RESPONSE)
         {
             return;
         }
+        // current measurement from the IVT
         else if (frame.id == IVT_MSG_RESULT_I)
-        {
+        {   
+            // refresh ivt timer
+            sdc_refresh_ivt_timer();
+
             if (frame.data[0] == IVT_NCURRENT)
             {
                 battery_values.actualCurrent = frame.data[5] | frame.data[4] << 8 | frame.data[3] << 16 | frame.data[2] << 24;
             }
         }
-        //Spannungen der ISA-IVT einlesen
+        // voltage measurement from the IVT
         else if (frame.id == IVT_MSG_RESULT_U1 || frame.id == IVT_MSG_RESULT_U2 || frame.id == IVT_MSG_RESULT_U3)
-        {
+        {   
+            // refresh ivt timer
+            sdc_refresh_ivt_timer();
+
             if (frame.data[0] == IVT_NU1)
             {
-                //battery_values.actualVoltages[0] = frame.data[5] | frame.data[4] << 8 | frame.data[3] << 16 | frame.data[2] << 24;
+                battery_values.actualVoltage = frame.data[5] | frame.data[4] << 8 | frame.data[3] << 16 | frame.data[2] << 24;
             }
-            else if (frame.data[0] == IVT_NU2)
+            /* else if (frame.data[0] == IVT_NU2)
             {
                 //battery_values.actualVoltages[1] = frame.data[5] | frame.data[4] << 8 | frame.data[3] << 16 | frame.data[2] << 24;
             }
             else if (frame.data[0] == IVT_NU3)
             {
                 //battery_values.actualVoltages[2] = frame.data[5] | frame.data[4] << 8 | frame.data[3] << 16 | frame.data[2] << 24;
-            }
+            } */
         }
         else if (frame.id == IVT_MSG_RESULT_T)
         {
@@ -197,7 +208,7 @@ int can_send_ivt_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length)
 int can_send_ecu(uint16_t GPIO_Input)
 {
     uint8_t can_data[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-/*     can_data[0] |= get_battery_status_code(GPIO_Input);
+    can_data[0] |= get_battery_status_code(GPIO_Input);
     can_data[1] |= get_battery_error_code();
     uint16_t total_volt = battery_values.totalVoltage;
     can_data[2] = total_volt & 0xFF;
@@ -209,7 +220,7 @@ int can_send_ecu(uint16_t GPIO_Input)
         can_data[6] = 0;
     } else {
         can_data[6] = 100 - (uint8_t)(battery_values.CurrentCounter / AKKU_CAPACITANCE);
-    } */
+    }
     return can_send_8bytes(ADDR_ECU_TX, can_data);
 }
 

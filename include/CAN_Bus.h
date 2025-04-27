@@ -76,16 +76,7 @@ extern struct k_sem test_ack_sem;
 
 //CAN receive Flags in 8 bit format, can byte 0 LSB neue Flags nur für Akku ein- und ausschalten
 #define BATTERY_ON 		 (1<<0)
-#define BATTERY_OFF 	 (0<<0)
-#define BATTERY_SW_RESET (1<<3) 
-
-// CAN receive Flags in 8 bit format, can byte 0 LSB wird von obigen Flags ersetzt
-/*
-#define AIR_POSITIVE 		(1<<0)
-#define AIR_NEGATIVE 		(1<<1)
-#define PRECHARGE_RELAY 	(1<<2)
-#define BATTERY_SW_RESET	(1<<3) 
-*/
+#define BATTERY_OFF 	 (0<<0) 
 
 // CAN send data frame
 // 0 status flags
