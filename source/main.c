@@ -4,10 +4,11 @@
 #include <zephyr/drivers/can.h>
 #include <CAN_Bus.h>
 #include <zephyr/logging/log.h>
-#include <zephyr/drivers/spi.h>
 #include <zephyr/device.h>
 #include <SPI_MB.h>
 #include <serial_monitor.h>
+#include <Battery.h>
+
 
 /* LED configuration */
 #define LED0_NODE DT_ALIAS(led0)
@@ -40,6 +41,8 @@ int main(void)
 	spi_adbms1818_hw_init();
 
 	serial_monitor_init();
+
+	battery_status_gpio_init();
 
 	while (1) {
  		ret = gpio_pin_toggle_dt(&led);
