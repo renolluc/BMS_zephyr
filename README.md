@@ -70,11 +70,11 @@ classDiagram
     class main
 
     class Can_Bus{
-        int BMS_CAN_INIT(void);
-        int send_CAN(uint32_t address, uint8_t *TxBuffer);
-        int send_CAN_IVT_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length);
-        int send_data2ECU(uint16_t GPIO_Input);
-        int ISA_IVT_Init(void);
+        int can_init(void);
+        int can_ivt_init(void);
+        int can_send_8bytes(uint32_t address, uint8_t *TxBuffer);
+        int can_send_ivt_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length);
+        int can_send_ecu(uint16_t GPIO_Input);
     }
 
     class spiMB{
@@ -129,7 +129,7 @@ This guide walks you through setting up and running the Zurich UAS Racing Batter
 
 ---
 
-## 📁 Project Structure
+## 📁 Structure
 
 ```
 Dashboard/
