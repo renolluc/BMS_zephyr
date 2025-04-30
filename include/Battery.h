@@ -101,13 +101,5 @@ int battery_status_gpio_init(void);
 #define Drive_Precharge_Relay_GPIO_Port GPIOB
 #define Precharge_EN_Pin 7
 #define Precharge_EN_GPIO_Port GPIOB
-//AUS CAN.h
-#define AIR_POSITIVE 		(1<<0)
-#define AIR_NEGATIVE 		(1<<1)
-#define PRECHARGE_RELAY 	(1<<2)
-#define BATTERY_SW_RESET	(1<<3) 
-
-
-
 
 #endif /* INC_BATTERY_H_ */

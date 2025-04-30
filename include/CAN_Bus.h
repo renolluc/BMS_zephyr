@@ -74,9 +74,6 @@ extern struct k_sem test_ack_sem;
 // settings
 #define CYCLETIME 100  // in ms
 
-//CAN receive Flags in 8 bit format, can byte 0 LSB neue Flags nur für Akku ein- und ausschalten
-#define BATTERY_ON 		 (1<<0)
-#define BATTERY_OFF 	 (0<<0) 
 
 // CAN send data frame
 // 0 status flags

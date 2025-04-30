@@ -36,6 +36,10 @@
  #define ERROR_CAN			(1<<5)		// set to 1 if CAN buffer overflow occurs
  #define ERROR_IVT			(1<<6)		// set to 1 if IVT-S doesn't send data
  #define ERROR_RESERVE1		(1<<7)		// unused, set to 0
+
+ //>> Status Flags from ECU
+ #define BATTERY_ON 		    (1<<0)
+ #define BATTERY_OFF 	        (0<<0) 
  
  #endif /* INC_STATUS_ERROR_FLAGS_H_ */
  

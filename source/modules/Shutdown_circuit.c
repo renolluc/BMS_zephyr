@@ -188,7 +188,7 @@ Battery_StatusTypeDef sdc_reset(void)
 
     /* 4) IVT timeout check */
     if (now >= ivt_deadline_ms) {
-        ivt_deadline_ms = now + IVT_TIMEOUT_MS;
+
         battery_set_error_flag(ERROR_IVT);
     }
 
