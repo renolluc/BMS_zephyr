@@ -123,6 +123,21 @@ classDiagram
 ```
 ---
 
+```mermaid
+stateDiagram-v2
+
+Init --> Ready: all Inits passed
+Ready --> PreCharge: ECU OK
+PreCharge --> ConnectBattery
+ConnectBattery --> Run: 
+ConnectBattery --> Charging: charger connected
+Run --> error
+error --> Ready
+Charging --> error
+ 
+
+```
+---
 # 🖥️ Battery Dashboard — Deployment Guide
 
 This guide walks you through setting up and running the Zurich UAS Racing Battery Monitoring Dashboard using Flask and Serial data.
