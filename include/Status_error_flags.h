@@ -18,12 +18,12 @@
  // CAN Data frame LSB to MSB: status flag byte, error flag byte, total voltage low, total voltage high, actual current low, actual current high, cell temp low, cell temp high
  
  //>> Status Flags 1 Byte
- #define STATUS_BATTERY_OK	(1<<0)		// set to 1 when accumulator system is ok, otherwise 0
+ #define STATUS_BATTERY_OK	    (1<<0)		// set to 1 when accumulator system is ok, otherwise 0
  #define STATUS_CHARGING		(1<<1)		// set to 1 when system is in charging mode, otherwise 0
- #define STATUS_MB_TEMP_OK	(1<<2)		// set to 1 when MB temperature is ok, set to 0 if one or more MB has overtemperature due to balancing
- #define STATUS_AIR_POSITIVE (1<<5)		// set to 1 when AIR positive is closed
- #define STATUS_AIR_NEGATIVE (1<<3)		// set to 1 when AIR negative is closed
- #define STATUS_PRECHARGE 	(1<<4)		// set to 1 when AIR precharge is closed
+ #define STATUS_MB_TEMP_OK	    (1<<2)		// set to 1 when MB temperature is ok, set to 0 if one or more MB has overtemperature due to balancing
+ #define STATUS_AIR_POSITIVE    (1<<5)		// set to 1 when AIR positive is closed
+ #define STATUS_AIR_NEGATIVE    (1<<3)		// set to 1 when AIR negative is closed
+ #define STATUS_PRECHARGE 	    (1<<4)		// set to 1 when AIR precharge is closed
  #define STATUS_RESERVE2		(1<<6)		// unused, set to 0
  #define STATUS_RESERVE1		(1<<7)		// unused, set to 0
  
@@ -36,6 +36,10 @@
  #define ERROR_CAN			(1<<5)		// set to 1 if CAN buffer overflow occurs
  #define ERROR_IVT			(1<<6)		// set to 1 if IVT-S doesn't send data
  #define ERROR_RESERVE1		(1<<7)		// unused, set to 0
+
+ //>> Status Flags from ECU
+ #define BATTERY_ON 		    (1<<0)
+ #define BATTERY_OFF 	        (0<<0) 
  
  #endif /* INC_STATUS_ERROR_FLAGS_H_ */
  

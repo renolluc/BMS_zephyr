@@ -31,9 +31,10 @@ def parse_frame(data):
         status = data[14]
         error = data[15]
         current = (data[16] + data[17]*256 + data[18]*65536 + data[19]*16777216) * 0.001
-        counter = (data[20] + data[21]*256 + data[22]*65536 + data[23]*16777216) * 0.001
-        time_per_cycle = data[24] + data[25]*256
-        adbms_temp = (data[26] + data[27]*256) * 0.01
+        voltage = (data[20] + data[21]*256 + data[22]*65536 + data[23]*16777216) * 0.001
+        counter = (data[24] + data[25]*256 + data[26]*65536 + data[27]*16777216) * 0.001
+        time_per_cycle = data[28] + data[29]*256
+        adbms_temp = (data[30] + data[31]*256) * 0.01
 
         html = f""
         html += f"Total Voltage: {totalVoltage:.2f} V<br>"
@@ -45,6 +46,7 @@ def parse_frame(data):
         html += f"Mean Cell Temperature: {meanCellTemp:.1f} °C<br>"
         html += f"Highest ADBMS Temp: {adbms_temp:.1f} °C<br>"
         html += f"Actual Current: {current:.2f} A<br>"
+        html += f"Actual Voltage: {voltage:.2f} V<br>"
         html += f"Current Counter: {counter:.3f} Ah<br>"
         html += f"Status Code: 0x{status:04X}<br>"
         html += f"Error Code: {error:04X}<br>"
@@ -75,6 +77,7 @@ def uart_reader(port):
                 if b == 10:  # Newline indicates end of line
                     try:
                         line = line_buffer.decode(errors='ignore').strip()
+                        line = ansi_escape.sub('', line)  # remove ANSI escape sequences
 
                         # Allow only fully printable ASCII lines (32–126) or those with Zephyr tags
                         if line and (

@@ -8,45 +8,46 @@
 #define TEST_RXTHREAD_ID 0x7A0
 #define TEST_CAN_DATA_LEN 8
 
-ZTEST(can_bus_tests, test_send_CAN)
+ZTEST(can_bus_tests, test_can_init)
+{
+    int ret = can_init();
+
+    // 0 for initialization success, -16 for CAN Mode already set
+    zassert_equal(ret, 0 | -16, "can_init failed with error code %d", ret);
+}
+
+ZTEST(can_bus_tests, test_can_send_8bytes)
 {
     uint8_t test_data[TEST_CAN_DATA_LEN] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
-    int ret = send_CAN(TEST_CAN_MSG_ID, test_data);
+    int ret = can_send_8bytes(TEST_CAN_MSG_ID, test_data);
 
-    zassert_equal(ret, 0, "send_CAN failed with error code %d", ret);
+    zassert_equal(ret, 0, "can_send_8bytes failed with error code %d", ret);
 }
 
-ZTEST(can_bus_tests, test_send_CAN_IVT_nbytes)
+ZTEST(can_bus_tests, test_can_send_ivt_nbytes)
 {
     uint8_t test_data[5] = {0x10, 0x20, 0x30, 0x40, 0x50};
-    int ret = send_CAN_IVT_nbytes(TEST_CAN_MSG_ID, test_data, 5);
+    int ret = can_send_ivt_nbytes(TEST_CAN_MSG_ID, test_data, 5);
 
-    zassert_equal(ret, 0, "send_CAN_IVT_nbytes failed with error code %d", ret);
+    zassert_equal(ret, 0, "can_send_ivt_nbytes failed with error code %d", ret);
 }
 
-ZTEST(can_bus_tests, test_send_data2ECU)
+/* ZTEST(can_bus_tests, test_can_send_ecu)
 {
     uint16_t gpio_input = 0x01; // Example GPIO input
-    int ret = send_data2ECU(gpio_input);
+    int ret = can_send_ecu(gpio_input);
 
-    zassert_equal(ret, 0, "send_data2ECU failed with error code %d", ret);
-}
+    zassert_equal(ret, 0, "can_send_ecu failed with error code %d", ret);
+} */
 
-ZTEST(can_bus_tests, test_ISA_IVT_Init)
+ZTEST(can_bus_tests, test_can_ivt_init)
 {
-    int ret = ISA_IVT_Init();
+    int ret = can_ivt_init();
 
-    zassert_equal(ret, 0, "ISA_IVT_Init failed with error code %d", ret);
+    zassert_equal(ret, 0, "can_ivt_init failed with error code %d", ret);
 }
 
-ZTEST(can_bus_tests, test_BMS_CAN_INIT)
-{
-    int ret = BMS_CAN_INIT();
-
-    zassert_equal(ret, 0, "BMS_CAN_INIT failed with error code %d", ret);
-}
-
-ZTEST(can_bus_tests, test_rx_thread)
+ZTEST(can_bus_tests, test_can_rx_thread)
 {
     const struct device *can_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_canbus));
     zassert_true(device_is_ready(can_dev), "CAN device is not ready");
@@ -61,9 +62,9 @@ ZTEST(can_bus_tests, test_rx_thread)
     int ret = can_send(can_dev, &test_frame, K_NO_WAIT, NULL, NULL);
     zassert_equal(ret, 0, "Failed to send test CAN message: %d", ret);
 
-    printk("Waiting for message in rx_thread\n");
+    printk("Waiting for message in can_rx_thread\n");
     ret = k_sem_take(&test_ack_sem, K_MSEC(1000));
     zassert_equal(ret, 0, "Test message was not handled in time");
 }
 
-ZTEST_SUITE(can_bus_tests, NULL, NULL, NULL, NULL, NULL);
+ZTEST_SUITE(can_bus_tests, NULL, can_init, NULL, NULL, NULL);

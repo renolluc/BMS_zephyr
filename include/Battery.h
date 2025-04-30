@@ -47,8 +47,9 @@ typedef struct {
     uint8_t status;     // Current status of the accumulator
     uint8_t error;		// current error flags of the accumulator
 
-    int32_t actualCurrent;
-    int32_t CurrentCounter;
+    int32_t actualCurrent;          // Actual current from IVT
+    int32_t actualVoltage;          // Actual voltage from IVT 
+    int32_t CurrentCounter;         // Current counter from IVT
 
     uint16_t time_per_measurement;
     uint16_t adbms_itemp;
@@ -100,13 +101,5 @@ int battery_status_gpio_init(void);
 #define Drive_Precharge_Relay_GPIO_Port GPIOB
 #define Precharge_EN_Pin 7
 #define Precharge_EN_GPIO_Port GPIOB
-//AUS CAN.h
-#define AIR_POSITIVE 		(1<<0)
-#define AIR_NEGATIVE 		(1<<1)
-#define PRECHARGE_RELAY 	(1<<2)
-#define BATTERY_SW_RESET	(1<<3) 
-
-
-
 
 #endif /* INC_BATTERY_H_ */

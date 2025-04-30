@@ -36,7 +36,7 @@ int main(void)
 	}
 
 	// Initialize CAN Bus
-	BMS_CAN_INIT();
+	can_init();
 
 	spi_adbms1818_hw_init();
 
@@ -53,6 +53,14 @@ int main(void)
 		led_state = !led_state;
 		printk("LED state: %s\n", led_state ? "ON" : "OFF");
 		k_msleep(SLEEP_TIME_MS);
+
+		// Send a test CAN message
+		uint8_t can_test_data[5] = {0x01, 0x02, 0x03, 0x04, 0x05};
+		can_send_ivt_nbytes(0x123, can_test_data, 5);
+
+		uint8_t test_data[476];
+		serial_generate_test_frame(test_data, sizeof(test_data));
+		serial_monitor(test_data, sizeof(test_data));
 
 	}
 
