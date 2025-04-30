@@ -15,9 +15,6 @@
 #include "Status_error_flags.h"
 #include "CAN_Bus.h"
 
-#define SDC_IN_Pin 0
-#define SDC_Out_Pin 8
-
 #define IVT_TIMEOUT_MS 400
 #define BATTERY_TIMEOUT_MS 400
 
@@ -25,6 +22,9 @@
 
 static const struct gpio_dt_spec sdc_in_spec = GPIO_DT_SPEC_GET(DT_ALIAS(sdcin), gpios);
 static const struct gpio_dt_spec sdc_out_spec = GPIO_DT_SPEC_GET(DT_ALIAS(sdcout), gpios);
+static const struct gpio_dt_spec drive_air_pos_spec = GPIO_DT_SPEC_GET(DT_ALIAS(driveairpositive), gpios);
+static const struct gpio_dt_spec drive_air_neg_spec = GPIO_DT_SPEC_GET(DT_ALIAS(driveairnegative), gpios);
+static const struct gpio_dt_spec drive_precharge_spec = GPIO_DT_SPEC_GET(DT_ALIAS(driveprecharge), gpios);
     
 static uint64_t ivt_deadline_ms;
 static uint64_t battery_deadline_ms;

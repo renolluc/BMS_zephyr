@@ -51,9 +51,6 @@
      CHECK_READY(vfb_pc_relay_spec);
      CHECK_READY(charger_con_spec);
      CHECK_READY(precharge_en_spec);
-     CHECK_READY(drive_air_pos_spec);
-     CHECK_READY(drive_air_neg_spec);
-     CHECK_READY(drive_precharge_spec);
 
      /* configure each pin as input */
      ret = gpio_pin_configure_dt(&vfb_air_pos_spec, GPIO_INPUT);
@@ -69,15 +66,6 @@
      if (ret) return ret;
 
      ret = gpio_pin_configure_dt(&precharge_en_spec, GPIO_INPUT);
-     if (ret) return ret;
-
-     ret = gpio_pin_configure_dt(&drive_air_pos_spec, GPIO_OUTPUT_INACTIVE);
-     if (ret) return ret;
- 
-     ret = gpio_pin_configure_dt(&drive_air_neg_spec, GPIO_OUTPUT_INACTIVE);
-     if (ret) return ret;
- 
-     ret = gpio_pin_configure_dt(&drive_precharge_spec, GPIO_OUTPUT_INACTIVE);
      if (ret) return ret;
  
      LOG_INF("BMS GPIOs initialized");
@@ -165,15 +153,15 @@ uint8_t battery_get_status_code(void)
     battery_set_reset_status_flag(ok, STATUS_MB_TEMP_OK);
 
     /* STATUS_AIR_POSITIVE: read v_fb_air_positive pin */
-    val = gpio_pin_get(gpioa_dev, V_FB_AIR_positive_Pin);
+    val = gpio_pin_get_dt(&vfb_air_pos_spec);
     battery_set_reset_status_flag(val > 0, STATUS_AIR_POSITIVE);
 
     /* STATUS_AIR_NEGATIVE: read v_fb_air_negative pin */
-    val = gpio_pin_get(gpioa_dev, V_FB_AIR_NEGATIVE_PIN);
+    val = gpio_pin_get_dt(&vfb_air_neg_spec);
     battery_set_reset_status_flag(val > 0, STATUS_AIR_NEGATIVE);
 
     /* STATUS_PRECHARGE: read v_fb_pc_relay pin */
-    val = gpio_pin_get(gpioa_dev, V_FB_PC_Relay_Pin);
+    val = gpio_pin_get_dt(&vfb_pc_relay_spec);
     battery_set_reset_status_flag(val > 0, STATUS_PRECHARGE);
 
     return battery_values.status;
@@ -466,7 +454,7 @@ void battery_precharge_logic(void)
     int  gpio_val;
 
     /* Read the current Precharge_EN pin state */
-    gpio_val = gpio_pin_get(gpiob_dev, Precharge_EN_Pin);
+    gpio_val = gpio_pin_get_dt(&precharge_en_spec);
     if (gpio_val < 0) {
         LOG_ERR("Failed to read Precharge_EN (err %d)", gpio_val);
         return;
@@ -521,7 +509,7 @@ void battery_charging(void)
     battery_precharge_logic();
 
     /* Read the charger‐connected sense pin (active low) */
-    gpio_val = gpio_pin_get(gpioa_dev, Charger_Con_Pin);
+    gpio_val = gpio_pin_get_dt(&charger_con_spec);
     if (gpio_val < 0) {
         LOG_ERR("Failed to read Charger_Con pin (err %d)", gpio_val);
         return;

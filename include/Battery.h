@@ -30,8 +30,6 @@
 #define AKKU_CAPACITANCE 45000		// in As ≙ 12.5 Ah
 
 
-
-
 // struct for the battery
 typedef struct {
     uint16_t totalVoltage;          // Total voltage of the accumulator system
@@ -62,43 +60,12 @@ typedef struct {
 extern BatterySystemTypeDef battery_values;
 
 
-static const struct gpio_dt_spec vfb_air_pos_spec = 
-    GPIO_DT_SPEC_GET(DT_ALIAS(vfbairpositive), gpios);
-static const struct gpio_dt_spec vfb_air_neg_spec = 
-    GPIO_DT_SPEC_GET(DT_ALIAS(vfbairnegative), gpios);
-static const struct gpio_dt_spec vfb_pc_relay_spec = 
-    GPIO_DT_SPEC_GET(DT_ALIAS(vfbpcrelay), gpios);
-static const struct gpio_dt_spec charger_con_spec = 
-    GPIO_DT_SPEC_GET(DT_ALIAS(chargerconnect), gpios);
-static const struct gpio_dt_spec precharge_en_spec = 
-    GPIO_DT_SPEC_GET(DT_ALIAS(prechargeenable), gpios);
-static const struct gpio_dt_spec drive_air_pos_spec = 
-    GPIO_DT_SPEC_GET(DT_ALIAS(driveairpositive), gpios);
-static const struct gpio_dt_spec drive_air_neg_spec = 
-    GPIO_DT_SPEC_GET(DT_ALIAS(driveairnegative), gpios);
-static const struct gpio_dt_spec drive_precharge_spec = 
-    GPIO_DT_SPEC_GET(DT_ALIAS(driveprecharge), gpios);
+static const struct gpio_dt_spec vfb_air_pos_spec = GPIO_DT_SPEC_GET(DT_ALIAS(vfbairpositive), gpios);
+static const struct gpio_dt_spec vfb_air_neg_spec = GPIO_DT_SPEC_GET(DT_ALIAS(vfbairnegative), gpios);
+static const struct gpio_dt_spec vfb_pc_relay_spec = GPIO_DT_SPEC_GET(DT_ALIAS(vfbpcrelay), gpios);
+static const struct gpio_dt_spec charger_con_spec = GPIO_DT_SPEC_GET(DT_ALIAS(chargerconnect), gpios);
+static const struct gpio_dt_spec precharge_en_spec = GPIO_DT_SPEC_GET(DT_ALIAS(prechargeenable), gpios);
 
 int battery_status_gpio_init(void);
-
-#define V_FB_AIR_NEGATIVE_PIN 1
-#define V_FB_AIR_positive_Pin 3
-#define V_FB_PC_Relay_Pin 4
-//nicht benutzt ?? ///////////////
-#define Charge_EN_Pin GPIO_PIN_9//
-//////////////////////////////////
-#define Charger_Con_Pin 10
-#define Drive_AIR_positive_Pin 4
-#define Drive_AIR_negative_Pin 5
-#define Drive_Precharge_Relay_Pin 6
-#define Precharge_EN_Pin 7
-
-#define AIR_POSITIVE 		(1<<0)
-#define AIR_NEGATIVE 		(1<<1)
-#define PRECHARGE_RELAY 	(1<<2)
-#define BATTERY_SW_RESET	(1<<3) 
-
-
-
 
 #endif /* INC_BATTERY_H_ */

@@ -39,6 +39,9 @@ static int sdc_init(void)
 
     CHECK_READY(sdc_in_spec);
     CHECK_READY(sdc_out_spec);
+    CHECK_READY(drive_air_pos_spec);
+    CHECK_READY(drive_air_neg_spec);
+    CHECK_READY(drive_precharge_spec);
 
     ret = gpio_pin_configure_dt(&sdc_in_spec, GPIO_INPUT);
     if (ret) return ret;
@@ -46,9 +49,17 @@ static int sdc_init(void)
     ret = gpio_pin_configure_dt(&sdc_out_spec, GPIO_OUTPUT_INACTIVE);
     if (ret) return ret;
 
+    ret = gpio_pin_configure_dt(&drive_air_pos_spec, GPIO_OUTPUT_INACTIVE);
+    if (ret) return ret;
+
+    ret = gpio_pin_configure_dt(&drive_air_neg_spec, GPIO_OUTPUT_INACTIVE);
+    if (ret) return ret;
+
+    ret = gpio_pin_configure_dt(&drive_precharge_spec, GPIO_OUTPUT_INACTIVE);
+    if (ret) return ret;
+
     /* Start-Deadline initial setzen */
     ivt_deadline_ms     = k_uptime_get() + IVT_TIMEOUT_MS;
-    battery_deadline_ms = k_uptime_get() + IVT_TIMEOUT_MS;
     sdc_error_counter   = 0U;
 
     LOG_INF("SDC initialized, timeout %d ms", IVT_TIMEOUT_MS);
@@ -85,8 +96,7 @@ Battery_StatusTypeDef refresh_sdc(void)
     /* Prüfen, ob kritische Fehler vorliegen (Mask 0x47) */
     if ((battery_values.error & 0x47) == 0) {
         /* OK-Pfad: SDC high, Deadline & Fehler-Counter zurücksetzen */
-        gpio_pin_set(gpioa_dev, SDC_Out_Pin, 1);
-        battery_deadline_ms = now + BATTERY_TIMEOUT_MS;
+        gpio_pin_set_dt(&sdc_in_spec, 1);
         sdc_error_counter = 0U;
         return BATTERY_OK;
     }else{
@@ -94,7 +104,7 @@ Battery_StatusTypeDef refresh_sdc(void)
         /* Fehler-Pfad: Counter inkrementieren, ggf. latchen */
         sdc_error_counter++;
         if (sdc_error_counter >= 3U) {
-            gpio_pin_set(gpioa_dev, SDC_Out_Pin, 0);
+            gpio_pin_set_dt(&sdc_out_spec, 0);
             battery_set_error_flag(ERROR_SDC);
             LOG_INF("SDC latched low after %d errors", sdc_error_counter);
             return BATTERY_ERROR;
@@ -192,7 +202,6 @@ Battery_StatusTypeDef sdc_reset(void)
 
     if (success) {
         /* SDC OK: drive high, restart IVT deadline */
-        battery_deadline_ms = now + BATTERY_TIMEOUT_MS;
         gpio_pin_set_dt(&sdc_out_spec, 1);
         return BATTERY_OK;
     } else {
