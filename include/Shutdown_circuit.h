@@ -27,7 +27,7 @@ static const struct gpio_dt_spec drive_air_neg_spec = GPIO_DT_SPEC_GET(DT_ALIAS(
 static const struct gpio_dt_spec drive_precharge_spec = GPIO_DT_SPEC_GET(DT_ALIAS(driveprecharge), gpios);
     
 static uint64_t ivt_deadline_ms;
-static uint64_t battery_deadline_ms;
+
 
 extern Battery_StatusTypeDef refresh_sdc();
 extern void sdc_set_relays(uint8_t CAN_Data);

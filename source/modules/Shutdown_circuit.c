@@ -82,23 +82,31 @@ static int sdc_init(void)
  * @return BATTERY_OK If SDC-Out high or error not yet latched or 
  * BATTERY_ERROR If SDC-Error latched (after ≥3 errors)
  */
-Battery_StatusTypeDef refresh_sdc(void)
+Battery_StatusTypeDef sdc_check_state(void)
 {
     int64_t now = k_uptime_get();
+    bool curr_ecu_state;
+
+    /*ECU Battery Ok*/
+    curr_ecu_state = can_get_ecu_state();
+    if (!curr_ecu_state)
+    {
+        battery_set_error_flag(ERROR_BATTERY);
+        LOG_ERR("ECU not ready");
+    }
 
     /* IVT-Timeout prüfen */
     if (now >= ivt_deadline_ms) {
-        ivt_deadline_ms = now + IVT_TIMEOUT_MS;
+        sdc_refresh_ivt_timer();
         battery_set_error_flag(ERROR_IVT);
-        LOG_DBG("IVT timeout, flag ERROR_IVT set");
+        LOG_ERR("IVT timeout, flag ERROR_IVT set");
     }
 
     /* Prüfen, ob kritische Fehler vorliegen (Mask 0x47) */
     if ((battery_values.error & 0x47) == 0) {
         /* OK-Pfad: SDC high, Deadline & Fehler-Counter zurücksetzen */
-        gpio_pin_set_dt(&sdc_in_spec, 1);
+        gpio_pin_set_dt(&sdc_out_spec, 1);
         sdc_error_counter = 0U;
-        return BATTERY_OK;
     }else{
 
         /* Fehler-Pfad: Counter inkrementieren, ggf. latchen */
@@ -106,7 +114,7 @@ Battery_StatusTypeDef refresh_sdc(void)
         if (sdc_error_counter >= 3U) {
             gpio_pin_set_dt(&sdc_out_spec, 0);
             battery_set_error_flag(ERROR_SDC);
-            LOG_INF("SDC latched low after %d errors", sdc_error_counter);
+            LOG_ERR("SDC latched low after %d errors", sdc_error_counter);
             return BATTERY_ERROR;
         }
 }
@@ -126,29 +134,32 @@ Battery_StatusTypeDef refresh_sdc(void)
  *
  * @param unused Not used (kept for signature compatibility).
  */
-void check_sdc_feedback(void)
+void sdc_check_feedback(void)
 {
     static bool prev_state = true;  /* assume pulled-up idle = high */
-    bool curr_state;
+    bool curr_sdc_in_state;
     int  ret;
 
     /* Read the feedback pin */
-    curr_state = gpio_pin_get_dt(&sdc_in_spec);
-    if (curr_state < 0) {
-        LOG_ERR("Failed to read SDC feedback pin (%d)", curr_state);
+    curr_sdc_in_state = gpio_pin_get_dt(&sdc_in_spec);
+    if (curr_sdc_in_state < 0) {
+        gpio_pin_set_dt(&drive_air_pos_spec, 0);
+        gpio_pin_set_dt(&drive_air_neg_spec, 0);
+        gpio_pin_set_dt(&drive_precharge_spec,0);
+        LOG_ERR("Failed to read SDC feedback pin (%d)", curr_sdc_in_state);
         return;
     }
 
     /* Falling edge: feedback went from 1 → 0 */
-    if (!curr_state && prev_state) {
+    if (!curr_sdc_in_state && prev_state) {
         /* De-energize AIR and precharge relays (drive outputs low) */
         gpio_pin_set_dt(&drive_air_pos_spec, 0);
         gpio_pin_set_dt(&drive_air_neg_spec, 0);
         gpio_pin_set_dt(&drive_precharge_spec,0);
-        LOG_INF("SDC feedback lost; relays turned off");
+        LOG_ERR("SDC feedback lost; relays turned off");
     }
 
-    prev_state = curr_state;
+    prev_state = curr_sdc_in_state;
 }
 
 /**
@@ -193,7 +204,6 @@ Battery_StatusTypeDef sdc_reset(void)
 
     /* 4) IVT timeout check */
     if (now >= ivt_deadline_ms) {
-        ivt_deadline_ms = now + IVT_TIMEOUT_MS;
         battery_set_error_flag(ERROR_IVT);
     }
 
@@ -269,4 +279,16 @@ void sdc_set_relays(uint8_t can_data)
     }
 
     last_value = can_data;
+}
+
+/**
+ * @brief Set the Battery state to on or off used in CAN.c.
+ *
+ * This function sets the battery_on variable to the specified state.
+ * It is used to indicate whether the ECU wants the Battery on or off.
+ * 
+ */
+void sdc_set_battery(bool state)
+{
+    battery_on = state;
 }
