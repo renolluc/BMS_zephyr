@@ -105,15 +105,15 @@ Battery_StatusTypeDef sdc_check_state(void)
     /* Prüfen, ob kritische Fehler vorliegen (Mask 0x47) */
     if ((battery_values.error & 0x47) == 0) {
         /* OK-Pfad: SDC high, Deadline & Fehler-Counter zurücksetzen */
-        gpio_pin_set_dt(&sdc_out_spec, 1);
+        //gpio_pin_set_dt(&sdc_out_spec, 1);
         sdc_error_counter = 0U;
     }else{
 
         /* Fehler-Pfad: Counter inkrementieren, ggf. latchen */
         sdc_error_counter++;
         if (sdc_error_counter >= 3U) {
-            gpio_pin_set_dt(&sdc_out_spec, 0);
-            battery_set_error_flag(ERROR_SDC);
+            //gpio_pin_set_dt(&sdc_out_spec, 0);
+            battery_set_error_flag(ERROR_BATTERY);
             LOG_ERR("SDC latched low after %d errors", sdc_error_counter);
             return BATTERY_ERROR;
         }
@@ -140,6 +140,8 @@ void sdc_check_feedback(void)
     bool curr_sdc_in_state;
     int  ret;
 
+    //nochmals anschauen 
+    //wieso braucht state 2 abfragen macht keinene sinn vergleich mit dem alten code 
     /* Read the feedback pin */
     curr_sdc_in_state = gpio_pin_get_dt(&sdc_in_spec);
     if (curr_sdc_in_state < 0) {
@@ -149,7 +151,7 @@ void sdc_check_feedback(void)
         LOG_ERR("Failed to read SDC feedback pin (%d)", curr_sdc_in_state);
         return;
     }
-
+    /////////////////////////////////////////////////////////////////////////
     /* Falling edge: feedback went from 1 → 0 */
     if (!curr_sdc_in_state && prev_state) {
         /* De-energize AIR and precharge relays (drive outputs low) */
@@ -234,61 +236,4 @@ void sdc_refresh_ivt_timer(void)
 
     /* Reset the IVT deadline */
     ivt_deadline_ms = now + IVT_TIMEOUT_MS;
-}
-
-/**
- * @brief Drive the AIR and precharge relays based on a CAN-data bitmask.
- *
- * This function updates the GPIO outputs for the AIR_POSITIVE, AIR_NEGATIVE,
- * and PRECHARGE relays to match the bits in \p can_data. Only when the mask
- * changes since the last call are the pins actually toggled.
- *
- * @param can_data   Bitmask containing one or more of  
- *                   - AIR_POSITIVE  
- *                   - AIR_NEGATIVE  
- *                   - PRECHARGE_RELAY  
- */
-void sdc_set_relays(uint8_t can_data)
-{
-    static uint8_t last_value = 0;
-
-    /* Only update on change */
-    if (last_value == can_data) {
-        return;
-    }
-
-    /* AIR positive relay */
-    if(can_data & AIR_POSITIVE) {
-        gpio_pin_set_dt(&drive_air_pos_spec, 1);
-    } else {
-        gpio_pin_set_dt(&drive_air_pos_spec, 0);
-    }
-
-    /* AIR negative relay */
-    if(can_data & AIR_NEGATIVE) {
-        gpio_pin_set_dt(&drive_air_neg_spec, 1);
-    } else {
-        gpio_pin_set_dt(&drive_air_neg_spec, 0);
-    }
-
-    /* Precharge relay */
-    if(can_data & PRECHARGE_RELAY) {
-        gpio_pin_set_dt(&drive_precharge_spec, 1);
-    } else {
-        gpio_pin_set_dt(&drive_precharge_spec, 0);
-    }
-
-    last_value = can_data;
-}
-
-/**
- * @brief Set the Battery state to on or off used in CAN.c.
- *
- * This function sets the battery_on variable to the specified state.
- * It is used to indicate whether the ECU wants the Battery on or off.
- * 
- */
-void sdc_set_battery(bool state)
-{
-    battery_on = state;
 }
