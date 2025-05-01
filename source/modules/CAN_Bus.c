@@ -33,7 +33,9 @@ LOG_MODULE_REGISTER(can, LOG_LEVEL_INF);
 #define SLEEP_TIME_MS 1000
 
 // Define loopback mode for testing
+#ifdef CONFIG_ZTEST
 #define CONFIG_LOOPBACK_MODE
+#endif
 
 // Thread defines
 #define RX_THREAD_STACK_SIZE 1024
@@ -169,13 +171,8 @@ int can_send_8bytes(uint32_t address, uint8_t *TxBuffer)
     memcpy(frame.data, TxBuffer, frame.dlc);
 
     // Debug: Print the data being sent
-    char log_buf[64];  // Adjust size if needed
-    int offset = snprintf(log_buf, sizeof(log_buf),
-    "Sent CAN message: ID=0x%X, DLC=%d, Data=", frame.id, frame.dlc);
-    for (int i = 0; i < frame.dlc && offset < sizeof(log_buf); i++) {
-        offset += snprintf(log_buf + offset, sizeof(log_buf) - offset, "%02X ", frame.data[i]);
-    }
-    LOG_INF("%s", log_buf);
+    LOG_INF("Sending CAN message: ID=0x%X, DLC=%d", frame.id, frame.dlc);
+    LOG_HEXDUMP_DBG(frame.data, frame.dlc, "Data");
 
     // Send the CAN message (non-blocking)
     int ret = can_send(can_dev, &frame, K_NO_WAIT, tx_irq_callback, "AMS-CB");
@@ -198,13 +195,8 @@ int can_send_ivt_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length)
     memcpy(frame.data, TxBuffer, frame.dlc);
 
     // Debug: Print the data being sent
-    char log_buf[64];  // Adjust size if needed
-    int offset = snprintf(log_buf, sizeof(log_buf),
-    "Sent CAN message: ID=0x%X, DLC=%d, Data=", frame.id, frame.dlc);
-    for (int i = 0; i < frame.dlc && offset < sizeof(log_buf); i++) {
-        offset += snprintf(log_buf + offset, sizeof(log_buf) - offset, "%02X ", frame.data[i]);
-    }
-    LOG_INF("%s", log_buf);
+    LOG_INF("Sending CAN message: ID=0x%X, DLC=%d", frame.id, frame.dlc);
+    LOG_HEXDUMP_DBG(frame.data, frame.dlc, "Data");
 
     // Send the CAN message (non-blocking)
     int ret = can_send(can_dev, &frame, K_NO_WAIT, tx_irq_callback, "AMS-CB");
