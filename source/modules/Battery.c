@@ -50,7 +50,6 @@
      CHECK_READY(vfb_air_neg_spec);
      CHECK_READY(vfb_pc_relay_spec);
      CHECK_READY(charger_con_spec);
-     CHECK_READY(precharge_en_spec);
 
      /* configure each pin as input */
      ret = gpio_pin_configure_dt(&vfb_air_pos_spec, GPIO_INPUT);
@@ -63,9 +62,6 @@
      if (ret) return ret;
 
      ret = gpio_pin_configure_dt(&charger_con_spec, GPIO_INPUT);
-     if (ret) return ret;
-
-     ret = gpio_pin_configure_dt(&precharge_en_spec, GPIO_INPUT);
      if (ret) return ret;
  
      LOG_INF("BMS GPIOs initialized");
@@ -447,7 +443,7 @@ int battery_precharge_logic(void)
     static uint32_t cnt_100ms = 0;
 
     gpio_pin_set_dt(&drive_air_neg_spec, 1);
-    gpio_pin_set_dt(&precharge_en_spec, 1);
+    gpio_pin_set_dt(&drive_precharge_spec, 1);
 
     if(battery_values.totalVoltage && battery_values.actualVoltage) {
         gpio_pin_set_dt(&drive_air_pos_spec, 1);

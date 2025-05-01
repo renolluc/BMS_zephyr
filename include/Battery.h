@@ -65,7 +65,6 @@ static const struct gpio_dt_spec vfb_air_pos_spec = GPIO_DT_SPEC_GET(DT_ALIAS(vf
 static const struct gpio_dt_spec vfb_air_neg_spec = GPIO_DT_SPEC_GET(DT_ALIAS(vfbairnegative), gpios);
 static const struct gpio_dt_spec vfb_pc_relay_spec = GPIO_DT_SPEC_GET(DT_ALIAS(vfbpcrelay), gpios);
 static const struct gpio_dt_spec charger_con_spec = GPIO_DT_SPEC_GET(DT_ALIAS(chargerconnect), gpios);
-static const struct gpio_dt_spec precharge_en_spec = GPIO_DT_SPEC_GET(DT_ALIAS(prechargeenable), gpios);
 
 int battery_status_gpio_init(void);
 
