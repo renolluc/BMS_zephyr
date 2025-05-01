@@ -20,6 +20,31 @@
  BatterySystemTypeDef battery_values;
  LOG_MODULE_REGISTER(battery, LOG_LEVEL_ERR);
 
+// Thread defines
+#define BATTERY_MONITOR_STACK_SIZE 1024
+#define BATTERY_MONITOR_THREAD_PRIORITY 8
+K_THREAD_STACK_DEFINE(battery_monitor_thread_stack, BATTERY_MONITOR_STACK_SIZE);
+struct k_thread battery_monitor_thread_data;
+
+void battery_monitor_thread(){
+  int state = 0;
+
+	while(1){
+ 
+	state |= battery_check_state();
+	state |= sdc_check_state();
+	state |= sdc_check_feedback();
+
+    if(state < 0){
+    ErrorEvent err = { .source = ERR_SRC_BATT, .code = state };
+    k_msgq_put(&err_evt_queue, &err, K_NO_WAIT);
+    }
+
+	printk("Monitor Thread started\n");
+	k_msleep(1000);
+    }
+}
+
  /**
  * @brief Initialize the GPIO inputs for battery status pins.
  *
@@ -27,7 +52,7 @@
  *
  * @return 0 on success, negative errno otherwise.
  */
- int battery_status_gpio_init(void)
+ int battery_init(void)
  {
      int ret;
  
@@ -66,7 +91,21 @@
  
      LOG_INF("BMS GPIOs initialized");
      printk("Battery GPIOs initialized\n");
-     return 0;
+
+     //Open Thread
+    k_tid_t battery_monitor_thread_id = k_thread_create(&battery_monitor_thread_data, battery_monitor_thread_stack,
+        K_THREAD_STACK_SIZEOF(battery_monitor_thread_stack),
+        battery_monitor_thread, NULL, NULL, NULL,
+        BATTERY_MONITOR_THREAD_PRIORITY, 0, K_NO_WAIT);
+    
+    if (!battery_monitor_thread_id) {
+    LOG_ERR("ERROR spawning Battery Monitoring thread\n");
+    return -1;
+    }else{
+        LOG_INF("Battery Monitoring thread spawned\n");
+        LOG_INF("Battery Succesfully Initialized\n");
+        return 0;
+    }
  }
 
 /**
@@ -316,7 +355,7 @@ uint8_t volt2celsius(uint16_t volt_100uV)
  *
  * @return Battery_StatusTypeDef  Current overall system status after SD‑Card refresh.
  */
-Battery_StatusTypeDef check_battery(void)
+Battery_StatusTypeDef battery_check_state(void)
 {
     int err;
 
@@ -324,14 +363,14 @@ Battery_StatusTypeDef check_battery(void)
     err = spi_read_voltages(battery_values.volt_buffer);
     if (err < 0) {
         battery_set_error_flag(ERROR_SPI | ERROR_BATTERY);
-        return refresh_sdc();
+        return sdc_check_state();
     }
 
     /* Read temperatures into buffer */
     err = spi_read_temp(battery_values.temp_buffer);
     if (err < 0) {
         battery_set_error_flag(ERROR_SPI | ERROR_BATTERY);
-        return refresh_sdc();
+        return sdc_check_state();
     }
 
     /* Compute aggregate values */
@@ -351,7 +390,7 @@ Battery_StatusTypeDef check_battery(void)
     }
 
     /* refresh ShutdownCircuit and return its status */
-    return refresh_sdc();
+    return sdc_check_state();
 }
   
  /**
@@ -361,7 +400,7 @@ Battery_StatusTypeDef check_battery(void)
  * then issues the updated discharge‑control command to stop all balancing.
  *
  */
-static void stop_balancing(void)
+void battery_stop_balancing(void)
 {
     /* Clear all balance‑cell flags */
     for (uint8_t i = 0; i < NUM_OF_CLIENTS; i++) {
@@ -402,13 +441,13 @@ void balancing(void)
 
     /* Safety check: stop balancing if temperature exceeds threshold */
     if (die_temp >= 83U) {
-        stop_balancing();
+        battery_stop_balancing();
         return;
     }
 
     /* Only start balancing when pack voltage is high enough */
     if (battery_values.highestCellVoltage < 41000U) {
-        stop_balancing();
+        battery_stop_balancing();
         return;
     }
 
@@ -507,7 +546,7 @@ void battery_charging(void)
         if (battery_values.status & STATUS_CHARGING) {
             battery_set_reset_status_flag(0, STATUS_CHARGING);
             battery_values.adbms_itemp = 0;
-            stop_balancing();
+            battery_stop_balancing();
         }
     }
 }
@@ -525,3 +564,4 @@ void battery_set_time_per_measurement(uint16_t time_ms)
 {
     battery_values.time_per_measurement = time_ms;
 }
+
