@@ -51,9 +51,6 @@
      CHECK_READY(vfb_pc_relay_spec);
      CHECK_READY(charger_con_spec);
      CHECK_READY(precharge_en_spec);
-     CHECK_READY(drive_air_pos_spec);
-     CHECK_READY(drive_air_neg_spec);
-     CHECK_READY(drive_precharge_spec);
 
      /* configure each pin as input */
      ret = gpio_pin_configure_dt(&vfb_air_pos_spec, GPIO_INPUT);
@@ -69,15 +66,6 @@
      if (ret) return ret;
 
      ret = gpio_pin_configure_dt(&precharge_en_spec, GPIO_INPUT);
-     if (ret) return ret;
-
-     ret = gpio_pin_configure_dt(&drive_air_pos_spec, GPIO_OUTPUT_INACTIVE);
-     if (ret) return ret;
- 
-     ret = gpio_pin_configure_dt(&drive_air_neg_spec, GPIO_OUTPUT_INACTIVE);
-     if (ret) return ret;
- 
-     ret = gpio_pin_configure_dt(&drive_precharge_spec, GPIO_OUTPUT_INACTIVE);
      if (ret) return ret;
  
      LOG_INF("BMS GPIOs initialized");
@@ -165,15 +153,15 @@ uint8_t battery_get_status_code(void)
     battery_set_reset_status_flag(ok, STATUS_MB_TEMP_OK);
 
     /* STATUS_AIR_POSITIVE: read v_fb_air_positive pin */
-    val = gpio_pin_get(gpioa_dev, V_FB_AIR_positive_Pin);
+    val = gpio_pin_get_dt(&vfb_air_pos_spec);
     battery_set_reset_status_flag(val > 0, STATUS_AIR_POSITIVE);
 
     /* STATUS_AIR_NEGATIVE: read v_fb_air_negative pin */
-    val = gpio_pin_get(gpioa_dev, V_FB_AIR_NEGATIVE_PIN);
+    val = gpio_pin_get_dt(&vfb_air_neg_spec);
     battery_set_reset_status_flag(val > 0, STATUS_AIR_NEGATIVE);
 
     /* STATUS_PRECHARGE: read v_fb_pc_relay pin */
-    val = gpio_pin_get(gpioa_dev, V_FB_PC_Relay_Pin);
+    val = gpio_pin_get_dt(&vfb_pc_relay_spec);
     battery_set_reset_status_flag(val > 0, STATUS_PRECHARGE);
 
     return battery_values.status;
@@ -449,53 +437,34 @@ void balancing(void)
  /**
  * @brief Handle precharge relay logic based on Precharge_EN input transitions.
  *
- * This function should be called every 100 ms (e.g. from a k_timer or a thread delay).
- * It monitors the Precharge_EN GPIO line for edges and manages three relays:
- *   - On rising edge: assert AIR_NEGATIVE + PRECHARGE_RELAY, reset counter
- *   - While high:
- *       • 0 – 5.0 s       : AIR_NEGATIVE only  
- *       • 5.0 – 5.5 s     : AIR_NEGATIVE + AIR_POSITIVE + PRECHARGE_RELAY  
- *       • > 5.5 s         : AIR_NEGATIVE + AIR_POSITIVE  
- *   - On falling edge: deassert all relays
+ * This function is called when the Precharge should be enabled
+ * It drives the AIR and precharge relays to prepare for charging.
+ * 
  */
-void battery_precharge_logic(void)
+int battery_precharge_logic(void)
 {
     static bool prev_state = false;
     static uint32_t cnt_100ms = 0;
-    bool curr_state;
-    int  gpio_val;
 
-    /* Read the current Precharge_EN pin state */
-    gpio_val = gpio_pin_get(gpiob_dev, Precharge_EN_Pin);
-    if (gpio_val < 0) {
-        LOG_ERR("Failed to read Precharge_EN (err %d)", gpio_val);
-        return;
-    }
-    curr_state = (gpio_val != 0);
+    gpio_pin_set_dt(&drive_air_neg_spec, 1);
+    gpio_pin_set_dt(&precharge_en_spec, 1);
 
-    /* Rising edge: start precharge sequence */
-    if ( curr_state && !prev_state) {
-        sdc_set_relays(AIR_NEGATIVE | PRECHARGE_RELAY);
-        cnt_100ms = 0U;
-    }
-    /* Line held high: advance through timed sequence */
-    else if (curr_state) {
-        if (cnt_100ms > 55U) {
-            sdc_set_relays(AIR_NEGATIVE | AIR_POSITIVE);
-        } else if (cnt_100ms > 50U) {
-            sdc_set_relays(AIR_NEGATIVE | AIR_POSITIVE | PRECHARGE_RELAY);
-            cnt_100ms++;
-        } else {
-            sdc_set_relays(AIR_NEGATIVE);
-            cnt_100ms++;
+    if(battery_values.totalVoltage && battery_values.actualVoltage) {
+        gpio_pin_set_dt(&drive_air_pos_spec, 1);
+        gpio_pin_set_dt(&drive_air_neg_spec, 1);
+        gpio_pin_set_dt(&drive_precharge_spec , 1);
+        k_msleep(50);
+        gpio_pin_set_dt(&drive_precharge_spec, 0);
+
+        if((gpio_pin_get_dt(&vfb_pc_relay_spec)== 0) && 
+           (gpio_pin_get_dt(&vfb_air_pos_spec)== 1) &&
+           (gpio_pin_get_dt(&vfb_air_neg_spec)== 1) ) {
+                return 0;
+            }
+        else {
+            return -1;
         }
-    }
-    /* Falling edge: clear all relays */
-    else if (!curr_state && prev_state) {
-        sdc_set_relays(0U);
-    }
-
-    prev_state = curr_state;
+    } 
 }
  
 /**
@@ -521,7 +490,7 @@ void battery_charging(void)
     battery_precharge_logic();
 
     /* Read the charger‐connected sense pin (active low) */
-    gpio_val = gpio_pin_get(gpioa_dev, Charger_Con_Pin);
+    gpio_val = gpio_pin_get_dt(&charger_con_spec);
     if (gpio_val < 0) {
         LOG_ERR("Failed to read Charger_Con pin (err %d)", gpio_val);
         return;
