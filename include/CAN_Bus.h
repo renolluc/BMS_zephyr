@@ -123,6 +123,13 @@ int can_send_ivt_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length);
 int can_send_ecu(uint16_t GPIO_Input);
 
 /**
+ * @brief Checks if the ECU flag is OK or NOK. OK means the accumulator can be connected.
+ *
+ * @return 1 if ECU is OK, 0 otherwise.
+ */
+int can_get_ecu_state();
+
+/**
  * @brief Initializes IVT sensor with measurement configurations.
  *
  * @return 0 on success, error code otherwise.

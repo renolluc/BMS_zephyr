@@ -52,6 +52,9 @@ struct k_sem test_ack_sem;
 // Define message queue
 CAN_MSGQ_DEFINE(can_msgq, 10);
 
+// private variables set by the ECU
+static int ecu_ok_flag = 0;
+
 // Callback function for sending messages
 void tx_irq_callback(const struct device *dev, int error, void *arg)
 {
@@ -98,13 +101,15 @@ void can_rx_thread(void *arg1, void *arg2, void *arg3)
         if (frame.id == ADDR_ECU_RX)
         {
             //set_relays(frame.data[0]);
-            if (frame.data[0] & BATTERY_ON)
+            if (frame.data[0] == BATTERY_ON)
             {
-                //Turn the accumulator on
+                //Set ecu_ok_flag high
+                ecu_ok_flag = 1;
             }
-            else if (frame.data[0 & BATTERY_OFF])
+            else if (frame.data[0] == BATTERY_OFF)
             {
-                // Turn the accumulator off
+                //Set ecu_ok_flag low
+                ecu_ok_flag = 0;
             }
         }
         else if (frame.id == IVT_MSG_RESPONSE)
@@ -228,7 +233,6 @@ int can_send_ecu(uint16_t GPIO_Input)
     return can_send_8bytes(ADDR_ECU_TX, can_data);
 }
 
-
 int can_ivt_init()
 {
     int status = 0;
@@ -262,6 +266,12 @@ int can_ivt_init()
     k_msleep(10);
 
     return status;
+}
+
+
+int can_get_ecu_state()
+{
+    return ecu_ok_flag;
 }
 
 // Function to initialize CAN Bus
