@@ -27,8 +27,8 @@ ZTEST(pec_tests, test_pec_example1)
 ZTEST(pec_tests, test_pec_example2)
 {
     uint8_t data[] = {0x01, 0x02, 0x03, 0x04};
-    //uint16_t crc = spi_generate_pec(data, 4);
-    uint16_t crc = generatePEC(data, 4);
+    uint16_t crc = spi_generate_pec(data, 4);
+    //uint16_t crc = generatePEC(data, 4);
     zassert_equal(crc, 0xD354, "PEC mismatch! Expected: 0xD354, Got: 0x%X", crc);
 }
 

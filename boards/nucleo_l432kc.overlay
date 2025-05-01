@@ -63,3 +63,4 @@
     status       = "okay";
     bitrate      = <500000>;
 };
+

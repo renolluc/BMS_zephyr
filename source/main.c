@@ -6,7 +6,9 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/device.h>
 #include <SPI_MB.h>
+#include <serial_monitor.h>
 #include <Battery.h>
+
 
 /* LED configuration */
 #define LED0_NODE DT_ALIAS(led0)
@@ -15,6 +17,8 @@ static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 
 /* 1000 msec = 1 sec */
 #define SLEEP_TIME_MS   10000
+
+#include <stdlib.h>
 
 int main(void)
 {
@@ -32,12 +36,14 @@ int main(void)
 	}
 
 	// Initialize CAN Bus
-	BMS_CAN_INIT();
+	can_init();
 
 	spi_adbms1818_hw_init();
 
+	serial_monitor_init();
+
 	battery_status_gpio_init();
-	
+
 	while (1) {
  		ret = gpio_pin_toggle_dt(&led);
 		if (ret < 0) {
@@ -47,7 +53,14 @@ int main(void)
 		led_state = !led_state;
 		printk("LED state: %s\n", led_state ? "ON" : "OFF");
 		k_msleep(SLEEP_TIME_MS);
-		
+
+		// Send a test CAN message
+		uint8_t can_test_data[5] = {0x01, 0x02, 0x03, 0x04, 0x05};
+		can_send_ivt_nbytes(0x123, can_test_data, 5);
+
+		uint8_t test_data[476];
+		serial_generate_test_frame(test_data, sizeof(test_data));
+		serial_monitor(test_data, sizeof(test_data));
 
 	}
 

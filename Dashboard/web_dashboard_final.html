@@ -1,0 +1,158 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Battery Monitor</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        #monitor { margin-bottom: 20px; }
+        #voltageCanvas {
+            margin-top: 5px;
+            border: 1px solid #ccc;
+        }
+        #temperatureCanvas {
+            margin-top: 5px;
+            border: 1px solid #ccc;
+        }
+        pre {
+            background: #f8f8f8;
+            padding: 10px;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="splash-screen" style="
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    ">
+    <img src="/static/black_logo_white_background.jpg" alt="Zurich UAS Racing Logo" style="max-width: 1000px;">
+    </div>
+    
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <img src="/static/black_logo_white_background.jpg" alt="Zurich UAS Racing Logo" height="50">
+        <h2>Battery Monitor</h2>
+    </div>
+    
+    
+    <div style="display: flex; gap: 40px; align-items: flex-start;">
+        <div style="display: flex; flex-direction: row; gap: 20px;">
+            <div>
+                <h3>Voltage Map</h3>
+                <canvas id="voltageCanvas" width="600" height="300"></canvas>
+            </div>
+            <div>
+                <h3>Temperature Map</h3>
+                <canvas id="temperatureCanvas" width="600" height="300"></canvas>
+            </div>
+            <div style="min-width: 300px;">
+                <h3>Battery Summary</h3>
+                <div id="monitor">Loading battery data...</div>
+            </div>
+        </div>
+    </div>
+    
+    <hr>
+    <h3>Console Output</h3>
+    <pre id="console-output">Connecting...</pre>
+    <script>
+    const pre = document.getElementById("console-output");
+    const source = new EventSource('/console-log');
+    source.onmessage = function(event) {
+        pre.innerText = event.data + "\n" + pre.innerText;
+        //pre.scrollTop = pre.scrollHeight;
+    };
+
+    function updateMonitor() {
+        fetch("/battery").then(resp => resp.text()).then(html => {
+            document.getElementById("monitor").innerHTML = html;
+        });
+    }
+
+    function drawVoltageHeatmap(voltageArray) {
+        const canvas = document.getElementById("voltageCanvas");
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const cols = 18, rows = 8;
+        const cellW = canvas.width / cols;
+        const cellH = canvas.height / rows;
+        const flat = voltageArray.flat();
+        const maxV = Math.max(...flat);
+        const minV = Math.min(...flat);
+
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const v = voltageArray[r][c];
+                const norm = (v - minV) / (maxV - minV);
+                const blue = Math.floor(255 * (1 - norm));
+                const red = Math.floor(255 * norm);
+                ctx.fillStyle = `rgb(${red}, 0, ${blue})`;
+                ctx.fillRect(c * cellW, r * cellH, cellW, cellH);
+                ctx.fillStyle = "white";
+                ctx.fillText(v.toFixed(3), c * cellW + 5, r * cellH + 15);
+            }
+        }
+    }
+
+    function drawTemperatureHeatmap(tempArray) {
+    const canvas = document.getElementById("temperatureCanvas");
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const cols = 8, rows = 8;
+    const cellW = canvas.width / cols;
+    const cellH = canvas.height / rows;
+    const flat = tempArray.flat();
+    const maxT = Math.max(...flat);
+    const minT = Math.min(...flat);
+
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            const t = tempArray[r][c];
+            const norm = (t - minT) / (maxT - minT);
+            const blue = Math.floor(255 * (1 - norm));
+            const red = Math.floor(255 * norm);
+            ctx.fillStyle = `rgb(${red}, 0, ${blue})`;
+            ctx.fillRect(c * cellW, r * cellH, cellW, cellH);
+            ctx.fillStyle = "white";
+            ctx.fillText(t.toFixed(1) + "°C", c * cellW + 5, r * cellH + 15);
+        }
+    }
+}
+
+function updateGraphics() {
+        fetch("/battery-json")
+            .then(r => r.json())
+            .then(data => {
+                if (data.voltage_grid) {
+                drawVoltageHeatmap(data.voltage_grid);
+                }
+                if (data.temperature_grid) {
+                drawTemperatureHeatmap(data.temperature_grid);
+                }
+            });
+    }
+
+    setInterval(() => {
+        updateMonitor();
+        updateGraphics();
+    }, 1000);
+
+    updateMonitor();
+    updateGraphics();
+    window.addEventListener("load", () => {
+    const splash = document.getElementById("splash-screen");
+    if (splash) {
+        splash.style.transition = "opacity 5s ease";
+        splash.style.opacity = 0;
+        setTimeout(() => splash.remove(), 5000);
+    }
+    });
+    </script>
+</body>
+</html>

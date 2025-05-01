@@ -44,8 +44,9 @@ typedef struct {
     uint8_t status;     // Current status of the accumulator
     uint8_t error;		// current error flags of the accumulator
 
-    int32_t actualCurrent;
-    int32_t CurrentCounter;
+    int32_t actualCurrent;          // Actual current from IVT
+    int32_t actualVoltage;          // Actual voltage from IVT 
+    int32_t CurrentCounter;         // Current counter from IVT
 
     uint16_t time_per_measurement;
     uint16_t adbms_itemp;
@@ -69,3 +70,4 @@ static const struct gpio_dt_spec precharge_en_spec = GPIO_DT_SPEC_GET(DT_ALIAS(p
 int battery_status_gpio_init(void);
 
 #endif /* INC_BATTERY_H_ */
+
