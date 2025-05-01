@@ -11,6 +11,17 @@
 #include <SPI_MB.h>
 #include <zephyr/logging/log.h>
 
+/**
+ * @brief Sets the name and logging levels for this module.
+ *
+ * Possible log levels:
+ * - LOG_LEVEL_NONE
+ * - LOG_LEVEL_ERR
+ * - LOG_LEVEL_WRN
+ * - LOG_LEVEL_INF
+ * - LOG_LEVEL_DBG
+ */
+LOG_MODULE_REGISTER(spi, LOG_LEVEL_INF);
 
 // define spi1 device
 const struct device *spi1_dev = DEVICE_DT_GET(SPI_DEVICE);
@@ -88,7 +99,7 @@ void spi_wake_up(void){
         /* CS‑Pin als Ausgang konfigurieren */
         ret = gpio_pin_configure(gpio_dev, CS_PIN_PB1, GPIO_OUTPUT);
         if (ret < 0) {
-            printk("Error: cannot configure CS pin (%d)\n", ret);
+            LOG_ERR("Error: cannot configure CS pin (%d)\n", ret);
             return;
         }
     
@@ -131,7 +142,7 @@ void spi_wake_up(void){
 int spi_loopback() {
     // Check if the SPI device is ready. If not, log an error message and return -ENODEV.
     if (!device_is_ready(spi1_dev)) {
-        printk("SPI device is not ready\n");
+        LOG_ERR("SPI device is not ready\n");
         return -ENODEV;
     }
     
@@ -166,22 +177,22 @@ int spi_loopback() {
         bool match = (memcmp(msg_data, rx_data, sizeof(msg_data)) == 0);
         
         // Log the results of the loopback test.
-        printk("\nSPI Wakeup Loopback Test");
-        printk("\nSent:    %02X %02X", msg_data[0], msg_data[1]);
-        printk("\nReceived:%02X %02X", rx_data[0], rx_data[1]);
+        LOG_DBG("\nSPI Wakeup Loopback Test");
+        LOG_DBG("\nSent:    %02X %02X", msg_data[0], msg_data[1]);
+        LOG_DBG("\nReceived:%02X %02X", rx_data[0], rx_data[1]);
         if (match) {
-            printk("\nSPI Loopback SUCCESS!\n");
+            LOG_DBG("\nSPI Loopback SUCCESS!\n");
         } else {
-            printk("\nSPI Loopback FAILED! Check MOSI-MISO wiring.\n");
+            LOG_ERR("\nSPI Loopback FAILED! Check MOSI-MISO wiring.\n");
         }
     #else
         // In normal operation, perform the SPI transceive without a receive buffer.
         int ret = spi_transceive(spi1_dev, &spi_cfg, &tx, NULL);
         if (ret < 0) {
-            printk("SPI transceive failed: %d\n", ret);
+            LOG_ERR("SPI transceive failed: %d\n", ret);
             return ret;
         }else{
-        printk("\nSPI Message Sent: %02X %02X\n", msg_data[0], msg_data[1]);
+        LOG_INF("\nSPI Message Sent: %02X %02X\n", msg_data[0], msg_data[1]);
     }
     #endif
 
@@ -377,7 +388,7 @@ int spi_write_registergroup(uint16_t command, uint8_t *data) {
     /* Execute the SPI transceive operation using the Zephyr API */
     int ret = spi_transceive(spi1_dev, &spi_cfg, &tx_buf_set, &rx_buf_set);
     if (ret < 0) {
-        printk("SPI transceive failed: %d\n", ret);
+        LOG_ERR("SPI transceive failed: %d\n", ret);
         return ret;  /* Return the negative errno code */
     }
 
@@ -449,7 +460,7 @@ int spi_read_registergroup(uint16_t command, uint8_t *data) {
     /* Execute the SPI transaction */
     int ret = spi_transceive(spi1_dev, &spi_cfg, &tx_buf_set, &rx_buf_set);
     if (ret < 0) {
-        printk("SPI transceive failed: %d\n", ret);
+        LOG_ERR("SPI transceive failed: %d\n", ret);
         return ret;
     }
 
@@ -462,7 +473,7 @@ int spi_read_registergroup(uint16_t command, uint8_t *data) {
         uint16_t received_crc = (rx_data[4 + i * 8 + 6] << 8) | rx_data[4 + i * 8 + 7];
 
         if (computed_crc != received_crc) {
-            printk("CRC check failed for client %d: computed 0x%04x, received 0x%04x\n",
+            LOG_ERR("CRC check failed for client %d: computed 0x%04x, received 0x%04x\n",
                    i, computed_crc, received_crc);
             return -EIO;
         }
@@ -836,14 +847,13 @@ k_tid_t spi_thread_id = k_thread_create(&spi_thread_data, spi_thread_stack,
     SPI_THREAD_PRIORITY, 0, K_NO_WAIT);
 
 if (!spi_thread_id) {
-printk("ERROR spawning SPI thread\n");
+LOG_ERR("ERROR spawning SPI thread\n");
 return -1;
 }   else {
-    printk("SPI thread spawned\n");
-    printk("SPI Succesfully Initialized\n");
+    LOG_INF("SPI thread spawned\n");
+    LOG_INF("SPI Succesfully Initialized\n");
     return 0;           /* Return 0 on successful initialization */
 }
-
 
 }
 
