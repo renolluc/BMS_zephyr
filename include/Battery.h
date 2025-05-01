@@ -61,10 +61,10 @@ typedef struct {
 extern BatterySystemTypeDef battery_values;
 
 
-static const struct gpio_dt_spec vfb_air_pos_spec = GPIO_DT_SPEC_GET(DT_ALIAS(vfbairpositive), gpios);
-static const struct gpio_dt_spec vfb_air_neg_spec = GPIO_DT_SPEC_GET(DT_ALIAS(vfbairnegative), gpios);
-static const struct gpio_dt_spec vfb_pc_relay_spec = GPIO_DT_SPEC_GET(DT_ALIAS(vfbpcrelay), gpios);
-static const struct gpio_dt_spec charger_con_spec = GPIO_DT_SPEC_GET(DT_ALIAS(chargerconnect), gpios);
+static const struct gpio_dt_spec vfb_air_pos_spec = GPIO_DT_SPEC_GET(DT_NODELABEL(vfb_air_pos), gpios);
+static const struct gpio_dt_spec vfb_air_neg_spec = GPIO_DT_SPEC_GET(DT_NODELABEL(vfb_air_neg), gpios);
+static const struct gpio_dt_spec vfb_pc_relay_spec = GPIO_DT_SPEC_GET(DT_NODELABEL(vfb_pc_relay), gpios);
+static const struct gpio_dt_spec charger_con_spec = GPIO_DT_SPEC_GET(DT_NODELABEL(charger_con), gpios);
 
 int battery_status_gpio_init(void);
 

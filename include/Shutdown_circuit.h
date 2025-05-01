@@ -20,16 +20,16 @@
 
 #define GPIOA_DEVICE DT_NODELABEL(gpioa)
 
-static const struct gpio_dt_spec sdc_in_spec = GPIO_DT_SPEC_GET(DT_ALIAS(sdcin), gpios);
-static const struct gpio_dt_spec sdc_out_spec = GPIO_DT_SPEC_GET(DT_ALIAS(sdcout), gpios);
-static const struct gpio_dt_spec drive_air_pos_spec = GPIO_DT_SPEC_GET(DT_ALIAS(driveairpositive), gpios);
-static const struct gpio_dt_spec drive_air_neg_spec = GPIO_DT_SPEC_GET(DT_ALIAS(driveairnegative), gpios);
-static const struct gpio_dt_spec drive_precharge_spec = GPIO_DT_SPEC_GET(DT_ALIAS(driveprecharge), gpios);
-    
+static const struct gpio_dt_spec sdc_in_spec = GPIO_DT_SPEC_GET(DT_NODELABEL(sdc_in), gpios);
+static const struct gpio_dt_spec sdc_out_spec = GPIO_DT_SPEC_GET(DT_NODELABEL(sdc_out), gpios);
+static const struct gpio_dt_spec drive_air_pos_spec = GPIO_DT_SPEC_GET(DT_NODELABEL(drive_air_pos), gpios);
+static const struct gpio_dt_spec drive_air_neg_spec = GPIO_DT_SPEC_GET(DT_NODELABEL(drive_air_neg), gpios);
+static const struct gpio_dt_spec drive_precharge_spec = GPIO_DT_SPEC_GET(DT_NODELABEL(drive_precharge), gpios);
+   
 static uint64_t ivt_deadline_ms;
 
 
 extern Battery_StatusTypeDef refresh_sdc();
-extern void sdc_set_relays(uint8_t CAN_Data);
+
 
 #endif /* INC_SHUTDOWN_CIRCUIT_H_ */
