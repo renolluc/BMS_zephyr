@@ -309,7 +309,7 @@ return &battery_values;
  * @param volt_100uV Voltage reading in units of 100 µV.
  * @return Temperature in degrees Celsius as an 8‑bit unsigned integer.
  */
-uint8_t volt2celsius(uint16_t volt_100uV)
+uint8_t battery_volt2celsius(uint16_t volt_100uV)
 {
     /* Handle out‑of‑range inputs */
     if (volt_100uV > 23000U) {
@@ -499,7 +499,7 @@ int battery_precharge_logic(void)
         else {
             return -1;
         }
-    } 
+    }
 }
  
 /**

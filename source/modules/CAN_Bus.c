@@ -52,6 +52,9 @@ struct k_sem test_ack_sem;
 // Define message queue
 CAN_MSGQ_DEFINE(can_msgq, 10);
 
+// private variables set by the ECU
+static int ecu_ok_flag = 0;
+
 // Callback function for sending messages
 void tx_irq_callback(const struct device *dev, int error, void *arg)
 {
@@ -98,13 +101,15 @@ void can_rx_thread(void *arg1, void *arg2, void *arg3)
         if (frame.id == ADDR_ECU_RX)
         {
             //set_relays(frame.data[0]);
-            if (frame.data[0] & BATTERY_ON)
+            if (frame.data[0] == BATTERY_ON)
             {
-                //Turn the accumulator on
+                //Set ecu_ok_flag high
+                ecu_ok_flag = 1;
             }
-            else if (frame.data[0 & BATTERY_OFF])
+            else if (frame.data[0] == BATTERY_OFF)
             {
-                // Turn the accumulator off
+                //Set ecu_ok_flag low
+                ecu_ok_flag = 0;
             }
         }
         else if (frame.id == IVT_MSG_RESPONSE)
@@ -212,14 +217,14 @@ int can_send_ivt_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length)
 int can_send_ecu(uint16_t GPIO_Input)
 {
     uint8_t can_data[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    can_data[0] |= battery_get_status_code(GPIO_Input);
+    can_data[0] |= battery_get_status_code();
     can_data[1] |= battery_get_error_code();
     uint16_t total_volt = battery_values.totalVoltage;
     can_data[2] = total_volt & 0xFF;
     can_data[3] = total_volt >> 8;
     uint16_t actualCurrent = battery_values.actualCurrent;
     can_data[4] = (uint8_t)(actualCurrent / 1000);
-    can_data[5] = volt2celsius(battery_values.highestCellTemp);
+    can_data[5] = battery_volt2celsius(battery_values.highestCellTemp);
     if (battery_values.CurrentCounter > AKKU_CAPACITANCE) {
         can_data[6] = 0;
     } else {
@@ -228,11 +233,9 @@ int can_send_ecu(uint16_t GPIO_Input)
     return can_send_8bytes(ADDR_ECU_TX, can_data);
 }
 
-
 int can_ivt_init()
 {
     int status = 0;
-    uint8_t RxData[8];
 
     // Set sensor mode to STOP
     uint8_t can_data0[] = {SET_MODE, 0x00, 0x01, 0x00, 0x00};
@@ -262,6 +265,12 @@ int can_ivt_init()
     k_msleep(10);
 
     return status;
+}
+
+
+int can_get_ecu_state()
+{
+    return ecu_ok_flag;
 }
 
 // Function to initialize CAN Bus
