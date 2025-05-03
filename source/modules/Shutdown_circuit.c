@@ -20,7 +20,7 @@ static uint8_t  sdc_error_counter = 2;
  *
  * @return 0 on success, negative errno otherwise.
  */
-static int sdc_init(void)
+int sdc_init(void)
 {
     int ret;
  
@@ -88,7 +88,10 @@ Battery_StatusTypeDef sdc_check_state(void)
     bool curr_ecu_state;
 
     /*ECU Battery Ok*/
-    curr_ecu_state = can_get_ecu_state();
+    //curr_ecu_state = can_get_ecu_state();
+    //
+    //
+    //
     if (!curr_ecu_state)
     {
         battery_set_error_flag(ERROR_BATTERY);
@@ -134,7 +137,7 @@ Battery_StatusTypeDef sdc_check_state(void)
  *
  * @param unused Not used (kept for signature compatibility).
  */
-void sdc_check_feedback(void)
+int sdc_check_feedback(void)
 {
     static bool prev_state = true;  /* assume pulled-up idle = high */
     bool curr_sdc_in_state;
@@ -149,7 +152,7 @@ void sdc_check_feedback(void)
         gpio_pin_set_dt(&drive_air_neg_spec, 0);
         gpio_pin_set_dt(&drive_precharge_spec,0);
         LOG_ERR("Failed to read SDC feedback pin (%d)", curr_sdc_in_state);
-        return;
+        return ;
     }
     /////////////////////////////////////////////////////////////////////////
     /* Falling edge: feedback went from 1 → 0 */
@@ -159,9 +162,11 @@ void sdc_check_feedback(void)
         gpio_pin_set_dt(&drive_air_neg_spec, 0);
         gpio_pin_set_dt(&drive_precharge_spec,0);
         LOG_ERR("SDC feedback lost; relays turned off");
+        return -1;
     }
 
     prev_state = curr_sdc_in_state;
+    return 0;
 }
 
 /**
@@ -199,7 +204,7 @@ Battery_StatusTypeDef sdc_reset(void)
     }
 
     /* 3) Battery self-check */
-    batt_ret = check_battery();
+    batt_ret = battery_check_state();
     if (batt_ret != BATTERY_OK) {
         LOG_ERR("Battery check failed (%d)", batt_ret);
     }

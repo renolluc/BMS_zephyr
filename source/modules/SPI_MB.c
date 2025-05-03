@@ -515,7 +515,7 @@ int spi_read_voltages(uint16_t *data_buffer) {
     uint8_t short_buffer[NUM_OF_CLIENTS * 6];
 
     /* Wake up the devices. */
-    spi_wakeup_adbms1818();
+    spi_wake_up();
     
     /* Send the ADC conversion command using the new command function which uses spi_create_command internally. */
     spi_send_command(ADCV);
@@ -580,7 +580,7 @@ int spi_read_temp(uint16_t *data_buffer) {
     uint8_t short_buffer[NUM_OF_CLIENTS * 6];
 
     /* Wake up the device chain. */
-    spi_wakeup_adbms1818();
+    spi_wake_up();
     
     /* Send the ADC auxiliary conversion command using spi_send_command, which utilizes spi_create_command. */
     spi_send_command(ADAX);
@@ -663,7 +663,7 @@ uint16_t spi_read_adbms_temp() {
     uint16_t tempx = 0;
     
     // Wake up the device chain.
-    spi_wakeup_adbms1818();
+    spi_wake_up();
     // Send the ADC status command to initiate temperature conversion.
     spi_send_command(ADSTAT);
     // Wait 3 milliseconds for conversion to complete.
@@ -712,7 +712,7 @@ int spi_set_discharge_cell_x(uint32_t* cells_to_balance) {
     int status = 0;                      /* Initialize status to 0 (no errors) */
     uint8_t enable_discharge = 0;          /* Flag to indicate if discharge balancing should be enabled */
 
-    spi_wakeup_adbms1818();                /* Wake up the ADBMS devices */
+    spi_wake_up();                /* Wake up the ADBMS devices */
 
     /* Prepare configuration data arrays for each client (6 bytes per client) */
     uint8_t config_data_A[NUM_OF_CLIENTS * 6];

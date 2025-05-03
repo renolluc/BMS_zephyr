@@ -18,6 +18,7 @@
 #include <zephyr/drivers/gpio.h>
 #include "Status_error_flags.h"
 #include "zephyr/logging/log.h"
+#include "error_handler.h"
 
 /**
   * @brief  Battery Status
@@ -66,13 +67,15 @@ static const struct gpio_dt_spec vfb_air_neg_spec = GPIO_DT_SPEC_GET(DT_ALIAS(vf
 static const struct gpio_dt_spec vfb_pc_relay_spec = GPIO_DT_SPEC_GET(DT_ALIAS(vfbpcrelay), gpios);
 static const struct gpio_dt_spec charger_con_spec = GPIO_DT_SPEC_GET(DT_ALIAS(chargerconnect), gpios);
 
-int battery_status_gpio_init(void);
+
 extern uint8_t battery_get_status_code(void);
 extern uint8_t battery_get_error_code(void);
 extern uint8_t battery_volt2celsius(uint16_t volt_100uV);
-extern Battery_StatusTypeDef check_battery(void);
 extern void battery_set_error_flag(uint8_t mask);
-
+extern int battery_status_gpio_init(void);
+extern Battery_StatusTypeDef battery_check_state(void);
+void battery_monitor_thread(void);
+extern void battery_stop_balancing(void);
 
 #endif /* INC_BATTERY_H_ */
 
