@@ -21,7 +21,9 @@ static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 typedef enum
 {
 	STATE_RESET,   // systemreset
-	STATE_PROCESS, // battery management process
+	STATE_IDLE,    // idle state
+	STATE_PRECHARGE, // precharge state
+	STATE_RUNNING, // battery management process
 	STATE_ERROR,   // error state
 } SystemState_t;
 
@@ -49,6 +51,7 @@ int main(void)
 
 	while (1)
 	{
+		//serial monitor daten senden
 
 		if (k_msgq_get(&err_evt_queue, &err_evt, K_NO_WAIT) == 0)
 		{
@@ -63,24 +66,38 @@ int main(void)
 		case STATE_RESET:
 			if (sdc_reset() == BATTERY_OK)
 			{
-				;
-				state = STATE_PROCESS;
+				state = STATE_IDLE;
 			}
 			break;
 
-		case STATE_PROCESS:
+		case STATE_IDLE:
+			//machen wir gar nichts
+
+			// warten auf steigende Flanke ECU
+				// wenn ECU OK dann set State to PROCESS
+
+			break;
+		
+		case STATE_PRECHARGE:
+			// precharge logic
 			if (battery_precharge_logic() == 0)
 			{
-				battery_charging();
+				state = STATE_RUNNING;
 			}
-			else
-			{
-				battery_stop_balancing();
-			}
+			break;
+
+		case STATE_RUNNING:
+			// alte charging funktion noch umbenennen
+
+			// warten auf ECU fallende Flanke
+				// wenn ECU NOK dann set State to IDLE
 			break;
 
 		case STATE_ERROR:
+			// alle relais null setzen
 
+			// warten bis BMS ok
+				//set State idle
 			break;
 		}
 

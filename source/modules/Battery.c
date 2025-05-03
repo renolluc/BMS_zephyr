@@ -30,10 +30,14 @@ void battery_monitor_thread(){
   int state = 0;
 
 	while(1){
- 
+    //neuer Durchgang deshalb error flags null setzen
+    battery_reset_error_flags();
+
 	state |= battery_check_state();
 	state |= sdc_check_state();
 	state |= sdc_check_feedback();
+
+    //check IVT watchdog
 
     if(state < 0){
     ErrorEvent err = { .source = ERR_SRC_BATT, .code = state };
@@ -360,17 +364,15 @@ Battery_StatusTypeDef battery_check_state(void)
     int err;
 
     /* Read voltages into buffer */
-    err = spi_read_voltages(battery_values.volt_buffer);
+    err |= spi_read_voltages(battery_values.volt_buffer);
     if (err < 0) {
         battery_set_error_flag(ERROR_SPI | ERROR_BATTERY);
-        return sdc_check_state();
     }
 
     /* Read temperatures into buffer */
-    err = spi_read_temp(battery_values.temp_buffer);
+    err |= spi_read_temp(battery_values.temp_buffer);
     if (err < 0) {
         battery_set_error_flag(ERROR_SPI | ERROR_BATTERY);
-        return sdc_check_state();
     }
 
     /* Compute aggregate values */
@@ -388,9 +390,7 @@ Battery_StatusTypeDef battery_check_state(void)
         battery_values.lowestCellTemp  > MIN_TEMP) {
         battery_set_error_flag(ERROR_TEMP | ERROR_BATTERY);
     }
-
-    /* refresh ShutdownCircuit and return its status */
-    return sdc_check_state();
+    return err;
 }
   
  /**
