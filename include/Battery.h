@@ -18,7 +18,6 @@
 #include <zephyr/drivers/gpio.h>
 #include "Status_error_flags.h"
 #include "zephyr/logging/log.h"
-#include "error_handler.h"
 
 /**
   * @brief  Battery Status
@@ -77,6 +76,7 @@ extern int battery_status_gpio_init(void);
 extern Battery_StatusTypeDef battery_check_state(void);
 void battery_monitor_thread(void);
 extern void battery_stop_balancing(void);
+extern void battery_charging(void);
 extern void battery_refresh_ivt_timer(void);
 #endif /* INC_BATTERY_H_ */
 

@@ -39,10 +39,7 @@ void battery_monitor_thread(){
 
     //check IVT watchdog
 
-    if(state < 0){
-    ErrorEvent err = { .source = ERR_SRC_BATT, .code = state };
-    k_msgq_put(&err_evt_queue, &err, K_NO_WAIT);
-    }
+
 
 	printk("Monitor Thread started\n");
 	k_msleep(1000);

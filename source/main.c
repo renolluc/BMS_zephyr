@@ -8,7 +8,7 @@
 #include <serial_monitor.h>
 #include <Battery.h>
 #include <shutdown_circuit.h>
-#include <error_handler.h>
+
 
 LOG_MODULE_REGISTER(main, LOG_LEVEL_ERR);
 /* LED configuration */
@@ -27,14 +27,16 @@ typedef enum
 	STATE_ERROR,   // error state
 } SystemState_t;
 
-/*error queue*/
-K_MSGQ_DEFINE(err_evt_queue, sizeof(ErrorEvent), 4, 4);
-
 int main(void)
 {
+	
+
 	// variables
-	ErrorEvent err_evt;
 	SystemState_t state = STATE_RESET;
+	bool led_state = true;
+	static bool previous_ecu_state = BATTERY_OFF;
+	bool current_ecu_state = BATTERY_OFF;
+	
 
 	// Initialize
 	can_init();
@@ -51,15 +53,11 @@ int main(void)
 
 	while (1)
 	{
+		// status LED
+		led_state = !led_state;
+		
 		//serial monitor daten senden
-
-		if (k_msgq_get(&err_evt_queue, &err_evt, K_NO_WAIT) == 0)
-		{
-			// get in error state
-			state = STATE_ERROR;
-			//
-			LOG_ERR("ERROR: %d", err_evt.code);
-		}
+		serial_monitor((uint8_t *)&battery_values, sizeof(battery_values));
 
 		switch (state)
 		{
@@ -68,10 +66,15 @@ int main(void)
 			break;
 
 		case STATE_IDLE:
-			//machen wir gar nichts
+			LOG_INF("Waiting for ECU OK");
 
-			// warten auf steigende Flanke ECU
-				// wenn ECU OK dann set State to PROCESS
+			current_ecu_state = can_get_ecu_state();
+
+			if (previous_ecu_state == BATTERY_OFF && current_ecu_state == BATTERY_ON)
+			{
+				state = STATE_PRECHARGE;
+				LOG_INF("ECU rising edge, entering precharge state");
+			}
 
 			break;
 		
@@ -81,20 +84,36 @@ int main(void)
 			{
 				state = STATE_RUNNING;
 			}
+			else
+			{
+				state = STATE_ERROR;
+				LOG_ERR("Precharge failed, entering error state");
+			}
 			break;
 
 		case STATE_RUNNING:
-			// alte charging funktion noch umbenennen
+			// rename old charging function
+			battery_charging();
+			LOG_INF("Battery management process running");
 
-			// warten auf ECU fallende Flanke
-				// wenn ECU NOK dann set State to IDLE
+			current_ecu_state = can_get_ecu_state();
+
+			if (previous_ecu_state == BATTERY_ON && current_ecu_state == BATTERY_OFF)
+			{
+				state = STATE_IDLE;
+				LOG_INF("ECU falling edge, entering idle state");
+			}
+
 			break;
 
 		case STATE_ERROR:
-			// alle relais null setzen
+			// set all relays to 0
 			sdc_shutdown_relays();
-			// warten bis BMS ok
-				//set State idle
+			if (battery_get_error_code() == 0)
+			{
+				state = STATE_IDLE;
+				LOG_INF("Errors resolved, entering idle state");
+			}
 			break;
 		}
 
