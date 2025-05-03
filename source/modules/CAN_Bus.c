@@ -120,7 +120,7 @@ void can_rx_thread(void *arg1, void *arg2, void *arg3)
         else if (frame.id == IVT_MSG_RESULT_I)
         {   
             // refresh ivt timer
-            sdc_refresh_ivt_timer();
+            battery_refresh_ivt_timer();
 
             if (frame.data[0] == IVT_NCURRENT)
             {
@@ -131,7 +131,7 @@ void can_rx_thread(void *arg1, void *arg2, void *arg3)
         else if (frame.id == IVT_MSG_RESULT_U1 || frame.id == IVT_MSG_RESULT_U2 || frame.id == IVT_MSG_RESULT_U3)
         {   
             // refresh ivt timer
-            sdc_refresh_ivt_timer();
+            battery_refresh_ivt_timer();
 
             if (frame.data[0] == IVT_NU1)
             {

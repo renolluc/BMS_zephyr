@@ -361,7 +361,7 @@ uint8_t battery_volt2celsius(uint16_t volt_100uV)
  */
 Battery_StatusTypeDef battery_check_state(void)
 {
-    int err;
+    int err = 0;
 
     /* Read voltages into buffer */
     err |= spi_read_voltages(battery_values.volt_buffer);
@@ -390,6 +390,16 @@ Battery_StatusTypeDef battery_check_state(void)
         battery_values.lowestCellTemp  > MIN_TEMP) {
         battery_set_error_flag(ERROR_TEMP | ERROR_BATTERY);
     }
+
+    /* IVT-Timeout prüfen */
+    int64_t now = k_uptime_get();
+
+    if (now >= ivt_deadline_ms) {
+        battery_refresh_ivt_timer();
+        battery_set_error_flag(ERROR_IVT);
+        LOG_ERR("IVT timeout, flag ERROR_IVT set");
+    }
+
     return err;
 }
   
@@ -487,7 +497,7 @@ int battery_precharge_logic(void)
     if(battery_values.totalVoltage && battery_values.actualVoltage) {
         gpio_pin_set_dt(&drive_air_pos_spec, 1);
         gpio_pin_set_dt(&drive_air_neg_spec, 1);
-        gpio_pin_set_dt(&drive_precharge_spec , 1);
+        gpio_pin_set_dt(&drive_precharge_spec, 1);
         k_msleep(50);
         gpio_pin_set_dt(&drive_precharge_spec, 0);
 
@@ -565,3 +575,16 @@ void battery_set_time_per_measurement(uint16_t time_ms)
     battery_values.time_per_measurement = time_ms;
 }
 
+/**
+ * @brief Reset the IVT timer.
+ *
+ * This function resets the IVT timer to the current time plus the IVT_TIMEOUT_MS
+ * 
+ */
+void battery_refresh_ivt_timer(void)
+{
+    int64_t now = k_uptime_get();
+
+    /* Reset the IVT deadline */
+    ivt_deadline_ms = now + IVT_TIMEOUT_MS;
+}

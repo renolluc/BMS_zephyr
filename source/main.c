@@ -7,7 +7,7 @@
 #include <SPI_MB.h>
 #include <serial_monitor.h>
 #include <Battery.h>
-#include <Shutdown_circuit.h>
+#include <shutdown_circuit.h>
 #include <error_handler.h>
 
 LOG_MODULE_REGISTER(main, LOG_LEVEL_ERR);
@@ -64,10 +64,7 @@ int main(void)
 		switch (state)
 		{
 		case STATE_RESET:
-			if (sdc_reset() == BATTERY_OK)
-			{
-				state = STATE_IDLE;
-			}
+
 			break;
 
 		case STATE_IDLE:
@@ -95,7 +92,7 @@ int main(void)
 
 		case STATE_ERROR:
 			// alle relais null setzen
-
+			sdc_shutdown_relays();
 			// warten bis BMS ok
 				//set State idle
 			break;
@@ -104,3 +101,4 @@ int main(void)
 	}
 	return 0;
 }
+

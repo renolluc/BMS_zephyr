@@ -13,7 +13,7 @@
 
 #include "SPI_MB.h"
 #include "CAN_Bus.h"
-#include "Shutdown_circuit.h" 
+#include "shutdown_circuit.h" 
 #include "Battery_types.h"
 #include <zephyr/drivers/gpio.h>
 #include "Status_error_flags.h"
@@ -29,6 +29,7 @@
 #define MIN_TEMP 16725		// min temperature at 20°
 #define MAX_TEMP 6115		// max temperature at 60°
 #define AKKU_CAPACITANCE 45000		// in As ≙ 12.5 Ah
+#define IVT_TIMEOUT_MS 400 //
 
 
 // struct for the battery
@@ -60,7 +61,7 @@ typedef struct {
 
 // extern variables
 extern BatterySystemTypeDef battery_values;
-
+static uint64_t ivt_deadline_ms;
 
 static const struct gpio_dt_spec vfb_air_pos_spec = GPIO_DT_SPEC_GET(DT_ALIAS(vfbairpositive), gpios);
 static const struct gpio_dt_spec vfb_air_neg_spec = GPIO_DT_SPEC_GET(DT_ALIAS(vfbairnegative), gpios);
@@ -76,6 +77,6 @@ extern int battery_status_gpio_init(void);
 extern Battery_StatusTypeDef battery_check_state(void);
 void battery_monitor_thread(void);
 extern void battery_stop_balancing(void);
-
+extern void battery_refresh_ivt_timer(void);
 #endif /* INC_BATTERY_H_ */
 
