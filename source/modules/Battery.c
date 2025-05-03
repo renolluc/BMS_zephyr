@@ -17,6 +17,8 @@
  static const struct device *gpioa_dev;
  static const struct device *gpiob_dev;
 
+ static uint64_t ivt_deadline_ms;
+
  BatterySystemTypeDef battery_values;
  LOG_MODULE_REGISTER(battery, LOG_LEVEL_ERR);
 
@@ -26,88 +28,6 @@
 K_THREAD_STACK_DEFINE(battery_monitor_thread_stack, BATTERY_MONITOR_STACK_SIZE);
 struct k_thread battery_monitor_thread_data;
 
-void battery_monitor_thread(){
-  int state = 0;
-
-	while(1){
-    //neuer Durchgang deshalb error flags null setzen
-    battery_reset_error_flags();
-
-	state |= battery_check_state();
-	state |= sdc_check_state();
-	state |= sdc_check_feedback();
-
-    //check IVT watchdog
-
-
-
-	printk("Monitor Thread started\n");
-	k_msleep(1000);
-    }
-}
-
- /**
- * @brief Initialize the GPIO inputs for battery status pins.
- *
- * Must be called once during system init before reading status.
- *
- * @return 0 on success, negative errno otherwise.
- */
- int battery_init(void)
- {
-     int ret;
- 
-     /* bind each port by its label */
-     gpioa_dev  = DEVICE_DT_GET(GPIOA_DEVICE);
-     gpiob_dev = DEVICE_DT_GET(GPIOB_DEVICE);
-     
-
- 
-     #define CHECK_READY(spec)                                          \
-     do {                                                               \
-         if (!device_is_ready((spec).port)) {                           \
-             LOG_ERR("GPIO port %s not ready",                          \
-                     ((spec).port)->name);                              \
-             return -ENODEV;                                            \
-         }                                                              \
-     } while (0)
- 
-     CHECK_READY(vfb_air_pos_spec);
-     CHECK_READY(vfb_air_neg_spec);
-     CHECK_READY(vfb_pc_relay_spec);
-     CHECK_READY(charger_con_spec);
-
-     /* configure each pin as input */
-     ret = gpio_pin_configure_dt(&vfb_air_pos_spec, GPIO_INPUT);
-     if (ret) return ret;
- 
-     ret = gpio_pin_configure_dt(&vfb_air_neg_spec, GPIO_INPUT);
-     if (ret) return ret;
- 
-     ret = gpio_pin_configure_dt(&vfb_pc_relay_spec, GPIO_INPUT);
-     if (ret) return ret;
-
-     ret = gpio_pin_configure_dt(&charger_con_spec, GPIO_INPUT);
-     if (ret) return ret;
- 
-     LOG_INF("BMS GPIOs initialized");
-     printk("Battery GPIOs initialized\n");
-
-     //Open Thread
-    k_tid_t battery_monitor_thread_id = k_thread_create(&battery_monitor_thread_data, battery_monitor_thread_stack,
-        K_THREAD_STACK_SIZEOF(battery_monitor_thread_stack),
-        battery_monitor_thread, NULL, NULL, NULL,
-        BATTERY_MONITOR_THREAD_PRIORITY, 0, K_NO_WAIT);
-    
-    if (!battery_monitor_thread_id) {
-    LOG_ERR("ERROR spawning Battery Monitoring thread\n");
-    return -1;
-    }else{
-        LOG_INF("Battery Monitoring thread spawned\n");
-        LOG_INF("Battery Succesfully Initialized\n");
-        return 0;
-    }
- }
 
 /**
  * @brief Clears all stored error flags in the battery system.
@@ -485,13 +405,11 @@ void balancing(void)
  */
 int battery_precharge_logic(void)
 {
-    static bool prev_state = false;
-    static uint32_t cnt_100ms = 0;
-
     gpio_pin_set_dt(&drive_air_neg_spec, 1);
     gpio_pin_set_dt(&drive_precharge_spec, 1);
 
     if(battery_values.totalVoltage && battery_values.actualVoltage) {
+
         gpio_pin_set_dt(&drive_air_pos_spec, 1);
         gpio_pin_set_dt(&drive_air_neg_spec, 1);
         gpio_pin_set_dt(&drive_precharge_spec, 1);
@@ -506,6 +424,9 @@ int battery_precharge_logic(void)
         else {
             return -1;
         }
+    }else{
+        LOG_INF("Precharge not finished yet");
+        return 0;
     }
 }
  
@@ -584,4 +505,94 @@ void battery_refresh_ivt_timer(void)
 
     /* Reset the IVT deadline */
     ivt_deadline_ms = now + IVT_TIMEOUT_MS;
+}
+
+void battery_monitor_thread()
+{
+    int state = 0;
+
+    while (1)
+    {
+        // neuer Durchgang deshalb error flags null setzen
+        battery_reset_error_flags();
+
+        state |= battery_check_state();
+        state |= sdc_check_state();
+        state |= sdc_check_feedback();
+
+        // check IVT watchdog
+
+        printk("Monitor Thread started\n");
+        k_msleep(1000);
+    }
+}
+
+/**
+ * @brief Initialize the GPIO inputs for battery status pins.
+ *
+ * Must be called once during system init before reading status.
+ *
+ * @return 0 on success, negative errno otherwise.
+ */
+int battery_init(void)
+{
+    int ret;
+
+    /* bind each port by its label */
+    gpioa_dev = DEVICE_DT_GET(GPIOA_DEVICE);
+    gpiob_dev = DEVICE_DT_GET(GPIOB_DEVICE);
+
+#define CHECK_READY(spec)                     \
+    do                                        \
+    {                                         \
+        if (!device_is_ready((spec).port))    \
+        {                                     \
+            LOG_ERR("GPIO port %s not ready", \
+                    ((spec).port)->name);     \
+            return -ENODEV;                   \
+        }                                     \
+    } while (0)
+
+    CHECK_READY(vfb_air_pos_spec);
+    CHECK_READY(vfb_air_neg_spec);
+    CHECK_READY(vfb_pc_relay_spec);
+    CHECK_READY(charger_con_spec);
+
+    /* configure each pin as input */
+    ret = gpio_pin_configure_dt(&vfb_air_pos_spec, GPIO_INPUT);
+    if (ret)
+        return ret;
+
+    ret = gpio_pin_configure_dt(&vfb_air_neg_spec, GPIO_INPUT);
+    if (ret)
+        return ret;
+
+    ret = gpio_pin_configure_dt(&vfb_pc_relay_spec, GPIO_INPUT);
+    if (ret)
+        return ret;
+
+    ret = gpio_pin_configure_dt(&charger_con_spec, GPIO_INPUT);
+    if (ret)
+        return ret;
+
+    LOG_INF("BMS GPIOs initialized");
+    printk("Battery GPIOs initialized\n");
+
+    // Open Thread
+    k_tid_t battery_monitor_thread_id = k_thread_create(&battery_monitor_thread_data, battery_monitor_thread_stack,
+                                                        K_THREAD_STACK_SIZEOF(battery_monitor_thread_stack),
+                                                        battery_monitor_thread, NULL, NULL, NULL,
+                                                        BATTERY_MONITOR_THREAD_PRIORITY, 0, K_NO_WAIT);
+
+    if (!battery_monitor_thread_id)
+    {
+        LOG_ERR("ERROR spawning Battery Monitoring thread\n");
+        return -1;
+    }
+    else
+    {
+        LOG_INF("Battery Monitoring thread spawned\n");
+        LOG_INF("Battery Succesfully Initialized\n");
+        return 0;
+    }
 }

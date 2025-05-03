@@ -60,8 +60,7 @@ int sdc_init(void)
     ret = gpio_pin_configure_dt(&drive_precharge_spec, GPIO_OUTPUT_INACTIVE);
     if (ret) return ret;
 
-    /* Start-Deadline initial setzen */
-    ivt_deadline_ms     = k_uptime_get() + IVT_TIMEOUT_MS;
+    
     sdc_error_counter   = 0U;
 
     sdc_shutdown_relays();
@@ -122,7 +121,6 @@ int sdc_check_feedback(void)
 {
     static bool prev_state = true;
     bool curr_sdc_in_state;
-    int  ret;
 
     /* Read the SDC feedback line (active high) */
     curr_sdc_in_state = gpio_pin_get_dt(&sdc_in_spec);

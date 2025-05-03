@@ -11,9 +11,6 @@
 
 
 LOG_MODULE_REGISTER(main, LOG_LEVEL_ERR);
-/* LED configuration */
-#define LED0_NODE DT_ALIAS(led0)
-static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 
 /* 1000 msec = 1 sec */
 #define SLEEP_TIME_MS 10000

@@ -60,7 +60,7 @@ typedef struct {
 
 // extern variables
 extern BatterySystemTypeDef battery_values;
-static uint64_t ivt_deadline_ms;
+
 
 static const struct gpio_dt_spec vfb_air_pos_spec = GPIO_DT_SPEC_GET(DT_ALIAS(vfbairpositive), gpios);
 static const struct gpio_dt_spec vfb_air_neg_spec = GPIO_DT_SPEC_GET(DT_ALIAS(vfbairnegative), gpios);
@@ -72,11 +72,13 @@ extern uint8_t battery_get_status_code(void);
 extern uint8_t battery_get_error_code(void);
 extern uint8_t battery_volt2celsius(uint16_t volt_100uV);
 extern void battery_set_error_flag(uint8_t mask);
-extern int battery_status_gpio_init(void);
+extern int battery_init(void);
 extern Battery_StatusTypeDef battery_check_state(void);
-void battery_monitor_thread(void);
 extern void battery_stop_balancing(void);
 extern void battery_charging(void);
 extern void battery_refresh_ivt_timer(void);
+extern int battery_precharge_logic(void);
+
+
 #endif /* INC_BATTERY_H_ */
 

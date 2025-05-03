@@ -118,7 +118,6 @@ void spi_wake_up(void){
         k_busy_wait(10);         /* 10 µs */
 }
 
-
 /**
  * @brief Send a wake-up sequence to the ADBMS1818 using the Daisy Chain method.
  *
