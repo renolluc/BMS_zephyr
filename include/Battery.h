@@ -67,6 +67,12 @@ static const struct gpio_dt_spec vfb_pc_relay_spec = GPIO_DT_SPEC_GET(DT_ALIAS(v
 static const struct gpio_dt_spec charger_con_spec = GPIO_DT_SPEC_GET(DT_ALIAS(chargerconnect), gpios);
 
 int battery_status_gpio_init(void);
+extern uint8_t battery_get_status_code(void);
+extern uint8_t battery_get_error_code(void);
+extern uint8_t battery_volt2celsius(uint16_t volt_100uV);
+extern Battery_StatusTypeDef check_battery(void);
+extern void battery_set_error_flag(uint8_t mask);
+
 
 #endif /* INC_BATTERY_H_ */
 

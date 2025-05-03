@@ -217,14 +217,14 @@ int can_send_ivt_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length)
 int can_send_ecu(uint16_t GPIO_Input)
 {
     uint8_t can_data[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    can_data[0] |= battery_get_status_code(GPIO_Input);
+    can_data[0] |= battery_get_status_code();
     can_data[1] |= battery_get_error_code();
     uint16_t total_volt = battery_values.totalVoltage;
     can_data[2] = total_volt & 0xFF;
     can_data[3] = total_volt >> 8;
     uint16_t actualCurrent = battery_values.actualCurrent;
     can_data[4] = (uint8_t)(actualCurrent / 1000);
-    can_data[5] = volt2celsius(battery_values.highestCellTemp);
+    can_data[5] = battery_volt2celsius(battery_values.highestCellTemp);
     if (battery_values.CurrentCounter > AKKU_CAPACITANCE) {
         can_data[6] = 0;
     } else {
@@ -236,7 +236,6 @@ int can_send_ecu(uint16_t GPIO_Input)
 int can_ivt_init()
 {
     int status = 0;
-    uint8_t RxData[8];
 
     // Set sensor mode to STOP
     uint8_t can_data0[] = {SET_MODE, 0x00, 0x01, 0x00, 0x00};
