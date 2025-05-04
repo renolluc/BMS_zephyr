@@ -454,9 +454,6 @@ void battery_charging(void)
     int  gpio_val;
     bool charger_connected;
 
-    /* Run the precharge first */
-    battery_precharge_logic();
-
     /* Read the charger‐connected sense pin (active low) */
     gpio_val = gpio_pin_get_dt(&charger_con_spec);
     if (gpio_val < 0) {
@@ -470,6 +467,7 @@ void battery_charging(void)
         /* Charger plugged in */
         if (!(battery_values.status & STATUS_CHARGING)) {
             battery_set_reset_status_flag(1, STATUS_CHARGING);
+            LOG_INF("Charger connected");
         } else {
             /* Continue balancing while charging */
             balancing();
