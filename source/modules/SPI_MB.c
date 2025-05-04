@@ -9,7 +9,6 @@
  */
 
 #include <SPI_MB.h>
-#include <zephyr/logging/log.h>
 
 /**
  * @brief Sets the name and logging levels for this module.

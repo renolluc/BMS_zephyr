@@ -8,7 +8,10 @@
 #ifndef INC_CAN_BUS_H
 #define INC_CAN_BUS_H
 
+/* Zephyr-Framework includes */
 #include <zephyr/drivers/can.h>
+#include <zephyr/logging/log.h>
+/* Project includes */
 #include <Battery.h>
 
 /** @brief CAN device label for Zephyr device tree */

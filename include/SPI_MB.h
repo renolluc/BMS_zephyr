@@ -11,8 +11,11 @@
 #ifndef INC_SPI_MB_H_
 #define INC_SPI_MB_H_
 
+/* Zephyr-Framework includes */
 #include <zephyr/drivers/spi.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/logging/log.h>
+/* Project includes */
 
 // ADBMS Register Addresses
 // DATASHEET ADBMS1818 by Analog Devices p. 61

@@ -276,9 +276,9 @@ uint8_t battery_volt2celsius(uint16_t volt_100uV)
  * On Zephyr RTOS, all delays and error codes follow POSIX conventions; no HAL types
  * are used. The measurement functions return negative errno on failure, or 0 on success.
  *
- * @return Battery_StatusTypeDef  Current overall system status after SD‑Card refresh.
+ * @return int  Current overall system status after SD‑Card refresh.
  */
-Battery_StatusTypeDef battery_check_state(void)
+int battery_check_state(void)
 {
     int err = 0;
 

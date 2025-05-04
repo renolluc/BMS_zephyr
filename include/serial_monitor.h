@@ -3,9 +3,14 @@
 #ifndef SERIAL_MONITOR_H
 #define SERIAL_MONITOR_H
 
+/* Zephyr-Framework includes */
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/uart.h>
+#include <string.h>
+#include <zephyr/logging/log.h>
+#include <stdlib.h>
+/* Project includes */
 
 /** @brief UART device label for Zephyr device tree */
 #define SERIAL_DEVICE DT_LABEL(DT_NODELABEL(usart2))

@@ -11,13 +11,15 @@
 #ifndef INC_BATTERY_H_
 #define INC_BATTERY_H_
 
+/* Zephyr-Framework includes */
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/logging/log.h>
+/* Project includes */
 #include "SPI_MB.h"
 #include "CAN_Bus.h"
 #include "shutdown_circuit.h" 
-#include "Battery_types.h"
-#include <zephyr/drivers/gpio.h>
 #include "Status_error_flags.h"
-#include "zephyr/logging/log.h"
+
 
 /**
   * @brief  Battery Status
@@ -76,7 +78,7 @@ extern uint8_t battery_get_error_code(void);
 extern uint8_t battery_volt2celsius(uint16_t volt_100uV);
 extern void battery_set_error_flag(uint8_t mask);
 extern int battery_init(void);
-extern Battery_StatusTypeDef battery_check_state(void);
+extern int battery_check_state(void);
 extern void battery_stop_balancing(void);
 extern void battery_charging(void);
 extern void battery_refresh_ivt_timer(void);

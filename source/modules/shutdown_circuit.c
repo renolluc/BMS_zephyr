@@ -6,11 +6,11 @@
  *
  * This module initializes and controls the GPIOs for the
  * shutdown relays, checks their status and reads feedback signals.
- * In addition, corresponding status flags are set in the event of errors
- * and CAN messages are triggered.
+ * In addition, corresponding status flags are set in the event of errors.
  */
 
 #include "shutdown_circuit.h"
+
 
 LOG_MODULE_REGISTER(shutdown_circuit, LOG_LEVEL_ERR);
 
