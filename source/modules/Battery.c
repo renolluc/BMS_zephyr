@@ -509,7 +509,9 @@ void battery_refresh_ivt_timer(void)
 
 void battery_monitor_thread()
 {
+    LOG_INF("Battery Monitor Thread started\n");
     int state = 0;
+    int err_counter = 0;
 
     while (1)
     {
@@ -520,9 +522,20 @@ void battery_monitor_thread()
         state |= sdc_check_state();
         state |= sdc_check_feedback();
 
-        // check IVT watchdog
+        if (state < 0)
+        {
+            err_counter++;
+        }
+        else if (err_counter > 3)
+        {
+            sdc_shutdown_relays();
+        }
+        else if (state == 0)
+        {
+            // no error
+            err_counter = 0;
+        }
 
-        printk("Monitor Thread started\n");
         k_msleep(1000);
     }
 }

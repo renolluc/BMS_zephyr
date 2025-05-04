@@ -55,6 +55,6 @@
   * @brief      De-energizes all relays
   * @retval 0   Relais erfolgreich abgeschaltet
   */
- int sdc_shutdown_relays(void);
+ int sdc_shutdown(void);
  
  #endif /* INC_SHUTDOWN_CIRCUIT_H_ */
