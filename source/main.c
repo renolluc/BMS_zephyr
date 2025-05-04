@@ -30,10 +30,9 @@ int main(void)
 
 	// variables
 	SystemState_t state = STATE_RESET;
-	bool led_state = true;
 	static bool previous_ecu_state = BATTERY_OFF;
 	bool current_ecu_state = BATTERY_OFF;
-	
+	uint32_t event_flags = 0;
 
 	// Initialize
 	can_init();
@@ -49,12 +48,17 @@ int main(void)
 	sdc_init();
 
 	while (1)
-	{
-		// status LED
-		led_state = !led_state;
-		
+	{		
 		//serial monitor daten senden
 		serial_monitor((uint8_t *)&battery_values, sizeof(battery_values));
+
+		// wait for event
+		/*event_flags = k_event_wait(&error_to_main, EVT_ERROR_BIT,false, K_NO_WAIT);
+
+		if (event_flags & EVT_ERROR_BIT) {
+		state = STATE_ERROR;
+		LOG_INF("got Error-Event! switching to Error-State.\n");
+		}*/
 
 		switch (state)
 		{
@@ -105,7 +109,7 @@ int main(void)
 
 		case STATE_ERROR:
 			// set all relays to 0
-			sdc_shutdown_relays();
+			sdc_shutdown();
 			if (battery_get_error_code() == 0)
 			{
 				state = STATE_IDLE;

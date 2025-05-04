@@ -18,6 +18,7 @@
  static const struct device *gpiob_dev;
 
  static uint64_t ivt_deadline_ms;
+ struct k_event error_to_main;
 
  BatterySystemTypeDef battery_values;
  LOG_MODULE_REGISTER(battery, LOG_LEVEL_ERR);
@@ -300,12 +301,14 @@ Battery_StatusTypeDef battery_check_state(void)
     if (battery_values.highestCellVoltage > MAX_VOLT ||
         battery_values.lowestCellVoltage  < MIN_VOLT) {
         battery_set_error_flag(ERROR_VOLT | ERROR_BATTERY);
+        err |= -1;
     }
 
     /* Check temperature limits */
     if (battery_values.highestCellTemp < MAX_TEMP ||
         battery_values.lowestCellTemp  > MIN_TEMP) {
         battery_set_error_flag(ERROR_TEMP | ERROR_BATTERY);
+        err |= -1;
     }
 
     /* IVT-Timeout prüfen */
@@ -315,6 +318,7 @@ Battery_StatusTypeDef battery_check_state(void)
         battery_refresh_ivt_timer();
         battery_set_error_flag(ERROR_IVT);
         LOG_ERR("IVT timeout, flag ERROR_IVT set");
+        err |= -1;
     }
 
     return err;
@@ -513,9 +517,10 @@ void battery_monitor_thread()
     int state = 0;
     int err_counter = 0;
 
+    k_event_init(&error_to_main);
     while (1)
     {
-        // neuer Durchgang deshalb error flags null setzen
+        // reset flags every cycle
         battery_reset_error_flags();
 
         state |= battery_check_state();
@@ -526,9 +531,9 @@ void battery_monitor_thread()
         {
             err_counter++;
         }
-        else if (err_counter > 3)
+        else if (err_counter >= 3)
         {
-            sdc_shutdown_relays();
+            k_event_post(&error_to_main, EVT_ERROR_BIT);
         }
         else if (state == 0)
         {

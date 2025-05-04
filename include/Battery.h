@@ -30,6 +30,9 @@
 #define AKKU_CAPACITANCE 45000		// in As ≙ 12.5 Ah
 #define IVT_TIMEOUT_MS 400 //
 
+ //define error event
+ #define EVT_ERROR_BIT (1 << 0)
+ extern struct k_event error_to_main;
 
 // struct for the battery
 typedef struct {
@@ -38,9 +41,9 @@ typedef struct {
     uint16_t lowestCellVoltage;     // Lowest voltage among individual cells
     uint16_t meanCellVoltage;       // Mean voltage of all cells
 
-    uint16_t highestCellTemp;
-    uint16_t lowestCellTemp;
-    uint16_t meanCellTemp;
+    uint16_t highestCellTemp;       // Highest temperature among individual cells
+    uint16_t lowestCellTemp;      // Lowest temperature among individual cells
+    uint16_t meanCellTemp;      // Mean temperature of all cells
 
     uint8_t status;     // Current status of the accumulator
     uint8_t error;		// current error flags of the accumulator

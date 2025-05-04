@@ -124,7 +124,7 @@ int sdc_check_feedback(void)
     if (!curr_sdc_in_state && prev_state)
     {
         /* De-energize AIR and precharge relays (drive outputs low) */
-        sdc_shutdown_relays();
+        sdc_shutdown();
         battery_set_error_flag(ERROR_SDC);
     }
 

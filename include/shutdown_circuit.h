@@ -29,9 +29,9 @@
  static const struct gpio_dt_spec drive_precharge_spec = GPIO_DT_SPEC_GET(DT_ALIAS(driveprecharge), gpios);
  
  /**
-  * @brief      Checks if an Error Occured in the Shutdown-Circuit.
+  * @brief      Checks if the sdc is in a valid state.
   * @retval 0   Running without errors
-  * @retval <0  Error when there was an error 3 times in a row
+  * @retval <0  Error when there is an error in he battery system
   */
  int sdc_check_state(void);
  
