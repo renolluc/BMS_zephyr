@@ -120,7 +120,7 @@ int can_send_ivt_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length);
  * @param GPIO_Input GPIO input encoding system status.
  * @return 0 on success, error code otherwise.
  */
-extern int can_send_ecu(uint16_t GPIO_Input);
+int can_send_ecu(void);
 
 /**
  * @brief Checks if the ECU flag is OK or NOK. OK means the accumulator can be connected.

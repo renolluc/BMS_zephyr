@@ -62,7 +62,7 @@ ZTEST(can_bus_tests, test_can_rx_thread)
     int ret = can_send(can_dev, &test_frame, K_NO_WAIT, NULL, NULL);
     zassert_equal(ret, 0, "Failed to send test CAN message: %d", ret);
 
-    printk("Waiting for message in can_rx_thread\n");
+    printk("Waiting for message in can_thread\n");
     ret = k_sem_take(&test_ack_sem, K_MSEC(1000));
     zassert_equal(ret, 0, "Test message was not handled in time");
 }
