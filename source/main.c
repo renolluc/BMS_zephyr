@@ -53,12 +53,12 @@ int main(void)
 		serial_monitor((uint8_t *)&battery_values, sizeof(battery_values));
 
 		// wait for event
-		/*event_flags = k_event_wait(&error_to_main, EVT_ERROR_BIT,false, K_NO_WAIT);
+		event_flags = k_event_wait(&error_to_main, EVT_ERROR_BIT,false, K_NO_WAIT);
 
 		if (event_flags & EVT_ERROR_BIT) {
 		state = STATE_ERROR;
 		LOG_INF("got Error-Event! switching to Error-State.\n");
-		}*/
+		}
 
 		switch (state)
 		{
