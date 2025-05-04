@@ -70,47 +70,57 @@ classDiagram
     class main
 
     class Can_Bus{
-        int can_init(void);
-        int can_ivt_init(void);
-        int can_send_8bytes(uint32_t address, uint8_t *TxBuffer);
-        int can_send_ivt_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length);
-        int can_send_ecu(uint16_t GPIO_Input);
+        int can_init(void)
+        int can_ivt_init(void)
+        int can_send_ecu(uint16_t GPIO_Input)
+        int can_get_ecu_state()
     }
 
     class spiMB{
-        int spi_wakeup_adbms1818();
-        extern uint16_t spi_generate_pec(const uint8_t data[], size_t len);
-        extern int spi_read_voltages(uint16_t *data_buffer);
-        extern int spi_read_temp(uint16_t *data_buffer);
-        extern uint16_t spi_read_adbms_temp();
-        extern int spi_set_discharge_cell_x(uint32_t *data_buffer);
-        uint16_t generatePEC(uint8_t data[], size_t len);
-        void spi_wakeup();
-        int spi_adbms1818_hw_init();
+        int spi_wakeup_adbms1818()
+        extern uint16_t spi_generate_pec(const uint8_t data[], size_t len)
+        extern int spi_read_voltages(uint16_t *data_buffer)
+        extern int spi_read_temp(uint16_t *data_buffer)
+        extern uint16_t spi_read_adbms_temp()
+        extern int spi_set_discharge_cell_x(uint32_t *data_buffer)
+        uint16_t generatePEC(uint8_t data[], size_t len)
+        void spi_wakeup()
+        int spi_adbms1818_hw_init()
     }
 
     class battery{
-        int spi_wakeup_adbms1818();
-        extern uint16_t spi_generate_pec(const uint8_t data[], size_t len);
-        extern int spi_read_voltages(uint16_t *data_buffer);
-        extern int spi_read_temp(uint16_t *data_buffer);
-        extern uint16_t spi_read_adbms_temp();
-        extern int spi_set_discharge_cell_x(uint32_t *data_buffer);
-        uint16_t generatePEC(uint8_t data[], size_t len);
-        void spi_wakeup();
-        int spi_adbms1818_hw_init();
+        extern uint8_t battery_get_status_code(void);
+        extern uint8_t battery_get_error_code(void);
+        extern uint8_t battery_volt2celsius(uint16_t volt_100uV);
+        extern void battery_set_error_flag(uint8_t mask);
+        extern int battery_init(void);
+        extern Battery_StatusTypeDef battery_check_state(void);
+        extern void battery_stop_balancing(void);
+        extern void battery_charging(void);
+        extern void battery_refresh_ivt_timer(void);
+        extern int battery_precharge_logic(void);
     }
 
     class shutdowncircuit{
-        extern Battery_StatusTypeDef refresh_sdc();
-        extern void sdc_set_relays(uint8_t CAN_Data);
+        int sdc_check_state(void);
+        int sdc_check_feedback(void);
+        int sdc_init(void);
+        int sdc_shutdown_relays(void);
     }
 
     class serialmonitor{
-        void SerialMonitor(uint8_t* data, uint16_t size);
+        void serial_monitor_init(void)
+        void serial_monitor(uint8_t* data, uint16_t size)
+        void serial_generate_test_frame
     }
 
+    class Battery_types{
 
+    }
+
+    class Status_error_flags{
+
+    }
 
     main ..> battery : uses
     main ..> Can_Bus : uses
@@ -119,22 +129,36 @@ classDiagram
     battery ..> spiMB : uses
     Can_Bus ..> shutdowncircuit : uses
     battery ..> shutdowncircuit : uses
-
+    shutdowncircuit ..> Battery_types : uses
+    shutdowncircuit ..> Status_error_flags : uses
+    battery ..> Battery_types : uses
+    battery ..> Status_error_flags : uses
 ```
 ---
 
 ```mermaid
 stateDiagram-v2
 
-Init --> Ready: all Inits passed
-Ready --> PreCharge: ECU OK
-PreCharge --> ConnectBattery
-ConnectBattery --> Run: 
-ConnectBattery --> Charging: charger connected
-Run --> error
-error --> Ready
-Charging --> error
- 
+state main{
+    [*] --> Idle: all Inits passed
+    error --> Idle: no errrors
+    Idle --> PreCharge: ECU rising edge
+    PreCharge --> Running : precharge succesful
+    Running --> Idle : ECU falling edge 
+}
+
+state battery{
+    [*] --> battery_check_state
+    battery_check_state --> sdc_check_state
+    sdc_check_state --> sdc_check_feedback
+    sdc_check_feedback --> [*]
+}
+
+state can{
+    [*] --> k_msgq_get
+    k_msgq_get --> can_send_ecu
+    can_send_ecu --> [*]
+}
 
 ```
 ---
