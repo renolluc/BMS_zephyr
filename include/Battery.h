@@ -77,6 +77,7 @@ extern uint8_t battery_get_status_code(void);
 extern uint8_t battery_get_error_code(void);
 extern uint8_t battery_volt2celsius(uint16_t volt_100uV);
 extern void battery_set_error_flag(uint8_t mask);
+extern void battery_reset_error_flags(void);
 extern int battery_init(void);
 extern int battery_check_state(void);
 extern void battery_stop_balancing(void);

@@ -8,7 +8,8 @@ project(test_app)
 target_sources(app PRIVATE 
     #${CMAKE_CURRENT_SOURCE_DIR}/test_spi_mb.c
     #${CMAKE_CURRENT_SOURCE_DIR}/test_CAN_Bus.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/test_battery.c
+    #${CMAKE_CURRENT_SOURCE_DIR}/test_battery.c
+    #${CMAKE_CURRENT_SOURCE_DIR}/test_shutdown_circuit.c
 )
 
 zephyr_include_directories(./include)
