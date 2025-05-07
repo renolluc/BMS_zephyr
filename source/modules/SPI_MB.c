@@ -20,20 +20,14 @@
  * - LOG_LEVEL_INF
  * - LOG_LEVEL_DBG
  */
-LOG_MODULE_REGISTER(spi, LOG_LEVEL_INF);
+LOG_MODULE_REGISTER(spi, LOG_LEVEL_DBG);
 
 // define spi1 device
 const struct device *spi1_dev = DEVICE_DT_GET(SPI_DEVICE);
 // define GPIOB device
-#define CS_PIN_PB1 1
+#define CS_PIN_PB0 0
 #define GPIOB_DEVICE DT_NODELABEL(gpiob)
 const struct device *gpio_dev = DEVICE_DT_GET(GPIOB_DEVICE);
-// Thread defines
-#define SPI_THREAD_STACK_SIZE 512
-#define SPI_THREAD_PRIORITY 7
-K_THREAD_STACK_DEFINE(spi_thread_stack, SPI_THREAD_STACK_SIZE);
-struct k_thread spi_thread_data;
-
 
 
 
@@ -42,6 +36,7 @@ struct spi_config spi_cfg= {
     .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_OP_MODE_MASTER,
 	// Frequency in Hz
     .frequency = SPI_FREQ
+    .cs = 
 };
 
 struct spi_config spi_cfg_test= {
@@ -54,7 +49,7 @@ struct spi_config spi_cfg_test= {
 
 
 //define Test Variables
-#define SPI_LOOPBACK_TEST false
+#define SPI_LOOPBACK_TEST true
 
 #define ISO_SPI_CS1_Pin GPIO_PIN_1
 
@@ -94,7 +89,7 @@ void spi_wake_up(void){
         int ret;
     
         /* CS‑Pin als Ausgang konfigurieren */
-        ret = gpio_pin_configure(gpio_dev, CS_PIN_PB1, GPIO_OUTPUT);
+        ret = gpio_pin_configure(gpio_dev, CS_PIN_PB0, GPIO_OUTPUT);
         if (ret < 0) {
             LOG_ERR("Error: cannot configure CS pin (%d)\n", ret);
             return;
@@ -103,11 +98,11 @@ void spi_wake_up(void){
         /* (NUM_OF_CLIENTS + 2) Wake‑up CS‑Pulse senden */
         for (uint8_t i = 0; i < NUM_OF_CLIENTS + 2; i++) {
             /* CS low */
-            gpio_pin_set(gpio_dev, CS_PIN_PB1, 0);
+            gpio_pin_set(gpio_dev, CS_PIN_PB0, 0);
             k_busy_wait(1);      /* 1 µs */
 
             /* CS high */
-            gpio_pin_set(gpio_dev, CS_PIN_PB1, 1);
+            gpio_pin_set(gpio_dev, CS_PIN_PB0, 1);
             k_busy_wait(400);    /* 400 µs */
         }
     
@@ -143,7 +138,7 @@ int spi_loopback() {
     }
     
     // Define the wake-up message (2 bytes with value 0xFF each).
-    uint8_t msg_data[2] = {0xFF, 0xFF};
+    uint8_t msg_data[2] = {0xAB, 0xCD};
 
     // Initialize the SPI transmit buffer with the wake-up message.
     struct spi_buf tx_buf = {
@@ -754,17 +749,6 @@ int spi_set_discharge_cell_x(uint32_t* cells_to_balance) {
     return status;  /* Return the aggregated status of all SPI operations */
 }
 
-void spi_thread()
-{
-
-	while(1){
-	//spi_test_physical_loopback();
-	//spi_loopback();
-	spi_wake_up();
-	k_msleep(1000);
-    }
-}
-
 /**
  * @brief Initializes the ADBMS hardware.
  *
@@ -837,21 +821,7 @@ int spi_adbms1818_hw_init() {
         return -ENODEV;
     }
     
-
-
-k_tid_t spi_thread_id = k_thread_create(&spi_thread_data, spi_thread_stack,
-    K_THREAD_STACK_SIZEOF(spi_thread_stack),
-    spi_thread, NULL, NULL, NULL,
-    SPI_THREAD_PRIORITY, 0, K_NO_WAIT);
-
-if (!spi_thread_id) {
-LOG_ERR("ERROR spawning SPI thread\n");
-return -1;
-}   else {
-    LOG_INF("SPI thread spawned\n");
-    LOG_INF("SPI Succesfully Initialized\n");
     return 0;           /* Return 0 on successful initialization */
-}
 
 }
 
