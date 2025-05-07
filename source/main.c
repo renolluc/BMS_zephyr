@@ -78,7 +78,6 @@ int main(void)
 		LOG_INF("got Error-Event! switching to Error-State.\n");
 		}
 
-	}
 
 
 		switch (state)
