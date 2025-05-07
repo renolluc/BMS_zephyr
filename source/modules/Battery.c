@@ -10,64 +10,19 @@
 
  #include "Battery.h"
 
-  
- #define GPIOA_DEVICE DT_NODELABEL(gpioa)
- #define GPIOB_DEVICE DT_NODELABEL(gpiob)
-
- static const struct device *gpioa_dev;
- static const struct device *gpiob_dev;
+ static uint64_t ivt_deadline_ms;
+ struct k_event error_to_main;
+ K_EVENT_DEFINE(error_to_main);
 
  BatterySystemTypeDef battery_values;
  LOG_MODULE_REGISTER(battery, LOG_LEVEL_ERR);
 
- /**
- * @brief Initialize the GPIO inputs for battery status pins.
- *
- * Must be called once during system init before reading status.
- *
- * @return 0 on success, negative errno otherwise.
- */
- int battery_status_gpio_init(void)
- {
-     int ret;
- 
-     /* bind each port by its label */
-     gpioa_dev  = DEVICE_DT_GET(GPIOA_DEVICE);
-     gpiob_dev = DEVICE_DT_GET(GPIOB_DEVICE);
-     
+// Thread defines
+#define BATTERY_MONITOR_STACK_SIZE 1024
+#define BATTERY_MONITOR_THREAD_PRIORITY 8
+K_THREAD_STACK_DEFINE(battery_monitor_thread_stack, BATTERY_MONITOR_STACK_SIZE);
+struct k_thread battery_monitor_thread_data;
 
- 
-     #define CHECK_READY(spec)                                          \
-     do {                                                               \
-         if (!device_is_ready((spec).port)) {                           \
-             LOG_ERR("GPIO port %s not ready",                          \
-                     ((spec).port)->name);                              \
-             return -ENODEV;                                            \
-         }                                                              \
-     } while (0)
- 
-     CHECK_READY(vfb_air_pos_spec);
-     CHECK_READY(vfb_air_neg_spec);
-     CHECK_READY(vfb_pc_relay_spec);
-     CHECK_READY(charger_con_spec);
-
-     /* configure each pin as input */
-     ret = gpio_pin_configure_dt(&vfb_air_pos_spec, GPIO_INPUT);
-     if (ret) return ret;
- 
-     ret = gpio_pin_configure_dt(&vfb_air_neg_spec, GPIO_INPUT);
-     if (ret) return ret;
- 
-     ret = gpio_pin_configure_dt(&vfb_pc_relay_spec, GPIO_INPUT);
-     if (ret) return ret;
-
-     ret = gpio_pin_configure_dt(&charger_con_spec, GPIO_INPUT);
-     if (ret) return ret;
- 
-     LOG_INF("BMS GPIOs initialized");
-     printk("Battery GPIOs initialized\n");
-     return 0;
- }
 
 /**
  * @brief Clears all stored error flags in the battery system.
@@ -270,7 +225,7 @@ return &battery_values;
  * @param volt_100uV Voltage reading in units of 100 µV.
  * @return Temperature in degrees Celsius as an 8‑bit unsigned integer.
  */
-uint8_t volt2celsius(uint16_t volt_100uV)
+uint8_t battery_volt2celsius(uint16_t volt_100uV)
 {
     /* Handle out‑of‑range inputs */
     if (volt_100uV > 23000U) {
@@ -314,24 +269,22 @@ uint8_t volt2celsius(uint16_t volt_100uV)
  * On Zephyr RTOS, all delays and error codes follow POSIX conventions; no HAL types
  * are used. The measurement functions return negative errno on failure, or 0 on success.
  *
- * @return Battery_StatusTypeDef  Current overall system status after SD‑Card refresh.
+ * @return int  Current overall system status after SD‑Card refresh.
  */
-Battery_StatusTypeDef check_battery(void)
+int battery_check_state(void)
 {
-    int err;
+    int err = 0;
 
     /* Read voltages into buffer */
-    err = spi_read_voltages(battery_values.volt_buffer);
+    err |= spi_read_voltages(battery_values.volt_buffer);
     if (err < 0) {
         battery_set_error_flag(ERROR_SPI | ERROR_BATTERY);
-        return refresh_sdc();
     }
 
     /* Read temperatures into buffer */
-    err = spi_read_temp(battery_values.temp_buffer);
+    err |= spi_read_temp(battery_values.temp_buffer);
     if (err < 0) {
         battery_set_error_flag(ERROR_SPI | ERROR_BATTERY);
-        return refresh_sdc();
     }
 
     /* Compute aggregate values */
@@ -342,16 +295,27 @@ Battery_StatusTypeDef check_battery(void)
     if (battery_values.highestCellVoltage > MAX_VOLT ||
         battery_values.lowestCellVoltage  < MIN_VOLT) {
         battery_set_error_flag(ERROR_VOLT | ERROR_BATTERY);
+        err |= -1;
     }
 
     /* Check temperature limits */
     if (battery_values.highestCellTemp < MAX_TEMP ||
         battery_values.lowestCellTemp  > MIN_TEMP) {
         battery_set_error_flag(ERROR_TEMP | ERROR_BATTERY);
+        err |= -1;
     }
 
-    /* refresh ShutdownCircuit and return its status */
-    return refresh_sdc();
+    /* IVT-Timeout prüfen */
+    int64_t now = k_uptime_get();
+
+    if (now >= ivt_deadline_ms) {
+        battery_refresh_ivt_timer();
+        battery_set_error_flag(ERROR_IVT);
+        LOG_ERR("IVT timeout, flag ERROR_IVT set");
+        err |= -1;
+    }
+
+    return err;
 }
   
  /**
@@ -361,7 +325,7 @@ Battery_StatusTypeDef check_battery(void)
  * then issues the updated discharge‑control command to stop all balancing.
  *
  */
-static void stop_balancing(void)
+void battery_stop_balancing(void)
 {
     /* Clear all balance‑cell flags */
     for (uint8_t i = 0; i < NUM_OF_CLIENTS; i++) {
@@ -374,6 +338,7 @@ static void stop_balancing(void)
         /* Log an error if the SPI transfer failed */
         LOG_ERR("Failed to stop cell balancing (err %d)", err);
     }
+    gpio_pin_set_dt(&charge_en_spec, 0);
 }
 
 /**
@@ -402,13 +367,13 @@ void balancing(void)
 
     /* Safety check: stop balancing if temperature exceeds threshold */
     if (die_temp >= 83U) {
-        stop_balancing();
+        battery_stop_balancing();
         return;
     }
 
     /* Only start balancing when pack voltage is high enough */
     if (battery_values.highestCellVoltage < 41000U) {
-        stop_balancing();
+        battery_stop_balancing();
         return;
     }
 
@@ -439,16 +404,14 @@ void balancing(void)
  */
 int battery_precharge_logic(void)
 {
-    static bool prev_state = false;
-    static uint32_t cnt_100ms = 0;
-
     gpio_pin_set_dt(&drive_air_neg_spec, 1);
     gpio_pin_set_dt(&drive_precharge_spec, 1);
 
     if(battery_values.totalVoltage && battery_values.actualVoltage) {
+
         gpio_pin_set_dt(&drive_air_pos_spec, 1);
         gpio_pin_set_dt(&drive_air_neg_spec, 1);
-        gpio_pin_set_dt(&drive_precharge_spec , 1);
+        gpio_pin_set_dt(&drive_precharge_spec, 1);
         k_msleep(50);
         gpio_pin_set_dt(&drive_precharge_spec, 0);
 
@@ -460,7 +423,10 @@ int battery_precharge_logic(void)
         else {
             return -1;
         }
-    } 
+    }else{
+        LOG_INF("Precharge not finished yet");
+        return 0;
+    }
 }
  
 /**
@@ -482,9 +448,6 @@ void battery_charging(void)
     int  gpio_val;
     bool charger_connected;
 
-    /* Run the precharge first */
-    battery_precharge_logic();
-
     /* Read the charger‐connected sense pin (active low) */
     gpio_val = gpio_pin_get_dt(&charger_con_spec);
     if (gpio_val < 0) {
@@ -498,8 +461,10 @@ void battery_charging(void)
         /* Charger plugged in */
         if (!(battery_values.status & STATUS_CHARGING)) {
             battery_set_reset_status_flag(1, STATUS_CHARGING);
+            LOG_INF("Charger connected");
         } else {
             /* Continue balancing while charging */
+            gpio_pin_set_dt(&charge_en_spec, 1);
             balancing();
         }
     } else {
@@ -507,7 +472,7 @@ void battery_charging(void)
         if (battery_values.status & STATUS_CHARGING) {
             battery_set_reset_status_flag(0, STATUS_CHARGING);
             battery_values.adbms_itemp = 0;
-            stop_balancing();
+            battery_stop_balancing();
         }
     }
 }
@@ -524,4 +489,100 @@ void battery_charging(void)
 void battery_set_time_per_measurement(uint16_t time_ms)
 {
     battery_values.time_per_measurement = time_ms;
+}
+
+/**
+ * @brief Reset the IVT timer.
+ *
+ * This function resets the IVT timer to the current time plus the IVT_TIMEOUT_MS
+ * 
+ */
+void battery_refresh_ivt_timer(void)
+{
+    int64_t now = k_uptime_get();
+
+    /* Reset the IVT deadline */
+    ivt_deadline_ms = now + IVT_TIMEOUT_MS;
+}
+
+void battery_monitor_thread()
+{
+    LOG_INF("Battery Monitor Thread started\n");
+    int state = 0;
+    int err_counter = 0;
+
+    while (1)
+    {
+        // reset flags every cycle
+        battery_reset_error_flags();
+
+        state |= battery_check_state();
+        state |= sdc_check_state();
+        state |= sdc_check_feedback();
+
+        if (state < 0)
+        {
+            err_counter++;
+        }
+        else if (err_counter >= 3)
+        {
+            k_event_post(&error_to_main, EVT_ERROR_BIT);
+        }
+        else if (state == 0)
+        {
+            // no error
+            err_counter = 0;
+        }
+
+        k_msleep(1000);
+    }
+}
+
+/**
+ * @brief Initialize the GPIO inputs for battery status pins.
+ *
+ * Must be called once during system init before reading status.
+ *
+ * @return 0 on success, negative errno otherwise.
+ */
+int battery_init(void)
+{
+
+#define CHECK_READY(spec)                     \
+    do                                        \
+    {                                         \
+        if (!device_is_ready((spec).port))    \
+        {                                     \
+            LOG_ERR("GPIO port %s not ready", \
+                    ((spec).port)->name);     \
+            return -ENODEV;                   \
+        }                                     \
+    } while (0)
+
+    CHECK_READY(vfb_air_pos_spec);
+    CHECK_READY(vfb_air_neg_spec);
+    CHECK_READY(vfb_pc_relay_spec);
+    CHECK_READY(charger_con_spec);
+    CHECK_READY(charge_en_spec);
+
+    LOG_INF("BMS GPIOs initialized");
+
+
+    // Open Thread
+    k_tid_t battery_monitor_thread_id = k_thread_create(&battery_monitor_thread_data, battery_monitor_thread_stack,
+                                                        K_THREAD_STACK_SIZEOF(battery_monitor_thread_stack),
+                                                        battery_monitor_thread, NULL, NULL, NULL,
+                                                        BATTERY_MONITOR_THREAD_PRIORITY, 0, K_NO_WAIT);
+
+    if (!battery_monitor_thread_id)
+    {
+        LOG_ERR("ERROR spawning Battery Monitoring thread\n");
+        return -1;
+    }
+    else
+    {
+        LOG_INF("Battery Monitoring thread spawned\n");
+        LOG_INF("Battery Succesfully Initialized\n");
+        return 0;
+    }
 }

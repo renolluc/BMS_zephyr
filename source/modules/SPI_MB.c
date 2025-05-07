@@ -9,7 +9,6 @@
  */
 
 #include <SPI_MB.h>
-#include <zephyr/logging/log.h>
 
 /**
  * @brief Sets the name and logging levels for this module.
@@ -50,8 +49,6 @@ struct spi_config spi_cfg_test= {
     .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_OP_MODE_MASTER,
 	// Frequency in Hz
     .frequency = SPI_FREQ,
-	// Chip select control  
-    .cs = NULL
 };
 
 
@@ -117,7 +114,6 @@ void spi_wake_up(void){
         /* Abschließende Delay von 10 µs, damit die Geräte bereit sind */
         k_busy_wait(10);         /* 10 µs */
 }
-
 
 /**
  * @brief Send a wake-up sequence to the ADBMS1818 using the Daisy Chain method.
@@ -515,7 +511,7 @@ int spi_read_voltages(uint16_t *data_buffer) {
     uint8_t short_buffer[NUM_OF_CLIENTS * 6];
 
     /* Wake up the devices. */
-    spi_wakeup_adbms1818();
+    spi_wake_up();
     
     /* Send the ADC conversion command using the new command function which uses spi_create_command internally. */
     spi_send_command(ADCV);
@@ -580,7 +576,7 @@ int spi_read_temp(uint16_t *data_buffer) {
     uint8_t short_buffer[NUM_OF_CLIENTS * 6];
 
     /* Wake up the device chain. */
-    spi_wakeup_adbms1818();
+    spi_wake_up();
     
     /* Send the ADC auxiliary conversion command using spi_send_command, which utilizes spi_create_command. */
     spi_send_command(ADAX);
@@ -663,7 +659,7 @@ uint16_t spi_read_adbms_temp() {
     uint16_t tempx = 0;
     
     // Wake up the device chain.
-    spi_wakeup_adbms1818();
+    spi_wake_up();
     // Send the ADC status command to initiate temperature conversion.
     spi_send_command(ADSTAT);
     // Wait 3 milliseconds for conversion to complete.
@@ -712,7 +708,7 @@ int spi_set_discharge_cell_x(uint32_t* cells_to_balance) {
     int status = 0;                      /* Initialize status to 0 (no errors) */
     uint8_t enable_discharge = 0;          /* Flag to indicate if discharge balancing should be enabled */
 
-    spi_wakeup_adbms1818();                /* Wake up the ADBMS devices */
+    spi_wake_up();                /* Wake up the ADBMS devices */
 
     /* Prepare configuration data arrays for each client (6 bytes per client) */
     uint8_t config_data_A[NUM_OF_CLIENTS * 6];
@@ -792,52 +788,54 @@ int spi_adbms1818_hw_init() {
     /********************************************************************************/
 
 
-    // int status = 0;                           /* Initialize status to 0 (no errors) */
-    // uint8_t not_valid = 0;                     /* Accumulator for any discrepancies in configuration verification */
+    int status = 0;                           /* Initialize status to 0 (no errors) */
+    uint8_t not_valid = 0;                     /* Accumulator for any discrepancies in configuration verification */
 
-    // uint8_t config_data_A[NUM_OF_CLIENTS * 6];  /* Array to hold configuration data for register group A */
-    // uint8_t config_data_B[NUM_OF_CLIENTS * 6];  /* Array to hold configuration data for register group B */
-    // uint8_t read_data_A[NUM_OF_CLIENTS * 6];    /* Array to store read-back data for register group A */
-    // uint8_t read_data_B[NUM_OF_CLIENTS * 6];    /* Array to store read-back data for register group B */
+    uint8_t config_data_A[NUM_OF_CLIENTS * 6];  /* Array to hold configuration data for register group A */
+    uint8_t config_data_B[NUM_OF_CLIENTS * 6];  /* Array to hold configuration data for register group B */
+    uint8_t read_data_A[NUM_OF_CLIENTS * 6];    /* Array to store read-back data for register group A */
+    uint8_t read_data_B[NUM_OF_CLIENTS * 6];    /* Array to store read-back data for register group B */
 
-    // /* Build configuration data for each client using the predefined base arrays CFGAR and CFGBR */
-    // for (uint16_t i = 0; i < NUM_OF_CLIENTS; i++) {
-    //     for (uint16_t j = 0; j < 6; j++) {
-    //         config_data_A[i * 6 + j] = CFGAR[j];  /* Copy CFGAR into config_data_A for client i */
-    //         config_data_B[i * 6 + j] = CFGBR[j];    /* Copy CFGBR into config_data_B for client i */
-    //     }
-    // }
+    /* Build configuration data for each client using the predefined base arrays CFGAR and CFGBR */
+    for (uint16_t i = 0; i < NUM_OF_CLIENTS; i++) {
+        for (uint16_t j = 0; j < 6; j++) {
+            config_data_A[i * 6 + j] = CFGAR[j];  /* Copy CFGAR into config_data_A for client i */
+            config_data_B[i * 6 + j] = CFGBR[j];    /* Copy CFGBR into config_data_B for client i */
+        }
+    }
 
-    // spi_wake_up();   /* Wake up the ADBMS devices */
-    // k_msleep(1);              /* Wait for 1 ms to ensure device stabilization */
+    spi_wake_up();   /* Wake up the ADBMS devices */
+    k_msleep(1);              /* Wait for 1 ms to ensure device stabilization */
 
-    // status |= spi_send_command(MUTE);   /* Send the MUTE command to disable discharge while configuring */
+    status |= spi_send_command(MUTE);   /* Send the MUTE command to disable discharge while configuring */
 
-    // /* Write the configuration data to the device registers */
-    // status |= spi_write_registergroup(WRCFGA, config_data_A);
-    // status |= spi_write_registergroup(WRCFGB, config_data_B);
+    /* Write the configuration data to the device registers */
+    status |= spi_write_registergroup(WRCFGA, config_data_A);
+    status |= spi_write_registergroup(WRCFGB, config_data_B);
 
-    // /* Read back the configuration from the device registers to verify correct configuration */
-    // status |= spi_read_registergroup(RDCFGA, read_data_A);
-    // status |= spi_read_registergroup(RDCFGB, read_data_B);
+    /* Read back the configuration from the device registers to verify correct configuration */
+    status |= spi_read_registergroup(RDCFGA, read_data_A);
+    status |= spi_read_registergroup(RDCFGB, read_data_B);
 
-    // if (status < 0) {
-    //     return status;      /* Return early if there was an error during SPI transactions */
-    // }
+    if (status < 0) {
+        LOG_ERR("SPI transaction failed: %d\n", status);
+        return status;      /* Return early if there was an error during SPI transactions */
+    }
 
-    // /* Compare the written configuration with the read-back data for each client (skip first byte) */
-    // for (uint16_t i = 0; i < NUM_OF_CLIENTS; i++) {
-    //     for (uint16_t j = 1; j < 6; j++) {
-    //         /* Accumulate differences from register group A and B */
-    //         not_valid += (config_data_A[i * 6 + j] - read_data_A[i * 6 + j]);
-    //         not_valid += (config_data_B[i * 6 + j] - read_data_B[i * 6 + j]);
-    //     }
-    // }
+    /* Compare the written configuration with the read-back data for each client (skip first byte) */
+    for (uint16_t i = 0; i < NUM_OF_CLIENTS; i++) {
+        for (uint16_t j = 1; j < 6; j++) {
+            /* Accumulate differences from register group A and B */
+            not_valid += (config_data_A[i * 6 + j] - read_data_A[i * 6 + j]);
+            not_valid += (config_data_B[i * 6 + j] - read_data_B[i * 6 + j]);
+        }
+    }
 
-    // /* If any differences were detected, return -ENODEV to indicate a hardware initialization failure */
-    // if (not_valid) {
-    //     return -ENODEV;
-    // }
+    /* If any differences were detected, return -ENODEV to indicate a hardware initialization failure */
+    if (not_valid) {
+        LOG_ERR("Configuration verification failed: %d\n", not_valid);
+        return -ENODEV;
+    }
     
 
 

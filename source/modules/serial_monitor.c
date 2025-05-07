@@ -9,16 +9,10 @@
  * @date 27.04.2025
  */
 
- #include <zephyr/kernel.h>
- #include <serial_monitor.h>
- #include <zephyr/device.h>
- #include <zephyr/drivers/uart.h>
- #include <string.h>
- #include <zephyr/logging/log.h>
- #include <stdlib.h>
+ #include "serial_monitor.h"
 
  /** @brief Logger module definition for serial monitor */
- LOG_MODULE_REGISTER(serial_monitor, LOG_LEVEL_DBG);
+ LOG_MODULE_REGISTER(serial_monitor, LOG_LEVEL_WRN);
  
  /** @brief UART device instance */
  static const struct device *uart_dev = DEVICE_DT_GET(DT_NODELABEL(usart2));
