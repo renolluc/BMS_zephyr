@@ -29,26 +29,26 @@ static const struct gpio_dt_spec sdc_in_spec = {
 
 static const struct gpio_dt_spec sdc_out_spec = {
     .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(sdc_out))),
-    .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(sdc_out), 8),
-    .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(sdc_out), 8),
+    .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(sdc_out), 0),
+    .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(sdc_out), 0),
 };
 
 static const struct gpio_dt_spec drive_air_pos_spec = {
     .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(drive_air_pos))),
-    .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(drive_air_pos), 7),
-    .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(drive_air_pos), 7),
+    .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(drive_air_pos), 0),
+    .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(drive_air_pos), 0),
 };
 
 static const struct gpio_dt_spec drive_air_neg_spec = {
     .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(drive_air_neg))),
-    .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(drive_air_neg), 5),
-    .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(drive_air_neg), 5),
+    .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(drive_air_neg), 0),
+    .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(drive_air_neg), 0),
 };
 
 static const struct gpio_dt_spec drive_precharge_spec = {
     .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(drive_precharge))),
-    .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(drive_precharge), 6),
-    .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(drive_precharge), 6),
+    .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(drive_precharge), 0),
+    .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(drive_precharge), 0),
   };
    
 static uint64_t ivt_deadline_ms;
