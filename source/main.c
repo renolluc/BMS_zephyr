@@ -66,6 +66,7 @@ int main(void)
 		led_state = !led_state;
 		k_msleep(SLEEP_TIME_MS);
 
+
 		//serial monitor daten senden
 		serial_monitor((uint8_t *)&battery_values, sizeof(battery_values));
 
@@ -76,6 +77,9 @@ int main(void)
 		state = STATE_ERROR;
 		LOG_INF("got Error-Event! switching to Error-State.\n");
 		}
+
+	}
+
 
 		switch (state)
 		{
