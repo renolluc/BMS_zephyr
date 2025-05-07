@@ -12,8 +12,12 @@
 
 LOG_MODULE_REGISTER(main, LOG_LEVEL_ERR);
 
+/* LED configuration */
+#define LED0_NODE DT_ALIAS(led0)
+static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
+
 /* 1000 msec = 1 sec */
-#define SLEEP_TIME_MS 10000
+#define SLEEP_TIME_MS 100
 
 typedef enum
 {
@@ -26,10 +30,16 @@ typedef enum
 
 int main(void)
 {
-	
+	int ret; 
+	bool led_state = true;
+
+	ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
+	if (ret < 0) {
+		return 0;
+	}
 
 	// variables
-	SystemState_t state = STATE_RESET;
+	SystemState_t state = STATE_IDLE;
 	static bool previous_ecu_state = BATTERY_OFF;
 	bool current_ecu_state = BATTERY_OFF;
 	uint32_t event_flags = 0;
@@ -49,6 +59,13 @@ int main(void)
 
 	while (1)
 	{		
+		ret = gpio_pin_toggle_dt(&led);
+		if (ret < 0) {
+			return 0;
+		}
+		led_state = !led_state;
+		k_msleep(SLEEP_TIME_MS);
+
 		//serial monitor daten senden
 		serial_monitor((uint8_t *)&battery_values, sizeof(battery_values));
 
