@@ -12,7 +12,6 @@
 
 LOG_MODULE_REGISTER(shutdown_circuit, LOG_LEVEL_ERR);
 
-static const struct device *gpioa_dev;
 static uint8_t  sdc_error_counter = 2;
 
 /**
@@ -22,12 +21,6 @@ static uint8_t  sdc_error_counter = 2;
  */
 static int sdc_init(void)
 {
-    int ret;
- 
-    /* bind each port by its label */
-    gpioa_dev  = DEVICE_DT_GET(GPIOA_DEVICE);
-    
-
     #define CHECK_READY(spec)                                          \
     do {                                                               \
         if (!device_is_ready((spec).port)) {                           \
@@ -43,21 +36,11 @@ static int sdc_init(void)
     CHECK_READY(drive_air_neg_spec);
     CHECK_READY(drive_precharge_spec);
 
-    ret = gpio_pin_configure_dt(&sdc_in_spec, GPIO_INPUT);
-    if (ret) return ret;
-
-    ret = gpio_pin_configure_dt(&sdc_out_spec, GPIO_OUTPUT_INACTIVE);
-    if (ret) return ret;
-
-    ret = gpio_pin_configure_dt(&drive_air_pos_spec, GPIO_OUTPUT_INACTIVE);
-    if (ret) return ret;
-
-    ret = gpio_pin_configure_dt(&drive_air_neg_spec, GPIO_OUTPUT_INACTIVE);
-    if (ret) return ret;
-
-    ret = gpio_pin_configure_dt(&drive_precharge_spec, GPIO_OUTPUT_INACTIVE);
-    if (ret) return ret;
-
+    gpio_pin_set_dt(&sdc_out_spec, 0); /* SDC output low */
+    gpio_pin_set_dt(&drive_air_pos_spec, 0); /* AIR positive relay off */
+    gpio_pin_set_dt(&drive_air_neg_spec, 0); /* AIR negative relay off */
+    gpio_pin_set_dt(&drive_precharge_spec, 0); /* Precharge relay off */
+    
     /* Start-Deadline initial setzen */
     ivt_deadline_ms     = k_uptime_get() + IVT_TIMEOUT_MS;
     sdc_error_counter   = 0U;

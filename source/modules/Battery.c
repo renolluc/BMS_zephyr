@@ -10,13 +10,6 @@
 
  #include "Battery.h"
 
-  
- #define GPIOA_DEVICE DT_NODELABEL(gpioa)
- #define GPIOB_DEVICE DT_NODELABEL(gpiob)
-
- static const struct device *gpioa_dev;
- static const struct device *gpiob_dev;
-
  BatterySystemTypeDef battery_values;
  LOG_MODULE_REGISTER(battery, LOG_LEVEL_ERR);
 
@@ -30,13 +23,7 @@
  int battery_status_gpio_init(void)
  {
      int ret;
- 
-     /* bind each port by its label */
-     gpioa_dev  = DEVICE_DT_GET(GPIOA_DEVICE);
-     gpiob_dev = DEVICE_DT_GET(GPIOB_DEVICE);
-     
 
- 
      #define CHECK_READY(spec)                                          \
      do {                                                               \
          if (!device_is_ready((spec).port)) {                           \
@@ -50,19 +37,6 @@
      CHECK_READY(vfb_air_neg_spec);
      CHECK_READY(vfb_pc_relay_spec);
      CHECK_READY(charger_con_spec);
-
-     /* configure each pin as input */
-     ret = gpio_pin_configure_dt(&vfb_air_pos_spec, GPIO_INPUT);
-     if (ret) return ret;
- 
-     ret = gpio_pin_configure_dt(&vfb_air_neg_spec, GPIO_INPUT);
-     if (ret) return ret;
- 
-     ret = gpio_pin_configure_dt(&vfb_pc_relay_spec, GPIO_INPUT);
-     if (ret) return ret;
-
-     ret = gpio_pin_configure_dt(&charger_con_spec, GPIO_INPUT);
-     if (ret) return ret;
  
      LOG_INF("BMS GPIOs initialized");
      printk("Battery GPIOs initialized\n");
