@@ -49,8 +49,6 @@ struct spi_config spi_cfg_test= {
     .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_OP_MODE_MASTER,
 	// Frequency in Hz
     .frequency = SPI_FREQ,
-	// Chip select control  
-    .cs = NULL
 };
 
 

@@ -10,13 +10,6 @@
 
  #include "Battery.h"
 
-  
- #define GPIOA_DEVICE DT_NODELABEL(gpioa)
- #define GPIOB_DEVICE DT_NODELABEL(gpiob)
-
- static const struct device *gpioa_dev;
- static const struct device *gpiob_dev;
-
  static uint64_t ivt_deadline_ms;
  struct k_event error_to_main;
  K_EVENT_DEFINE(error_to_main);
@@ -345,6 +338,7 @@ void battery_stop_balancing(void)
         /* Log an error if the SPI transfer failed */
         LOG_ERR("Failed to stop cell balancing (err %d)", err);
     }
+    gpio_pin_set_dt(&charge_en_spec, 0);
 }
 
 /**
@@ -470,6 +464,7 @@ void battery_charging(void)
             LOG_INF("Charger connected");
         } else {
             /* Continue balancing while charging */
+            gpio_pin_set_dt(&charge_en_spec, 1);
             balancing();
         }
     } else {
@@ -552,11 +547,6 @@ void battery_monitor_thread()
  */
 int battery_init(void)
 {
-    int ret;
-
-    /* bind each port by its label */
-    gpioa_dev = DEVICE_DT_GET(GPIOA_DEVICE);
-    gpiob_dev = DEVICE_DT_GET(GPIOB_DEVICE);
 
 #define CHECK_READY(spec)                     \
     do                                        \
@@ -573,26 +563,10 @@ int battery_init(void)
     CHECK_READY(vfb_air_neg_spec);
     CHECK_READY(vfb_pc_relay_spec);
     CHECK_READY(charger_con_spec);
-
-    /* configure each pin as input */
-    ret = gpio_pin_configure_dt(&vfb_air_pos_spec, GPIO_INPUT);
-    if (ret)
-        return ret;
-
-    ret = gpio_pin_configure_dt(&vfb_air_neg_spec, GPIO_INPUT);
-    if (ret)
-        return ret;
-
-    ret = gpio_pin_configure_dt(&vfb_pc_relay_spec, GPIO_INPUT);
-    if (ret)
-        return ret;
-
-    ret = gpio_pin_configure_dt(&charger_con_spec, GPIO_INPUT);
-    if (ret)
-        return ret;
+    CHECK_READY(charge_en_spec);
 
     LOG_INF("BMS GPIOs initialized");
-    printk("Battery GPIOs initialized\n");
+
 
     // Open Thread
     k_tid_t battery_monitor_thread_id = k_thread_create(&battery_monitor_thread_data, battery_monitor_thread_stack,

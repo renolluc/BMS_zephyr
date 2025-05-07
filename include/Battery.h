@@ -67,10 +67,35 @@ typedef struct {
 extern BatterySystemTypeDef battery_values;
 
 
-static const struct gpio_dt_spec vfb_air_pos_spec = GPIO_DT_SPEC_GET(DT_ALIAS(vfbairpositive), gpios);
-static const struct gpio_dt_spec vfb_air_neg_spec = GPIO_DT_SPEC_GET(DT_ALIAS(vfbairnegative), gpios);
-static const struct gpio_dt_spec vfb_pc_relay_spec = GPIO_DT_SPEC_GET(DT_ALIAS(vfbpcrelay), gpios);
-static const struct gpio_dt_spec charger_con_spec = GPIO_DT_SPEC_GET(DT_ALIAS(chargerconnect), gpios);
+static const struct gpio_dt_spec vfb_air_pos_spec = {
+  .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(vfb_air_pos))),
+  .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(vfb_air_pos), 0),
+  .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(vfb_air_pos), 0),
+};
+
+static const struct gpio_dt_spec vfb_air_neg_spec = {
+  .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(vfb_air_neg))),
+  .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(vfb_air_neg), 0),
+  .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(vfb_air_neg), 0),
+};
+
+static const struct gpio_dt_spec vfb_pc_relay_spec = {
+  .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(vfb_pc_relay))),
+  .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(vfb_pc_relay), 0),
+  .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(vfb_pc_relay), 0),
+};
+
+static const struct gpio_dt_spec charger_con_spec = {
+  .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(charger_con))),
+  .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(charger_con), 0),
+  .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(charger_con), 0),
+};
+
+static const struct gpio_dt_spec charge_en_spec = {
+  .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(charge_en))),
+  .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(charge_en), 0),
+  .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(charge_en), 0),
+};
 
 
 extern uint8_t battery_get_status_code(void);

@@ -22,11 +22,35 @@
 #define SDC_BATTERY_STATUS_ERROR_MASK 0x47
 
 /* External GPIO specifications */
-static const struct gpio_dt_spec sdc_in_spec = GPIO_DT_SPEC_GET(DT_ALIAS(sdcin), gpios);
-static const struct gpio_dt_spec sdc_out_spec = GPIO_DT_SPEC_GET(DT_ALIAS(sdcout), gpios);
-static const struct gpio_dt_spec drive_air_pos_spec = GPIO_DT_SPEC_GET(DT_ALIAS(driveairpositive), gpios);
-static const struct gpio_dt_spec drive_air_neg_spec = GPIO_DT_SPEC_GET(DT_ALIAS(driveairnegative), gpios);
-static const struct gpio_dt_spec drive_precharge_spec = GPIO_DT_SPEC_GET(DT_ALIAS(driveprecharge), gpios);
+static const struct gpio_dt_spec sdc_in_spec = {
+    .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(sdc_in))),
+    .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(sdc_in), 0),
+    .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(sdc_in), 0),
+};
+
+static const struct gpio_dt_spec sdc_out_spec = {
+    .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(sdc_out))),
+    .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(sdc_out), 0),
+    .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(sdc_out), 0),
+};
+
+static const struct gpio_dt_spec drive_air_pos_spec = {
+    .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(drive_air_pos))),
+    .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(drive_air_pos), 0),
+    .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(drive_air_pos), 0),
+};
+
+static const struct gpio_dt_spec drive_air_neg_spec = {
+    .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(drive_air_neg))),
+    .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(drive_air_neg), 0),
+    .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(drive_air_neg), 0),
+};
+
+static const struct gpio_dt_spec drive_precharge_spec = {
+    .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(drive_precharge))),
+    .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(drive_precharge), 0),
+    .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(drive_precharge), 0),
+};
 
 /**
  * @brief      Checks if the sdc is in a valid state.
