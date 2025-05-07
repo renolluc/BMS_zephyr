@@ -18,6 +18,7 @@
 #include <zephyr/drivers/gpio.h>
 #include "Status_error_flags.h"
 #include "zephyr/logging/log.h"
+#include <zephyr/devicetree/gpio.h>
 
 /**
   * @brief  Battery Status
@@ -61,12 +62,30 @@ typedef struct {
 extern BatterySystemTypeDef battery_values;
 
 
-static const struct gpio_dt_spec vfb_air_pos_spec = GPIO_DT_SPEC_GET(DT_NODELABEL(vfb_air_pos), gpios);
-static const struct gpio_dt_spec vfb_air_neg_spec = GPIO_DT_SPEC_GET(DT_NODELABEL(vfb_air_neg), gpios);
-static const struct gpio_dt_spec vfb_pc_relay_spec = GPIO_DT_SPEC_GET(DT_NODELABEL(vfb_pc_relay), gpios);
-static const struct gpio_dt_spec charger_con_spec = GPIO_DT_SPEC_GET(DT_NODELABEL(charger_con), gpios);
+static const struct gpio_dt_spec vfb_air_pos_spec = {
+  .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(vfb_air_pos))),
+  .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(vfb_air_pos), 1),
+  .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(vfb_air_pos), 1),
+};
+
+static const struct gpio_dt_spec vfb_air_neg_spec = {
+  .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(vfb_air_neg))),
+  .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(vfb_air_neg), 4),
+  .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(vfb_air_neg), 4),
+};
+
+static const struct gpio_dt_spec vfb_pc_relay_spec = {
+  .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(vfb_pc_relay))),
+  .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(vfb_pc_relay), 3),
+  .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(vfb_pc_relay), 3),
+};
+
+static const struct gpio_dt_spec charger_con_spec = {
+  .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(charger_con))),
+  .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(charger_con), 10),
+  .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(charger_con), 10),
+};
 
 int battery_status_gpio_init(void);
 
 #endif /* INC_BATTERY_H_ */
-
