@@ -45,6 +45,11 @@
 };
 
 &gpiob{
+    spi_cs_pb1: spi_cs_pb1 {
+        gpios = <1 GPIO_ACTIVE_LOW>;
+        gpio-hog;
+        output-high;
+    };
     drive_air_neg: drive_air_neg {
         gpios = <5 GPIO_ACTIVE_HIGH>;
         gpio-hog;
@@ -60,4 +65,10 @@
         gpio-hog;
         output-low;
     };
+};
+
+&spi1 {
+    status = "okay";
+    pinctrl-0 = <&spi1_sck_pa5 &spi1_miso_pa6 &spi1_mosi_pa7>;
+    pinctrl-names = "default";
 };

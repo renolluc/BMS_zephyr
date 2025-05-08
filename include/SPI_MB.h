@@ -106,7 +106,7 @@
 
 
 // Settings
-#define NUM_OF_CLIENTS 8
+#define NUM_OF_CLIENTS 1
 #define DUMMY 0xAA
 // requency in Hz
 #define SPI_FREQ 1000000
@@ -115,6 +115,11 @@
 #define SPI_DEVICE DT_NODELABEL(spi1)
 extern const struct device *spi1_dev;
 
+static const struct gpio_dt_spec spi_cs_pb1_spec = {
+    .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(spi_cs_pb1))),
+    .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(spi_cs_pb1), 0),
+    .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(spi_cs_pb1), 0),
+  };
 
 extern uint16_t spi_generate_pec(const uint8_t data[], size_t len);
 extern int spi_read_voltages(uint16_t *data_buffer);

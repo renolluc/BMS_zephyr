@@ -25,7 +25,7 @@ LOG_MODULE_REGISTER(spi, LOG_LEVEL_DBG);
 // define spi1 device
 const struct device *spi1_dev = DEVICE_DT_GET(SPI_DEVICE);
 // define GPIOB device
-#define CS_PIN_PB0 0
+#define CS_PIN_PB1 1
 #define GPIOB_DEVICE DT_NODELABEL(gpiob)
 const struct device *gpio_dev = DEVICE_DT_GET(GPIOB_DEVICE);
 
@@ -35,7 +35,8 @@ struct spi_config spi_cfg= {
 	// 8-bit word size, MSB first, Master mode  
     .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_OP_MODE_MASTER,
 	// Frequency in Hz
-    .frequency = SPI_FREQ
+    .frequency = SPI_FREQ,
+    .cs = {.gpio = spi_cs_pb1_spec, .delay = 0},
 };
 
 struct spi_config spi_cfg_test= {
@@ -48,7 +49,7 @@ struct spi_config spi_cfg_test= {
 
 
 //define Test Variables
-#define SPI_LOOPBACK_TEST true
+#define SPI_LOOPBACK_TEST false
 
 #define ISO_SPI_CS1_Pin GPIO_PIN_1
 
@@ -85,23 +86,15 @@ static const uint8_t RDAUX[] = {RDAUXA, RDAUXB, RDAUXC, RDAUXD};
  * @note Adjust the delays if your ADBMS1818 datasheet requires different timings.
  */
 void spi_wake_up(void){
-        int ret;
-    
-        /* CS‑Pin als Ausgang konfigurieren */
-        ret = gpio_pin_configure(gpio_dev, CS_PIN_PB0, GPIO_OUTPUT);
-        if (ret < 0) {
-            LOG_ERR("Error: cannot configure CS pin (%d)\n", ret);
-            return;
-        }
     
         /* (NUM_OF_CLIENTS + 2) Wake‑up CS‑Pulse senden */
         for (uint8_t i = 0; i < NUM_OF_CLIENTS + 2; i++) {
             /* CS low */
-            gpio_pin_set(gpio_dev, CS_PIN_PB0, 0);
+            gpio_pin_set(gpio_dev, CS_PIN_PB1, 1);
             k_busy_wait(1);      /* 1 µs */
 
             /* CS high */
-            gpio_pin_set(gpio_dev, CS_PIN_PB0, 1);
+            gpio_pin_set(gpio_dev, CS_PIN_PB1, 0);
             k_busy_wait(400);    /* 400 µs */
         }
     

@@ -574,8 +574,13 @@ void battery_refresh_ivt_timer(void)
  *
  * @note Errors are only signaled after three consecutive fault detections.
  */
-void battery_monitor_thread(void)
+void battery_monitor_thread(void *arg1, void *arg2, void *arg3)
 {
+
+    ARG_UNUSED(arg1);
+    ARG_UNUSED(arg2);
+    ARG_UNUSED(arg3);
+
     LOG_INF("Battery Monitor Thread started\n");
     int state = 0;
     int err_counter = 0;
