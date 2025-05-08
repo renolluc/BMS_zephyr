@@ -22,7 +22,7 @@ static uint64_t ivt_deadline_ms;
 struct k_event error_to_main;
 K_EVENT_DEFINE(error_to_main);
 BatterySystemTypeDef battery_values;
-LOG_MODULE_REGISTER(battery, LOG_LEVEL_ERR);
+LOG_MODULE_REGISTER(battery, LOG_LEVEL_DBG);
 
 /* Thread defines */
 #define BATTERY_MONITOR_STACK_SIZE 1024
@@ -587,6 +587,7 @@ void battery_monitor_thread(void *arg1, void *arg2, void *arg3)
 
     while (1)
     {
+        LOG_DBG("Cycle started\n");
         /* Clear error flags for the new monitoring cycle */
         battery_reset_error_flags();
 
@@ -600,7 +601,7 @@ void battery_monitor_thread(void *arg1, void *arg2, void *arg3)
             /* Increment error counter if any component reports a failure */
             err_counter++;
         }
-        else if (err_counter >= 3)
+        if (err_counter >= 3)
         {
             /* Post event to main loop after 3 consecutive failures */
             k_event_post(&error_to_main, EVT_ERROR_BIT);
