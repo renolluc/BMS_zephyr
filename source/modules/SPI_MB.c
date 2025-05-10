@@ -22,14 +22,8 @@
  */
 LOG_MODULE_REGISTER(spi, LOG_LEVEL_DBG);
 
-// define spi1 device
+/* SPI Definitions */
 const struct device *spi1_dev = DEVICE_DT_GET(SPI_DEVICE);
-// define GPIOB device
-#define CS_PIN_PB1 1
-#define GPIOB_DEVICE DT_NODELABEL(gpiob)
-const struct device *gpio_dev = DEVICE_DT_GET(GPIOB_DEVICE);
-
-
 
 struct spi_config spi_cfg= {
 	// 8-bit word size, MSB first, Master mode  
@@ -51,7 +45,7 @@ struct spi_config spi_cfg_test= {
 //define Test Variables
 #define SPI_LOOPBACK_TEST false
 
-#define ISO_SPI_CS1_Pin GPIO_PIN_1
+//#define ISO_SPI_CS1_Pin GPIO_PIN_1
 
 
 
@@ -90,11 +84,11 @@ void spi_wake_up(void){
         /* (NUM_OF_CLIENTS + 2) Wake‑up CS‑Pulse senden */
         for (uint8_t i = 0; i < NUM_OF_CLIENTS + 2; i++) {
             /* CS low */
-            gpio_pin_set(gpio_dev, CS_PIN_PB1, 1);
+            gpio_pin_set_dt(&spi_cs_pb1_spec, 1);
             k_busy_wait(1);      /* 1 µs */
 
             /* CS high */
-            gpio_pin_set(gpio_dev, CS_PIN_PB1, 0);
+            gpio_pin_set_dt(&spi_cs_pb1_spec, 0);
             k_busy_wait(400);    /* 400 µs */
         }
     
