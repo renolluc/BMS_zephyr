@@ -15,11 +15,6 @@
             margin-top: 5px;
             border: 1px solid #ccc;
         }
-        pre {
-            background: #f8f8f8;
-            padding: 10px;
-            overflow: auto;
-        }
     </style>
 </head>
 <body>
@@ -38,6 +33,7 @@
     <div style="display: flex; align-items: center; gap: 20px;">
         <img src="/static/black_logo_white_background.jpg" alt="Zurich UAS Racing Logo" height="50">
         <h2>Battery Monitor</h2>
+        <div id="status-banner" style="color: red; font-weight: bold; margin-bottom: 10px;"></div>
     </div>
     
     
@@ -58,22 +54,22 @@
         </div>
     </div>
     
-    <hr>
-    <h3>Console Output</h3>
-    <pre id="console-output">Connecting...</pre>
     <script>
-    const pre = document.getElementById("console-output");
-    const source = new EventSource('/console-log');
-    source.onmessage = function(event) {
-        pre.innerText = event.data + "\n" + pre.innerText;
-        //pre.scrollTop = pre.scrollHeight;
-    };
 
     function updateMonitor() {
-        fetch("/battery").then(resp => resp.text()).then(html => {
-            document.getElementById("monitor").innerHTML = html;
-        });
-    }
+    fetch("/battery").then(resp => resp.text()).then(html => {
+        const banner = document.getElementById("status-banner");
+        document.getElementById("monitor").innerHTML = html;
+
+        if (html.includes("Parse error")) {
+            banner.textContent = "❌ Warning: Invalid or false frame received!";
+        } else if (html.includes("Waiting for data")) {
+            banner.textContent = "⏳ Waiting for data from board...";
+        } else {
+            banner.textContent = ""; // Clear banner if everything is fine
+        }
+    });
+}
 
     function drawVoltageHeatmap(voltageArray) {
         const canvas = document.getElementById("voltageCanvas");

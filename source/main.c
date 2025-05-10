@@ -39,24 +39,25 @@ int main(void)
 	}
 
 	// variables
-	SystemState_t state = STATE_IDLE;
+	SystemState_t state = STATE_TEST;
 	static bool previous_ecu_state = BATTERY_OFF;
 	bool current_ecu_state = BATTERY_OFF;
 	uint32_t event_flags = 0;
 
 	// Initialize
-	can_init();
+	//can_init();
 
-	can_ivt_init();
+	//can_ivt_init();
 
-	spi_adbms1818_hw_init();
+	//spi_adbms1818_hw_init();
 
 	serial_monitor_init();
 
-	battery_init();
+	//battery_init();
 
-	sdc_init();
+	//sdc_init();
 
+	
 	while (1)
 	{		
 		ret = gpio_pin_toggle_dt(&led);
@@ -83,7 +84,9 @@ int main(void)
 		case STATE_TEST:
 			//spi_wake_up();
 			//spi_loopback();
-			spi_adbms1818_hw_init();
+	
+			serial_monitor((uint8_t*)(&battery_values), sizeof(battery_values));
+
 			LOG_INF("state test lululala");
 			
 			break;

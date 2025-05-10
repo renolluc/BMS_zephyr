@@ -1,23 +1,21 @@
-
-from flask import Flask, Response, stream_with_context, jsonify # type: ignore
+from flask import Flask, jsonify
 import threading
-import time
 import serial
+import time
 import serial.tools.list_ports
-import re
 
 app = Flask(__name__)
-console_lines = []
+
 battery_data = "<b>Waiting for data...</b>"
-voltage_grid = [[0.0 for _ in range(18)] for _ in range(8)]  # default 8x18 grid
-temperature_grid = [[0.0 for _ in range(8)] for _ in range(8)]  # default 8x8 grid
+voltage_grid = [[0.0 for _ in range(18)] for _ in range(8)]
+temperature_grid = [[0.0 for _ in range(8)] for _ in range(8)]
 lock = threading.Lock()
 
-BAUDRATE = 115200
 START_FRAME = b'\xFF\xA3'
 STOP_FRAME = b'\xFF\xB3'
-
-ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
+MIN_FRAME_LENGTH = 476
+READ_CHUNK_SIZE = 512
+BAUDRATE = 115200
 
 def parse_frame(data):
     try:
@@ -30,14 +28,13 @@ def parse_frame(data):
         meanCellTemp = (data[12] + data[13]*256) * 0.01
         status = data[14]
         error = data[15]
-        current = (data[16] + data[17]*256 + data[18]*65536 + data[19]*16777216) * 0.001
-        voltage = (data[20] + data[21]*256 + data[22]*65536 + data[23]*16777216) * 0.001
-        counter = (data[24] + data[25]*256 + data[26]*65536 + data[27]*16777216) * 0.001
+        current = int.from_bytes(data[16:20], byteorder='little', signed=True) * 0.001
+        voltage = int.from_bytes(data[20:24], byteorder='little') * 0.001
+        counter = int.from_bytes(data[24:28], byteorder='little') * 0.001
         time_per_cycle = data[28] + data[29]*256
         adbms_temp = (data[30] + data[31]*256) * 0.01
 
-        html = f""
-        html += f"Total Voltage: {totalVoltage:.2f} V<br>"
+        html = f"Total Voltage: {totalVoltage:.2f} V<br>"
         html += f"Highest Cell Voltage: {highestCellVoltage:.2f} V<br>"
         html += f"Lowest Cell Voltage: {lowestCellVoltage:.2f} V<br>"
         html += f"Mean Cell Voltage: {meanCellVoltage:.2f} V<br>"
@@ -48,93 +45,48 @@ def parse_frame(data):
         html += f"Actual Current: {current:.2f} A<br>"
         html += f"Actual Voltage: {voltage:.2f} V<br>"
         html += f"Current Counter: {counter:.3f} Ah<br>"
-        html += f"Status Code: 0x{status:04X}<br>"
-        html += f"Error Code: {error:04X}<br>"
+        html += f"Status Code: 0x{status:02X}<br>"
+        html += f"Error Code: 0x{error:02X}<br>"
         html += f"Cycle Time: {time_per_cycle} ms<br>"
-        html += f"<small>Raw data: {data[:28].hex()}</small><br>"
+        html += f"<small>Raw data: {data[:32].hex()}</small><br>"
 
         return html
     except Exception as e:
         return f"<b>Parse error:</b> {e}"
 
-def uart_reader(port):
-    global battery_data, console_lines, voltage_grid
-    try:
-        ser = serial.Serial(port, BAUDRATE, timeout=0.5)
-        buffer = bytearray()
-        line_buffer = bytearray()
-        print("[UART] Reader started.")
+def uart_reader(port="/dev/ttyACM0"):
+    global battery_data, voltage_grid, temperature_grid
+    ser = serial.Serial(port, BAUDRATE, timeout=0.5)
+    buffer = bytearray()
 
-        while True:
-            chunk = ser.read(128)
-            if not chunk:
-                continue
-            buffer += chunk
+    print("[UART] Reader started.")
 
-            line_buffer = bytearray()
-            for b in chunk:
-                line_buffer.append(b)
-                if b == 10:  # Newline indicates end of line
-                    try:
-                        line = line_buffer.decode(errors='ignore').strip()
-                        line = ansi_escape.sub('', line)  # remove ANSI escape sequences
+    while True:
+        buffer += ser.read(READ_CHUNK_SIZE)
+        start = buffer.find(START_FRAME)
+        end = buffer.find(STOP_FRAME, start + 2)
 
-                        # Allow only fully printable ASCII lines (32–126) or those with Zephyr tags
-                        if line and (
-                            all(32 <= ord(c) <= 126 for c in line) or
-                            any(tag in line for tag in ["<inf>", "<err>", "<dbg>", "<wrn>"])
-                        ):
-                            console_lines.append(line)
-                            if len(console_lines) > 200:
-                                console_lines = console_lines[-200:]
-                    except Exception as e:
-                        print("[UART] Decode error:", e)
-                    line_buffer.clear()
+        if start != -1 and end != -1 and end > start:
+            frame = buffer[start + 2:end]
+            buffer = buffer[end + 2:]
 
-
-
-            while True:
-                start = buffer.find(START_FRAME)
-                if start == -1:
-                    break
-                end = buffer.find(STOP_FRAME, start)
-                if end == -1:
-                    break
-                frame = buffer[start+2:end]
-                buffer = buffer[end+2:]
-                
-                if len(frame) >= 28 + (8 * 18 + 8 * 3) * 2:
+            if len(frame) >= MIN_FRAME_LENGTH:
+                with lock:
                     battery_data = parse_frame(frame)
 
-                    voltage_offset = 28
-                    temperature_offset = voltage_offset + 8 * 18 * 2
-
-                    new_voltage_grid = []
-                    new_temperature_grid = []
+                    volt_offset = 28
+                    temp_offset = volt_offset + 8*18*2
 
                     for row in range(8):
-                        voltage_row = []
                         for col in range(18):
-                            idx = voltage_offset + 2 * (row * 18 + col)
-                            raw = frame[idx] + (frame[idx + 1] << 8)
-                            voltage = round(raw / 10000, 3)
-                            voltage_row.append(voltage)
-                        new_voltage_grid.append(voltage_row)
+                            idx = volt_offset + 2 * (row * 18 + col)
+                            raw = frame[idx] + (frame[idx+1] << 8)
+                            voltage_grid[row][col] = round(raw / 10000, 3)
 
-                        temp_row = []
                         for col in range(8):
-                            idx = temperature_offset + 2 * (row * 3 + col)
-                            raw = frame[idx] + (frame[idx + 1] << 8)
-                            temp = round(raw / 100, 1)
-                            temp_row.append(temp)
-                        new_temperature_grid.append(temp_row)
-
-                    with lock:
-                        voltage_grid[:] = new_voltage_grid
-                        temperature_grid[:] = new_temperature_grid
-
-    except Exception as e:
-        print("[UART] Error:", e)
+                            idx = temp_offset + 2 * (row * 3 + col)
+                            raw = frame[idx] + (frame[idx+1] << 8)
+                            temperature_grid[row][col] = round(raw / 100, 1)
 
 @app.route("/")
 def index():
@@ -152,22 +104,6 @@ def battery_json():
             "voltage_grid": voltage_grid,
             "temperature_grid": temperature_grid
         })
-
-@app.route("/console-log")
-def stream_logs():
-    print("[SSE] Client connected to /console-log")
-    def event_stream():
-        yield "retry: 1000\n"
-        yield "data: [connected]\n\n"
-        last_idx = 0
-        while True:
-            if len(console_lines) > last_idx:
-                for line in console_lines[last_idx:]:
-                    yield f"data: {line}\n\n"
-                last_idx = len(console_lines)
-
-            time.sleep(0.5)
-    return Response(stream_with_context(event_stream()), mimetype="text/event-stream")
 
 def select_serial_port():
     ports = list(serial.tools.list_ports.comports())
