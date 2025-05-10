@@ -12,7 +12,7 @@
  #include "serial_monitor.h"
 
  /** @brief Logger module definition for serial monitor */
- LOG_MODULE_REGISTER(serial_monitor, LOG_LEVEL_WRN);
+ LOG_MODULE_REGISTER(serial_monitor, LOG_LEVEL_INF);
  
  /** @brief UART device instance */
  static const struct device *uart_dev = DEVICE_DT_GET(DT_NODELABEL(usart2));

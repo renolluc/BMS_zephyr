@@ -196,7 +196,7 @@ BatterySystemTypeDef *battery_calc_values(const uint16_t *volt_data, const uint1
     total = 0;
     min_v = UINT16_MAX;
     max_v = 0;
-    const uint16_t bad_sensors[] = {1, 26};
+    const uint16_t bad_sensors[] = {};
     const size_t n_bad = ARRAY_SIZE(bad_sensors);
 
     for (size_t i = 0; i < temps_per_client; i++)
@@ -227,8 +227,8 @@ BatterySystemTypeDef *battery_calc_values(const uint16_t *volt_data, const uint1
     }
 
     battery_values.meanCellTemp = (uint16_t)(total / (temps_per_client - n_bad));
-    battery_values.highestCellTemp = max_v;
-    battery_values.lowestCellTemp = min_v;
+    battery_values.highestCellTemp = min_v;
+    battery_values.lowestCellTemp = max_v;
 
     return &battery_values;
 }

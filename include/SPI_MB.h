@@ -106,7 +106,7 @@
 
 
 // Settings
-#define NUM_OF_CLIENTS 1
+#define NUM_OF_CLIENTS 2
 #define DUMMY 0xAA
 // requency in Hz
 #define SPI_FREQ 1000000

@@ -64,7 +64,7 @@ def uart_reader(port="/dev/ttyACM0"):
     while True:
         buffer += ser.read(READ_CHUNK_SIZE)
         start = buffer.find(START_FRAME)
-        end = buffer.find(STOP_FRAME, start + 2)
+        end = buffer.find(STOP_FRAME, start + 250)
 
         if start != -1 and end != -1 and end > start:
             frame = buffer[start + 2:end]

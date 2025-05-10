@@ -17,7 +17,7 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 
 /* 1000 msec = 1 sec */
-#define SLEEP_TIME_MS 200
+#define SLEEP_TIME_MS 250
 
 typedef enum
 {
@@ -45,17 +45,17 @@ int main(void)
 	uint32_t event_flags = 0;
 
 	// Initialize
-	//can_init();
+	can_init();
 
-	//can_ivt_init();
+	can_ivt_init();
 
-	//spi_adbms1818_hw_init();
+	spi_adbms1818_hw_init();
 
 	serial_monitor_init();
 
-	//battery_init();
+	battery_init();
 
-	//sdc_init();
+	sdc_init();
 
 	
 	while (1)
@@ -69,7 +69,7 @@ int main(void)
 
 
 		//serial monitor daten senden
-		//serial_monitor((uint8_t *)&battery_values, sizeof(battery_values));
+		serial_monitor((uint8_t *)&battery_values, sizeof(battery_values));
 
 		// wait for event
 		event_flags = k_event_wait(&error_to_main, EVT_ERROR_BIT,false, K_NO_WAIT);
@@ -85,7 +85,7 @@ int main(void)
 			//spi_wake_up();
 			//spi_loopback();
 	
-			serial_monitor((uint8_t*)(&battery_values), sizeof(battery_values));
+			//serial_monitor((uint8_t*)(&battery_values), sizeof(battery_values));
 
 			LOG_INF("state test lululala");
 			
