@@ -45,17 +45,17 @@ int main(void)
 	uint32_t event_flags = 0;
 
 	// Initialize
-	can_init();
+	//can_init();
 
-	can_ivt_init();
+	//can_ivt_init();
 
-	spi_adbms1818_hw_init();
+	//spi_adbms1818_hw_init();
 
 	serial_monitor_init();
 
-	battery_init();
+	//battery_init();
 
-	sdc_init();
+	//sdc_init();
 
 	
 	while (1)

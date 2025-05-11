@@ -68,7 +68,7 @@
  * @param data Pointer to data payload
  * @param size Length of data payload in bytes
  */
- void serial_monitor(const uint8_t *data, uint16_t size)
+ /*void serial_monitor(const uint8_t *data, uint16_t size)
  {
     static const uint8_t start[] = {0xFF, 0xA3};
     static const uint8_t stop[]  = {0xFF, 0xB3};
@@ -92,6 +92,38 @@
     uart_poll_out(uart_dev, stop[1]);
 
     LOG_INF("UART poll TX done: %d bytes sent", size + 4);
+}*/
+void serial_monitor(const uint8_t *data, uint16_t size)
+{
+    static const uint8_t start[] = {0xFF, 0xA3};
+    static const uint8_t stop[]  = {0xFF, 0xB3};
+
+    // Create TX buffer (start + payload + stop)
+    uint8_t buffer[520];
+    if (size + 4 > sizeof(buffer)) {
+        LOG_ERR("Payload too large");
+        return;
+    }
+
+    buffer[0] = start[0];
+    buffer[1] = start[1];
+    memcpy(&buffer[2], data, size);
+    buffer[2 + size] = stop[0];
+    buffer[3 + size] = stop[1];
+
+    size_t total = size + 4;
+    size_t sent = 0;
+
+    while (sent < total) {
+        int bytes = uart_fifo_fill(uart_dev, &buffer[sent], total - sent);
+        if (bytes > 0) {
+            sent += bytes;
+        } else {
+            k_sleep(K_USEC(50)); // Wait briefly for FIFO space
+        }
+    }
+
+    LOG_INF("Sent %zu bytes via FIFO fill", total);
 }
 
 /**
