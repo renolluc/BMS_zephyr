@@ -111,12 +111,9 @@ classDiagram
     class serialmonitor{
         void serial_monitor_init(void)
         void serial_monitor(uint8_t* data, uint16_t size)
-        void serial_generate_test_frame
+        void serial_generate_test_frame()
     }
 
-    class Battery_types{
-
-    }
 
     class Status_error_flags{
 
@@ -127,12 +124,14 @@ classDiagram
     main ..> serialmonitor : uses
     main ..> shutdowncircuit : uses
     battery ..> spiMB : uses
-    Can_Bus ..> shutdowncircuit : uses
-    battery ..> shutdowncircuit : uses
-    shutdowncircuit ..> Battery_types : uses
+    Can_Bus ..> Status_error_flags: uses
     shutdowncircuit ..> Status_error_flags : uses
-    battery ..> Battery_types : uses
     battery ..> Status_error_flags : uses
+    main ..> spiMB : uses
+    Can_Bus ..> shutdowncircuit : uses    
+    battery ..> shutdowncircuit : uses
+
+
 ```
 ---
 
