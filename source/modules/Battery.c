@@ -387,17 +387,12 @@ void battery_stop_balancing(void)
  * - Uses `spi_read_adbms_temp()` and `spi_set_discharge_cell_x()`, which return negative errno codes
  *   on failure.
  */
-void balancing(void)
+void battery_balancing(void)
 {
     int err;
-    uint16_t die_temp;
-
-    /* Read internal die temperature (°C × 10 or raw units depending on implementation) */
-    die_temp = spi_read_adbms_temp();
-    battery_values.adbms_itemp = die_temp;
 
     /* Safety check: stop balancing if temperature exceeds threshold */
-    if (die_temp >= 83U)
+    if (battery_values.adbms_itemp >= 83U)
     {
         battery_stop_balancing();
         return;
@@ -512,7 +507,7 @@ void battery_charging(void)
         {
             /* Continue balancing while charging */
             gpio_pin_set_dt(&charge_en_spec, 1);
-            balancing();
+            battery_balancing();
         }
     }
     else
@@ -541,6 +536,7 @@ void battery_set_time_per_measurement(void)
     static int64_t ms = 0;
     int64_t now = k_uptime_get();
     int64_t elapsed = now - ms;
+    ms = now;
     battery_values.time_per_measurement = elapsed;
 }
 
@@ -590,6 +586,7 @@ void battery_monitor_thread(void *arg1, void *arg2, void *arg3)
         LOG_DBG("Cycle started\n");
         /* Clear error flags for the new monitoring cycle */
         battery_reset_error_flags();
+        battery_values.adbms_itemp = spi_read_adbms_temp();
 
         /* Perform system checks and accumulate state flags */
         state |= battery_check_state();
