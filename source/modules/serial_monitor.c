@@ -12,7 +12,7 @@
  #include "serial_monitor.h"
 
  /** @brief Logger module definition for serial monitor */
- LOG_MODULE_REGISTER(serial_monitor, LOG_LEVEL_WRN);
+ LOG_MODULE_REGISTER(serial_monitor, LOG_LEVEL_INF);
  
  /** @brief UART device instance */
  static const struct device *uart_dev = DEVICE_DT_GET(DT_NODELABEL(usart2));
@@ -93,6 +93,40 @@
 
     LOG_INF("UART poll TX done: %d bytes sent", size + 4);
 }
+
+
+/*void serial_monitor(const uint8_t *data, uint16_t size)
+{
+    static const uint8_t start[] = {0xFF, 0xA3};
+    static const uint8_t stop[]  = {0xFF, 0xB3};
+
+    // Create TX buffer (start + payload + stop)
+    uint8_t buffer[520] = {0};
+    if (size + 4 > sizeof(buffer)) {
+        LOG_ERR("Payload too large");
+        return;
+    }
+
+    buffer[0] = start[0];
+    buffer[1] = start[1];
+    memcpy(&buffer[2], data, size);
+    buffer[2 + size] = stop[0];
+    buffer[3 + size] = stop[1];
+
+    size_t total = size + 4;
+    size_t sent = 0;
+
+    while (sent < total) {
+        int bytes = uart_fifo_fill(uart_dev, &buffer[sent], total - sent);
+        if (bytes > 0) {
+            sent += bytes;
+        } else {
+            k_sleep(K_USEC(50)); // Wait briefly for FIFO space
+        }
+    }
+
+    LOG_INF("Sent %zu bytes via FIFO fill", total);
+}*/
 
 /**
  * @brief Generate a synthetic test frame simulating battery telemetry

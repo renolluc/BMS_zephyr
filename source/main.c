@@ -17,7 +17,7 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 
 /* 1000 msec = 1 sec */
-#define SLEEP_TIME_MS 200
+#define SLEEP_TIME_MS 250
 
 typedef enum
 {
@@ -39,7 +39,7 @@ int main(void)
 	}
 
 	// variables
-	SystemState_t state = STATE_IDLE;
+	SystemState_t state = STATE_TEST;
 	static bool previous_ecu_state = BATTERY_OFF;
 	bool current_ecu_state = BATTERY_OFF;
 	uint32_t event_flags = 0;
@@ -57,6 +57,7 @@ int main(void)
 
 	sdc_init();
 
+	
 	while (1)
 	{		
 		ret = gpio_pin_toggle_dt(&led);
@@ -68,7 +69,7 @@ int main(void)
 
 
 		//serial monitor daten senden
-		//serial_monitor((uint8_t *)&battery_values, sizeof(battery_values));
+		serial_monitor((uint8_t *)&battery_values, sizeof(battery_values));
 
 		// wait for event
 		event_flags = k_event_wait(&error_to_main, EVT_ERROR_BIT,false, K_NO_WAIT);
@@ -83,7 +84,9 @@ int main(void)
 		case STATE_TEST:
 			//spi_wake_up();
 			//spi_loopback();
-			spi_adbms1818_hw_init();
+	
+			//serial_monitor((uint8_t*)(&battery_values), sizeof(battery_values));
+
 			LOG_INF("state test lululala");
 			
 			break;
