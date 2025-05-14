@@ -62,10 +62,10 @@ int sdc_init(void)
 int sdc_check_state(void)
 {
     /* Checks for Battery Errors (Mask 0x47) */
-    if (((battery_values.error & SDC_BATTERY_STATUS_ERROR_MASK) == 0) && (sdc_check_feedback() == 0))
+    if (((battery_values.error & SDC_BATTERY_STATUS_ERROR_MASK) == 0))
     {
         /* OK-Tree: SDC high & reset errorcounter */
-        spi_adbms1818_hw_init();
+        //spi_adbms1818_hw_init();
         gpio_pin_set_dt(&sdc_out_spec, 1);
     }
     else
@@ -99,6 +99,7 @@ int sdc_check_feedback(void)
         /* De-energize AIR and precharge relays (drive outputs low) */
         sdc_shutdown();
         battery_set_error_flag(ERROR_SDC);
+        return -1;
     }
 
     prev_state = curr_sdc_in_state;
@@ -119,6 +120,6 @@ int sdc_shutdown(void)
     gpio_pin_set_dt(&drive_air_neg_spec, 0);
     gpio_pin_set_dt(&drive_precharge_spec, 0);
     gpio_pin_set_dt(&sdc_out_spec, 0);
-    battery_set_error_flag(ERROR_BATTERY);
+    LOG_ERR("entered shutdown");
     return 0;
 }

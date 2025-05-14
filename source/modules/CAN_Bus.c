@@ -39,7 +39,7 @@ LOG_MODULE_REGISTER(can, LOG_LEVEL_WRN);
 
 // Thread defines
 #define RX_THREAD_STACK_SIZE 1024
-#define RX_THREAD_PRIORITY 2
+#define RX_THREAD_PRIORITY -6
 K_THREAD_STACK_DEFINE(can_rx_thread_stack, RX_THREAD_STACK_SIZE);
 struct k_thread can_rx_thread_data;
 

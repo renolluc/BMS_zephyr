@@ -20,8 +20,10 @@
 
 /** @brief Maximum allowable cell voltage in mV (42000 = 4.2V) */
 #define MAX_VOLT 42000
+#define MAX_VOLT_TEST 19000
 /** @brief Minimum allowable cell voltage in mV (30000 = 3.0V) */
 #define MIN_VOLT 30000
+#define MIN_VOLT_TEST 9000
 /** @brief Minimum raw temperature ADC value (≈ 20 °C) */
 #define MIN_TEMP 16725
 /** @brief Maximum raw temperature ADC value (≈ 60 °C) */

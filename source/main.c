@@ -39,7 +39,7 @@ int main(void)
 	}
 
 	// variables
-	SystemState_t state = STATE_TEST;
+	SystemState_t state = STATE_IDLE;
 	static bool previous_ecu_state = BATTERY_OFF;
 	bool current_ecu_state = BATTERY_OFF;
 	uint32_t event_flags = 0;
@@ -72,7 +72,7 @@ int main(void)
 		serial_monitor((uint8_t *)&battery_values, sizeof(battery_values));
 
 		// wait for event
-		event_flags = k_event_wait(&error_to_main, EVT_ERROR_BIT,false, K_NO_WAIT);
+		event_flags = k_event_wait(&error_to_main, EVT_ERROR_BIT,true, K_NO_WAIT);
 
 		if (event_flags & EVT_ERROR_BIT) {
 		state = STATE_ERROR;
