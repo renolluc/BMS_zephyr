@@ -56,15 +56,23 @@ fi
 
 # === Generate Random CAN Messages ===
 generate_random_current() {
-    # Current value in mA (-32000A to +32000A -> -32,000,000 to +32,000,000 mA)
-    local current_value=$((RANDOM % 64000000 - 32000000))
-    printf "%08X" $((current_value))
+    # Generate a random 4-byte signed current value (-2,147,483,648 to +2,147,483,647)
+    local current_value=$((RANDOM * RANDOM % 2147483648))
+    # Randomly make it negative
+    if (( RANDOM % 2 == 0 )); then
+        current_value=$(( -1 * current_value ))
+    fi
+    printf "%08X" $((current_value & 0xFFFFFFFF))
 }
 
 generate_random_voltage() {
-    # Voltage value in mV (-1000V to +1000V -> -1,000,000 to +1,000,000 mV)
-    local voltage_value=$((RANDOM % 2000000 - 1000000))
-    printf "%08X" $((voltage_value))
+    # Generate a random 4-byte signed voltage value (-2,147,483,648 to +2,147,483,647)
+    local voltage_value=$((RANDOM * RANDOM % 2147483648))
+    # Randomly make it negative
+    if (( RANDOM % 2 == 0 )); then
+        voltage_value=$(( -1 * voltage_value ))
+    fi
+    printf "%08X" $((voltage_value & 0xFFFFFFFF))
 }
 
 

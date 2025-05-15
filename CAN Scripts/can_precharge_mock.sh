@@ -10,7 +10,7 @@ CAN_INTERFACE="can0"        # Name of your CAN interface
 BITRATE="500000"            # CAN bitrate
 INTERVAL_MS="100"           # Default interval is 100 milliseconds
 MAX_VOLTAGE=600000          # Default max voltage in mV (600V)
-VOLTAGE_STEP=5000           # Voltage increase per step (5V)
+VOLTAGE_STEP=1000           # Voltage increase per step (5V)
 CURRENT_RANGE=500           # Low current range ±500 mA
 
 # === Initialization ===
@@ -31,6 +31,12 @@ else
     echo "[INFO] $CAN_INTERFACE is already up."
 fi
 
+# === Send ECU OK to enter Precharge ===
+echo "[SEND] Sending ECU OK rising edge to enter Precharge (ID 0x410)"
+cansend $CAN_INTERFACE "410#00000000"
+sleep $(echo "$INTERVAL_MS / 1000" | bc -l)
+cansend $CAN_INTERFACE "410#01000000"
+
 # === Function to send CAN messages ===
 send_can_messages() {
     # Send Voltage (ID 0x522)
@@ -39,7 +45,7 @@ send_can_messages() {
     cansend $CAN_INTERFACE "522#0100${voltage_hex}"
 
     # Send Low Current (ID 0x521)
-    current_value=$(shuf -i -${CURRENT_RANGE}-${CURRENT_RANGE} -n 1)
+    current_value=$(shuf -i ${CURRENT_RANGE}-${CURRENT_RANGE} -n 1)
     current_hex=$(printf "%08X" $current_value)
     echo "[SEND] Sending CAN message (Current): 0x521 00 00 $current_hex"
     cansend $CAN_INTERFACE "521#0000${current_hex}"
