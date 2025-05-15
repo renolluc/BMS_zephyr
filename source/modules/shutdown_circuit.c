@@ -12,7 +12,7 @@
 #include "shutdown_circuit.h"
 
 
-LOG_MODULE_REGISTER(shutdown_circuit, LOG_LEVEL_ERR);
+LOG_MODULE_REGISTER(shutdown_circuit, LOG_LEVEL_WRN);
 
 
 /**
