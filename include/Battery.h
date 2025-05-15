@@ -152,7 +152,7 @@ extern void battery_set_error_flag(uint8_t mask);
 /**
  * @brief Resets all battery error flags to zero.
  */
-extern void battery_reset_error_flags(void);
+extern void battery_reset_error_flags(uint8_t mask);
 
 /**
  * @brief Checks for system errors and updates the battery error state accordingly.
