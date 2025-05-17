@@ -66,10 +66,13 @@ int sdc_check_state(void)
     {
         /* OK-Tree: SDC high & reset errorcounter */
         //spi_adbms1818_hw_init();
+        LOG_INF("SDC: OK, setting sdc high");
         gpio_pin_set_dt(&sdc_out_spec, 1);
+        battery_reset_error_flag(ERROR_SDC);
     }
     else
     {
+        LOG_WRN("SDC not OK");
         return -1;
     }
     return 0;
@@ -90,15 +93,20 @@ int sdc_check_feedback(void)
     static bool prev_state = true;
     bool curr_sdc_in_state;
 
+
     /* Read the SDC feedback line (active high) */
     curr_sdc_in_state = gpio_pin_get_dt(&sdc_in_spec);
-
+    
+    LOG_INF("prev_state: %d", prev_state);
+    LOG_INF("curr_sdc_in_state: %d", curr_sdc_in_state);
     /* Falling edge: feedback went from 1 → 0 */
     if (!curr_sdc_in_state && prev_state)
     {
         /* De-energize AIR and precharge relays (drive outputs low) */
+        LOG_ERR("Falling edge detected, de-energizing relays");
         sdc_shutdown();
         battery_set_error_flag(ERROR_SDC);
+        prev_state = curr_sdc_in_state;
         return -1;
     }
 

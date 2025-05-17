@@ -91,7 +91,7 @@ void can_thread(void *arg1, void *arg2, void *arg3)
         // send data to ECU
         can_send_ecu();
 
-        if (k_msgq_get(&can_msgq, &frame, K_MSEC(5000)) == 0)
+        if (k_msgq_get(&can_msgq, &frame, K_MSEC(100)) == 0)
         {
             LOG_INF("Received CAN message: ID=0x%X, DLC=%d", frame.id, frame.dlc);
             LOG_HEXDUMP_DBG(frame.data, frame.dlc, "Data");

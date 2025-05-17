@@ -109,7 +109,7 @@
 #define NUM_OF_CLIENTS 2
 #define DUMMY 0xAA
 // requency in Hz
-#define SPI_FREQ 1000000
+#define SPI_FREQ 500000
 
 // Zephyr SPI device binding
 #define SPI_DEVICE DT_NODELABEL(spi1)
