@@ -11,7 +11,16 @@
 
 #include "shutdown_circuit.h"
 
-
+/**
+ * @brief Sets the name and logging levels for this module.
+ *
+ * Possible log levels:
+ * - LOG_LEVEL_NONE
+ * - LOG_LEVEL_ERR
+ * - LOG_LEVEL_WRN
+ * - LOG_LEVEL_INF
+ * - LOG_LEVEL_DBG
+ */
 LOG_MODULE_REGISTER(shutdown_circuit, LOG_LEVEL_WRN);
 
 

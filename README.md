@@ -1,4 +1,11 @@
-# BMS_zephyr
+```ASCII
+     _    __  __ ____         ____ ____    _____          _                
+    / \  |  \/  / ___|       / ___| __ )  |__  /___ _ __ | |__  _   _ _ __ 
+   / _ \ | |\/| \___ \ _____| |   |  _ \    / // _ \ '_ \| '_ \| | | | '__|
+  / ___ \| |  | |___) |_____| |___| |_) |  / /|  __/ |_) | | | | |_| | |   
+ /_/   \_\_|  |_|____/       \____|____/  /____\___| .__/|_| |_|\__, |_|   
+                                                   |_|          |___/   
+```
 
 ## Software Deployment
 To install the necessary software on your Ubuntu system, follow these steps:
@@ -54,59 +61,105 @@ The used Ubuntu version for this project was **Ubuntu 24.04**
     west flash
     ```
 
-## Activation and Configuration Sequence Diagram
-The following sequence diagram illustrates the activation and configuration process, detailing the interactions between components during system initialization.
+# Class Diagram
+The class diagram shows the different classes used and their depencies to each other. As a first instance only public function are declared to get an overall view of the program.
 
 ```mermaid
-sequenceDiagram
-    participant ecu as ECU
-    participant ivt-s as Isabellenhütte
-    participant nucleo as AMS-CB
-    participant adbms as AMS-MB's
-    participant gpio as GPIO's
+classDiagram
 
-    nucleo->>gpio: SET all relais FALSE
-    nucleo->>gpio: READ sdc
-    gpio->>nucleo: SDC state
-    nucleo->>ivt-s: Init config
-    nucleo->>adbms: WRITE config REGISTER
-    nucleo->>adbms: READ config REGISTER
-    adbms->>nucleo: REIGSTER state
-    nucleo->>nucleo: DIFF write and read AMS-MB's
-    nucleo->>nucleo: check CRC AMS-MB's
-    nucleo->>adbms: READ data
-    adbms->>nucleo: DATA state
-    nucleo->>nucleo: check DATA
-    nucleo->>gpio: WRITE sdc TRUE
-    nucleo->>ecu: send HV-CIRCUIT ready
+    class main
+
+    class Can_Bus{
+        extern int can_init(void)
+        extern int can_ivt_init(void)
+        extern int can_get_ecu_state()
+    }
+
+    class spiMB{
+        extern uint16_t spi_generate_pec(const uint8_t data[], size_t len);
+        extern int spi_read_voltages(uint16_t *data_buffer);
+        extern int spi_read_temp(uint16_t *data_buffer);
+        extern uint16_t spi_read_adbms_temp();
+        extern int spi_set_discharge_cell_x(uint32_t *data_buffer);
+        void spi_wake_up();
+        int spi_adbms1818_hw_init();
+        extern int spi_loopback();
+    }
+
+    class battery{
+        extern struct k_event error_to_main;
+        extern BatterySystemTypeDef battery_values;
+
+        extern int battery_init(void);
+        extern uint8_t battery_get_status_code(void);
+        extern uint8_t battery_get_error_code(void);
+        extern uint8_t battery_volt2celsius(uint16_t volt_100uV);
+        extern void battery_set_error_flag(uint8_t mask);
+        extern void battery_reset_error_flag(uint8_t mask);
+        extern int battery_check_state(void);
+        extern void battery_stop_balancing(void);
+        extern void battery_charging(void);
+        extern void battery_refresh_ivt_timer(void);
+        extern int battery_precharge_logic(void);
+    }
+
+    class shutdowncircuit{
+        int sdc_check_state(void);
+        int sdc_check_feedback(void);
+        int sdc_init(void);
+        int sdc_shutdown(void);
+    }
+
+    class serialmonitor{
+        void serial_monitor_init(void)
+        void serial_monitor(uint8_t* data, uint16_t size)
+        void serial_generate_test_frame()
+    }
+
+
+    class Status_error_flags{
+
+    }
+
+    main ..> battery : uses
+    main ..> Can_Bus : uses
+    main ..> serialmonitor : uses
+    main ..> shutdowncircuit : uses
+    battery ..> spiMB : uses
+    Can_Bus ..> Status_error_flags: uses
+    shutdowncircuit ..> Status_error_flags : uses
+    battery ..> Status_error_flags : uses
+    main ..> spiMB : uses
+    Can_Bus ..> shutdowncircuit : uses    
+    battery ..> shutdowncircuit : uses
+
 
 ```
-
-
-## Loops Sequence Diagram
-The following sequence diagram illustrates the interactions between various components, including their communication loops and timings.
+---
 
 ```mermaid
-sequenceDiagram
-    participant laptop as Laptop
-    participant ecu as ECU
-    participant ivt-s as Isabellenhütte
-    participant nucleo as AMS-CB
-    participant adbms as AMS-MB's
-    participant gpio as GPIO's
+stateDiagram-v2
 
-    ecu->>nucleo: 8 bytes
-    loop <100ms
-    nucleo->>+adbms: send Voltage and Temp.
-    adbms->>-nucleo: Voltage and Temp. data
-    end
-    nucleo->>ecu: 8 bytes
-    nucleo->>laptop: all data
-    loop 100ms
-    ivt-s->>nucleo: 6 bytes
-    end
-    loop ?ms
-    nucleo-->>gpio: read
-    end
+state main{
+    [*] --> Idle: all Inits passed
+    error --> Idle: no errrors
+    Idle --> PreCharge: ECU rising edge
+    PreCharge --> Running : precharge succesful
+    Running --> Idle : ECU falling edge 
+}
+
+state battery{
+    [*] --> battery_check_state
+    battery_check_state --> sdc_check_state
+    sdc_check_state --> sdc_check_feedback
+    sdc_check_feedback --> [*]
+}
+
+state can{
+    [*] --> k_msgq_get
+    k_msgq_get --> can_send_ecu
+    can_send_ecu --> [*]
+}
 
 ```
+---

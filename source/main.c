@@ -1,14 +1,16 @@
+
+/* Zephyr-Framework includes */
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/can.h>
-#include <CAN_Bus.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/device.h>
+/* Project includes */
+#include <CAN_Bus.h>
 #include <SPI_MB.h>
 #include <serial_monitor.h>
 #include <Battery.h>
 #include <shutdown_circuit.h>
-
 
 LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 

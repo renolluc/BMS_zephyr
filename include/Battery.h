@@ -13,7 +13,6 @@
 #include <zephyr/logging/log.h>
 /* Project includes */
 #include "SPI_MB.h"
-#include "CAN_Bus.h"
 #include "shutdown_circuit.h" 
 #include "Status_error_flags.h"
 

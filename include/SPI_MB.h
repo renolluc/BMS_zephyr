@@ -126,7 +126,6 @@ extern int spi_read_voltages(uint16_t *data_buffer);
 extern int spi_read_temp(uint16_t *data_buffer);
 extern uint16_t spi_read_adbms_temp();
 extern int spi_set_discharge_cell_x(uint32_t *data_buffer);
-uint16_t generatePEC(uint8_t data[], size_t len);
 void spi_wake_up();
 int spi_adbms1818_hw_init();
 extern int spi_loopback();

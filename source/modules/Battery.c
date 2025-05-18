@@ -17,12 +17,23 @@
 
 #include "Battery.h"
 
+/**
+ * @brief Sets the name and logging levels for this module.
+ *
+ * Possible log levels:
+ * - LOG_LEVEL_NONE
+ * - LOG_LEVEL_ERR
+ * - LOG_LEVEL_WRN
+ * - LOG_LEVEL_INF
+ * - LOG_LEVEL_DBG
+ */
+LOG_MODULE_REGISTER(battery, LOG_LEVEL_INF);
+
 /* Variables */
 static uint64_t ivt_deadline_ms;
 struct k_event error_to_main;
 K_EVENT_DEFINE(error_to_main);
 BatterySystemTypeDef battery_values;
-LOG_MODULE_REGISTER(battery, LOG_LEVEL_INF);
 
 /* Thread defines */
 #define BATTERY_MONITOR_STACK_SIZE 1024
