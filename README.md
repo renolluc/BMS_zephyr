@@ -61,8 +61,8 @@ The used Ubuntu version for this project was **Ubuntu 24.04**
     west flash
     ```
 
-# Class Diagram
-The class diagram shows the different classes used and their depencies to each other. As a first instance only public function are declared to get an overall view of the program.
+# C Module Diagram
+This diagram shows the different C modules and their relationship to each other. Only public function are declared to get an overall view of the program.
 
 ```mermaid
 classDiagram

@@ -31,6 +31,7 @@ LOG_MODULE_REGISTER(battery, LOG_LEVEL_INF);
 
 /* Variables */
 static uint64_t ivt_deadline_ms;
+// this is a bad variable name as this could be used elsewhere instead of main
 struct k_event error_to_main;
 K_EVENT_DEFINE(error_to_main);
 BatterySystemTypeDef battery_values;

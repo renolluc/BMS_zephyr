@@ -77,6 +77,7 @@
  * @param data Pointer to data payload
  * @param size Length of data payload in bytes
  */
+ // This is a bad function name. Probably better: send_battery_data
  void serial_monitor(const uint8_t *data, uint16_t size)
  {
     static const uint8_t start[] = {0xFF, 0xA3};

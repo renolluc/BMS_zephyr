@@ -55,6 +55,33 @@ CAN_MSGQ_DEFINE(can_msgq, 10);
 // private variables set by the ECU
 static int ecu_ok_flag = 0;
 
+/**
+ * @brief Sends an 8-byte CAN frame to the specified address.
+ *
+ * @param address Target CAN ID.
+ * @param TxBuffer Pointer to 8-byte data buffer.
+ * @return 0 on success, error code otherwise.
+ */
+int can_send_8bytes(uint32_t address, uint8_t *TxBuffer);
+
+/**
+ * @brief Sends a CAN frame with specified byte length.
+ *
+ * @param address Target CAN ID.
+ * @param TxBuffer Pointer to data buffer.
+ * @param length Number of bytes to send.
+ * @return 0 on success, error code otherwise.
+ */
+int can_send_ivt_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length);
+
+/**
+ * @brief Formats and sends sensor data to the ECU.
+ *
+ * @param GPIO_Input GPIO input encoding system status.
+ * @return 0 on success, error code otherwise.
+ */
+int can_send_ecu(void);
+
 // Callback function for sending messages
 void tx_irq_callback(const struct device *dev, int error, void *arg)
 {
@@ -97,6 +124,7 @@ void can_thread(void *arg1, void *arg2, void *arg3)
             LOG_HEXDUMP_DBG(frame.data, frame.dlc, "Data");
 
             // Process received message
+            // using switch/case instead of an if/else chain would make this more readable
             if (frame.id == ADDR_ECU_RX)
             {
                 // set_relays(frame.data[0]);
@@ -161,6 +189,10 @@ void can_thread(void *arg1, void *arg2, void *arg3)
                 LOG_DBG("Test message received. Giving semaphore.\n");
                 k_sem_give(&test_ack_sem); // Let the unit test know it was received
             }
+            // else
+            // {
+            //     LOG_ERR("invalid frame id");
+            // }
         }
         else
         {
@@ -248,11 +280,13 @@ int can_ivt_init()
 
     // Set sensor mode to STOP
     uint8_t can_data0[] = {SET_MODE, 0x00, 0x01, 0x00, 0x00};
+    // I'd use ARRAY_SIZE(can_data0) instead of hardcoding the length as 5 
     status |= can_send_ivt_nbytes(IVT_MSG_COMMAND, can_data0, 5);
     k_msleep(10);
 
     // Set current measurement to CYCLIC 100 Hz
     uint8_t can_data1[] = {(MUX_SETCONFIG | IVT_NCURRENT), CYCLIC, (CYCLETIME >> 8) & 0xFF, CYCLETIME & 0xFF};
+    // function continues when can_send_ivt_nbytes() returns an error
     status |= can_send_ivt_nbytes(IVT_MSG_COMMAND, can_data1, 4);
     k_msleep(10);
 

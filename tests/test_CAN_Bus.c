@@ -13,6 +13,7 @@ ZTEST(can_bus_tests, test_can_init)
     int ret = can_init();
 
     // 0 for initialization success, -16 for CAN Mode already set
+    // this does not do what you think it does: `0 | -16` evaluates to -16 (| is binary or)
     zassert_equal(ret, 0 | -16, "can_init failed with error code %d", ret);
 }
 

@@ -121,13 +121,12 @@ static const struct gpio_dt_spec spi_cs_pb1_spec = {
     .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(spi_cs_pb1), 0),
   };
 
-extern uint16_t spi_generate_pec(const uint8_t data[], size_t len);
-extern int spi_read_voltages(uint16_t *data_buffer);
-extern int spi_read_temp(uint16_t *data_buffer);
-extern uint16_t spi_read_adbms_temp();
-extern int spi_set_discharge_cell_x(uint32_t *data_buffer);
-void spi_wake_up();
+uint16_t spi_generate_pec(const uint8_t data[], size_t len);
+int spi_read_voltages(uint16_t *data_buffer);
 int spi_adbms1818_hw_init();
-extern int spi_loopback();
+int spi_read_temp(uint16_t *data_buffer);
+uint16_t spi_read_adbms_temp();
+int spi_set_discharge_cell_x(uint32_t *data_buffer);
+int spi_loopback();
 
 #endif /* INC_SPI_MB_H_ */
