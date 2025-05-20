@@ -34,6 +34,7 @@ def parse_frame(data):
         time_per_cycle = data[28] + data[29]*256
         adbms_temp = (data[30] + data[31]*256) * 0.01
 
+        # Python has multi-line strings ;)
         html = f"Total Voltage: {totalVoltage:.2f} V<br>"
         html += f"Highest Cell Voltage: {highestCellVoltage:.2f} V<br>"
         html += f"Lowest Cell Voltage: {lowestCellVoltage:.2f} V<br>"

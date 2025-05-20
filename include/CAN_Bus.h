@@ -96,47 +96,20 @@ extern struct k_sem test_ack_sem;
  *
  * @return 0 on success, error code otherwise.
  */
-extern int can_init(void);
-
-/**
- * @brief Sends an 8-byte CAN frame to the specified address.
- *
- * @param address Target CAN ID.
- * @param TxBuffer Pointer to 8-byte data buffer.
- * @return 0 on success, error code otherwise.
- */
-int can_send_8bytes(uint32_t address, uint8_t *TxBuffer);
-
-/**
- * @brief Sends a CAN frame with specified byte length.
- *
- * @param address Target CAN ID.
- * @param TxBuffer Pointer to data buffer.
- * @param length Number of bytes to send.
- * @return 0 on success, error code otherwise.
- */
-int can_send_ivt_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length);
-
-/**
- * @brief Formats and sends sensor data to the ECU.
- *
- * @param GPIO_Input GPIO input encoding system status.
- * @return 0 on success, error code otherwise.
- */
-int can_send_ecu(void);
+int can_init(void);
 
 /**
  * @brief Checks if the ECU flag is OK or NOK. OK means the accumulator can be connected.
  *
  * @return 1 if ECU is OK, 0 otherwise.
  */
-extern int can_get_ecu_state();
+int can_get_ecu_state();
 
 /**
  * @brief Initializes IVT sensor with measurement configurations.
  *
  * @return 0 on success, error code otherwise.
  */
-extern int can_ivt_init(void);
+int can_ivt_init(void);
 
 #endif

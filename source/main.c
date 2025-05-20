@@ -33,7 +33,7 @@ typedef enum
 int main(void)
 {
 	int ret; 
-	bool led_state = true;
+	bool led_state = true; // variable is not used
 
 	ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
 	if (ret < 0) {
@@ -64,6 +64,7 @@ int main(void)
 	{		
 		ret = gpio_pin_toggle_dt(&led);
 		if (ret < 0) {
+			LOG_ERR("could not toggle led");
 			return 0;
 		}
 		led_state = !led_state;
@@ -96,6 +97,7 @@ int main(void)
 		case STATE_IDLE:
 			LOG_INF("Waiting for ECU OK");
 
+			// can_get_ecu_state() always returns 0?
 			current_ecu_state = can_get_ecu_state();
 
 			if (previous_ecu_state == BATTERY_OFF && current_ecu_state == BATTERY_ON)
@@ -120,6 +122,7 @@ int main(void)
 			battery_charging();
 			LOG_INF("Battery management process running");
 
+			// can_get_ecu_state() always returns 0?
 			current_ecu_state = can_get_ecu_state();
 
 			if (previous_ecu_state == BATTERY_ON && current_ecu_state == BATTERY_OFF)
@@ -143,8 +146,8 @@ int main(void)
 			}
 			break;
 		default:
-			LOG_INF("default case");
-			break;
+			LOG_ERR("invalid state: %d", state);
+			return 0;
 		}
 
 	}

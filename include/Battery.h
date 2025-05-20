@@ -121,64 +121,64 @@ extern BatterySystemTypeDef battery_values;
  * @brief Initializes GPIOs related to battery feedback and charger sensing.
  * @return 0 on success, negative errno code otherwise.
  */
-extern int battery_init(void);
+int battery_init(void);
 
 /**
  * @brief Retrieves the current status bitfield from the battery system.
  * @return Battery status bitfield (8-bit)
  */
-extern uint8_t battery_get_status_code(void);
+uint8_t battery_get_status_code(void);
 
 /**
  * @brief Retrieves the current error bitfield from the battery system.
  * @return Battery error code (8-bit)
  */
-extern uint8_t battery_get_error_code(void);
+uint8_t battery_get_error_code(void);
 
 /**
  * @brief Converts raw voltage (in 100 µV units) to temperature in °C.
  * @param volt_100uV Voltage in units of 100 µV
  * @return Temperature in degrees Celsius
  */
-extern uint8_t battery_volt2celsius(uint16_t volt_100uV);
+uint8_t battery_volt2celsius(uint16_t volt_100uV);
 
 /**
  * @brief Sets error flags in the battery error field.
  * @param Bitmask (8-bit) representing error flags to set
  */
-extern void battery_set_error_flag(uint8_t mask);
+void battery_set_error_flag(uint8_t mask);
 
 /**
  * @brief Resets all battery error flags to zero.
  */
-extern void battery_reset_error_flag(uint8_t mask);
+void battery_reset_error_flag(uint8_t mask);
 
 /**
  * @brief Checks for system errors and updates the battery error state accordingly.
  * @return 0 if OK, <0 if errors are detected
  */
-extern int battery_check_state(void);
+int battery_check_state(void);
 
 /**
  * @brief Stops all active cell balancing operations.
  */
-extern void battery_stop_balancing(void);
+void battery_stop_balancing(void);
 
 /**
  * @brief Handles the charging logic including balance management.
  */
-extern void battery_charging(void);
+void battery_charging(void);
 
 /**
  * @brief Refreshes the IVT (current sensor) watchdog timer.
  */
-extern void battery_refresh_ivt_timer(void);
+void battery_refresh_ivt_timer(void);
 
 /**
  * @brief Executes precharge logic by managing AIR +/- and precharge relays.
  * @return 0 on successful precharge, <0 if feedback is incorrect
  */
-extern int battery_precharge_logic(void);
+int battery_precharge_logic(void);
 
 
 #endif /* INC_BATTERY_H_ */
