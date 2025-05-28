@@ -135,7 +135,9 @@ classDiagram
 
 
 ```
----
+
+# State Diagram
+The state diagram shows the three loops of the software. The main loop contains a statemachine. The Battery Thread contains a cyclic check of all battery values and other safety functions. The CAN Thread listens for incoming CAN-messages and sends the collected data and status to the ECU.
 
 ```mermaid
 stateDiagram-v2
@@ -148,18 +150,80 @@ state main{
     Running --> Idle : ECU falling edge 
 }
 
-state battery{
+state battery_thread{
     [*] --> battery_check_state
     battery_check_state --> sdc_check_state
     sdc_check_state --> sdc_check_feedback
     sdc_check_feedback --> [*]
 }
 
-state can{
+state can_thread{
     [*] --> k_msgq_get
     k_msgq_get --> can_send_ecu
     can_send_ecu --> [*]
 }
 
+```
+
+## Dataflow and Communication
+
+The following diagram illustrates the data flow and communication between the main modules of the BMS software. It shows how data is exchanged between the CAN module, the battery monitoring core, the serial monitor, and the SPI/battery module (ADBMS). Each module is responsible for specific tasks, such as receiving and sending CAN messages, updating battery data, handling error and status flags, reading sensor values via SPI, and outputting data for debugging or logging. The arrows indicate the direction of data transfer or control signals.
+
+```mermaid
+flowchart RL
+
+    subgraph CAN_Module["CAN Module"]
+        CAN_RX["Receive ECU Flag"]
+        CAN_TX["Send Battery Data"]
+        IVT_Current["Read Current"]
+        IVT_Voltage["Read Voltage"]
+        IVT_Counter["Read Charge Counter"]
+    end
+
+    subgraph BMS_Core["Battery Monitoring Core"]
+        BATTERY_DATA["BatterySystemTypeDef"]
+        ERROR_LOGIC["Error & Status Flags"]
+
+    end
+
+
+    subgraph SerialMonitor["main Module"]
+        SERIAL_OUT["Print/Stream Battery Data"]
+
+    end
+
+    subgraph ADBMS_Module["SPI & Battery Module"]
+        ADBMS_Read["Read Voltages & Temperatures"]
+        ADBMS_InternalTemp["Read Internal Temp"]
+        CellBalance["Update Balancing Mask"]
+        RawBuffers["Fill Raw Voltage & Temp Buffers"]
+        MEAS_CYCLE["Time per measurement"]
+
+    end
+
+    %% IVT writes
+    IVT_Current -->|Update actualCurrent| BATTERY_DATA
+    IVT_Voltage -->|Update actualVoltage| BATTERY_DATA
+    IVT_Counter -->|Update CurrentCounter| BATTERY_DATA
+
+    %% CAN interaction
+    BATTERY_DATA -->|Used for transmission| CAN_TX
+    CAN_RX -->|Gives ok to enter precharge| ERROR_LOGIC
+
+    %% ADBMS writes
+    ADBMS_Module -->|Set/reset flags| ERROR_LOGIC
+    ADBMS_Read -->|Update| BATTERY_DATA
+    ADBMS_InternalTemp -->|Update adbms_itemp| BATTERY_DATA
+    CellBalance -->|Update balance_cells| BATTERY_DATA
+    RawBuffers -->|Update volt_buffer, temp_buffer| BATTERY_DATA
+    MEAS_CYCLE -->|Set time_per_measurement| BATTERY_DATA
+    
+
+
+
+    %% Serial output
+    BATTERY_DATA -->|Used for debugging/logging| SERIAL_OUT
+
+    style BATTERY_DATA fill:#f9f,stroke:#333,stroke-width:2px
 ```
 ---
