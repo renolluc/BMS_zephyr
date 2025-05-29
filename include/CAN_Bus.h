@@ -1,12 +1,12 @@
-/*
- * CAN_Bus.h
- *
- *  Created on: 08.03.2025
- *      Author: renolluc / grossfa2
+/** 
+ * @file   CAN_Bus.h
+ * @brief  API-definition for the Can module in the BMS-System.
+ * @author renolluc / grossfa2
+ * @date   20.04.2025
  */
 
-#ifndef INC_CAN_BUS_H
-#define INC_CAN_BUS_H
+#ifndef INC_CAN_BUS_H_
+#define INC_CAN_BUS_H_
 
 /* Zephyr-Framework includes */
 #include <zephyr/drivers/can.h>

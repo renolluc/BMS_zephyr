@@ -69,6 +69,7 @@ int main(void)
 
 
 		//serial monitor daten senden
+		serial_generate_test_frame((uint8_t *)&battery_values, sizeof(battery_values));
 		serial_monitor((uint8_t *)&battery_values, sizeof(battery_values));
 
 		// wait for event

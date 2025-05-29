@@ -1,13 +1,8 @@
-/*
- * Copyright (c) 2018 Alexander Wachter
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
 /**
  * @file CAN_Bus.c
  * @brief CAN Bus communication module for Zephyr RTOS.
- *
+ * @author renolluc / grossfa2
+ * @date 20.04.2025
  * This file implements functions to initialize and use the CAN interface,
  * send and receive messages, and process responses from IVT and ECU modules.
  * It includes a receiver thread, transmit callback, and utility functions

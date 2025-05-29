@@ -5,8 +5,8 @@
  * @date   20.04.2025
  */
 
- #ifndef INC_SHUTDOWN_CIRCUIT_H_
- #define INC_SHUTDOWN_CIRCUIT_H_
+#ifndef INC_SHUTDOWN_CIRCUIT_H_
+#define INC_SHUTDOWN_CIRCUIT_H_
 
 /* Zephyr-Framework Includes */
 #include <zephyr/drivers/gpio.h>

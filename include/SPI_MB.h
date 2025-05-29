@@ -1,11 +1,8 @@
-/*
- * SPI_MB.h
- *
- * Description: This module handles SPI communication for the BMS system.
- *
- * Author: renolluc / grossfa2
- * Date: 22.03.2025
- *
+/**
+ * @file   SPI_MB.h
+ * @brief  API-definition for the SPI Module in the BMS-System.
+ * @author renolluc / grossfa2
+ * @date   20.04.2025
  */
 
 #ifndef INC_SPI_MB_H_
@@ -105,10 +102,10 @@
 #define ADSTAT 0x04EA 
 
 
-// Settings
-#define NUM_OF_CLIENTS 2
+/* Settings */
+#define NUM_OF_CLIENTS 8
 #define DUMMY 0xAA
-// requency in Hz
+/* Frequency in Hz */
 #define SPI_FREQ 1000000
 
 // Zephyr SPI device binding
