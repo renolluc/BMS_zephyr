@@ -17,16 +17,27 @@
 
 #include "Battery.h"
 
+/**
+ * @brief Sets the name and logging levels for this module.
+ *
+ * Possible log levels:
+ * - LOG_LEVEL_NONE
+ * - LOG_LEVEL_ERR
+ * - LOG_LEVEL_WRN
+ * - LOG_LEVEL_INF
+ * - LOG_LEVEL_DBG
+ */
+LOG_MODULE_REGISTER(battery, LOG_LEVEL_INF);
+
 /* Variables */
 static uint64_t ivt_deadline_ms;
 struct k_event error_to_main;
 K_EVENT_DEFINE(error_to_main);
 BatterySystemTypeDef battery_values;
-LOG_MODULE_REGISTER(battery, LOG_LEVEL_DBG);
 
 /* Thread defines */
 #define BATTERY_MONITOR_STACK_SIZE 1024
-#define BATTERY_MONITOR_THREAD_PRIORITY 8
+#define BATTERY_MONITOR_THREAD_PRIORITY -5
 K_THREAD_STACK_DEFINE(battery_monitor_thread_stack, BATTERY_MONITOR_STACK_SIZE);
 struct k_thread battery_monitor_thread_data;
 
@@ -36,9 +47,9 @@ struct k_thread battery_monitor_thread_data;
  * This function resets the internal error bitfield to zero,
  * indicating that no error conditions are currently active.
  */
-void battery_reset_error_flags(void)
+void battery_reset_error_flag(uint8_t mask)
 {
-    battery_values.error = 0;
+    battery_values.error &= ~mask;
 }
 
 /**
@@ -114,16 +125,30 @@ uint8_t battery_get_status_code(void)
 
     /* STATUS_AIR_POSITIVE: read v_fb_air_positive pin */
     val = gpio_pin_get_dt(&vfb_air_pos_spec);
-    battery_set_reset_status_flag(val > 0, STATUS_AIR_POSITIVE);
+    if (val == 0)
+    {
+        battery_set_reset_status_flag(0, STATUS_AIR_POSITIVE);
+    }else if (val == 1){
+    battery_set_reset_status_flag(1, STATUS_AIR_POSITIVE);
+    }
 
     /* STATUS_AIR_NEGATIVE: read v_fb_air_negative pin */
     val = gpio_pin_get_dt(&vfb_air_neg_spec);
-    battery_set_reset_status_flag(val > 0, STATUS_AIR_NEGATIVE);
+    if (val == 0)
+    {
+        battery_set_reset_status_flag(0, STATUS_AIR_NEGATIVE);
+    }else if (val == 1){
+    battery_set_reset_status_flag(1, STATUS_AIR_NEGATIVE);
+    }
 
     /* STATUS_PRECHARGE: read v_fb_pc_relay pin */
     val = gpio_pin_get_dt(&vfb_pc_relay_spec);
-    battery_set_reset_status_flag(val > 0, STATUS_PRECHARGE);
-
+    if (val == 0)
+    {
+        battery_set_reset_status_flag(0, STATUS_PRECHARGE);
+    }else if (val == 1){
+    battery_set_reset_status_flag(1, STATUS_PRECHARGE);
+    }
     return battery_values.status;
 }
 
@@ -304,6 +329,9 @@ int battery_check_state(void)
     if (err < 0)
     {
         battery_set_error_flag(ERROR_SPI | ERROR_BATTERY);
+        LOG_WRN("Failed to read voltages (err %d)", err);
+    }else{
+        battery_reset_error_flag(ERROR_SPI | ERROR_BATTERY);
     }
 
     /* Read temperatures into buffer */
@@ -311,6 +339,9 @@ int battery_check_state(void)
     if (err < 0)
     {
         battery_set_error_flag(ERROR_SPI | ERROR_BATTERY);
+        LOG_WRN("Failed to read temperatures (err %d)", err);
+    }else{
+        battery_reset_error_flag(ERROR_SPI | ERROR_BATTERY);
     }
 
     /* Compute aggregate values */
@@ -318,11 +349,14 @@ int battery_check_state(void)
                         battery_values.temp_buffer);
 
     /* Check voltage limits */
-    if (battery_values.highestCellVoltage > MAX_VOLT ||
-        battery_values.lowestCellVoltage < MIN_VOLT)
+    if (battery_values.highestCellVoltage > MAX_VOLT_TEST ||
+        battery_values.lowestCellVoltage < MIN_VOLT_TEST)
     {
         battery_set_error_flag(ERROR_VOLT | ERROR_BATTERY);
+        LOG_WRN("Voltage limits exceeded: %d mV", battery_values.highestCellVoltage);
         err |= -1;
+    }else{
+        battery_reset_error_flag(ERROR_VOLT | ERROR_BATTERY);
     }
 
     /* Check temperature limits */
@@ -330,7 +364,10 @@ int battery_check_state(void)
         battery_values.lowestCellTemp > MIN_TEMP)
     {
         battery_set_error_flag(ERROR_TEMP | ERROR_BATTERY);
+        LOG_WRN("Temperature limits exceeded: %d °C", battery_values.highestCellTemp);
         err |= -1;
+    }else{
+        battery_reset_error_flag(ERROR_TEMP | ERROR_BATTERY);
     }
 
     /* IVT-Timeout prüfen */
@@ -338,10 +375,11 @@ int battery_check_state(void)
 
     if (now >= ivt_deadline_ms)
     {
-        battery_refresh_ivt_timer();
         battery_set_error_flag(ERROR_IVT);
         LOG_ERR("IVT timeout, flag ERROR_IVT set");
         err |= -1;
+    }else{
+        battery_reset_error_flag(ERROR_IVT);
     }
 
     return err;
@@ -436,10 +474,16 @@ void battery_balancing(void)
  */
 int battery_precharge_logic(void)
 {
+    uint32_t actualVoltageConverted = 0;
+    actualVoltageConverted = battery_values.actualVoltage / 100;
     gpio_pin_set_dt(&drive_air_neg_spec, 1);
     gpio_pin_set_dt(&drive_precharge_spec, 1);
 
-    if (battery_values.totalVoltage && battery_values.actualVoltage)
+    LOG_INF("actualVoltage: %d ", actualVoltageConverted);
+    LOG_INF("totalVoltage: %d ", battery_values.totalVoltage);
+
+    if ((actualVoltageConverted <= (battery_values.totalVoltage + battery_values.totalVoltage * 0.05)) && 
+        (actualVoltageConverted >= (battery_values.totalVoltage - battery_values.totalVoltage * 0.05)))
     {
 
         gpio_pin_set_dt(&drive_air_pos_spec, 1);
@@ -447,6 +491,7 @@ int battery_precharge_logic(void)
         gpio_pin_set_dt(&drive_precharge_spec, 1);
         k_msleep(50);
         gpio_pin_set_dt(&drive_precharge_spec, 0);
+        k_msleep(50);
 
         if ((gpio_pin_get_dt(&vfb_pc_relay_spec) == 0) &&
             (gpio_pin_get_dt(&vfb_air_pos_spec) == 1) &&
@@ -462,7 +507,7 @@ int battery_precharge_logic(void)
     else
     {
         LOG_INF("Precharge not finished yet");
-        return 0;
+        return -1;
     }
 }
 
@@ -578,32 +623,47 @@ void battery_monitor_thread(void *arg1, void *arg2, void *arg3)
     ARG_UNUSED(arg3);
 
     LOG_INF("Battery Monitor Thread started\n");
-    int state = 0;
+    int battery_state = 0;
+    int sdc_state = 0;
     int err_counter = 0;
 
     while (1)
     {
         LOG_DBG("Cycle started\n");
         /* Clear error flags for the new monitoring cycle */
-        battery_reset_error_flags();
+        battery_get_status_code();
+        //battery_reset_error_flags();
         battery_values.adbms_itemp = spi_read_adbms_temp();
+        if (sdc_check_feedback() == -1)
+        {
+        /* Post event to main loop after falling edge in sdc */
+        k_event_post(&error_to_main, EVT_ERROR_BIT);
+        LOG_ERR("Falling edge in SDC feedback line\n");
+        }
 
         /* Perform system checks and accumulate state flags */
-        state |= battery_check_state();
-        state |= sdc_check_state();
-        state |= sdc_check_feedback();
-
-        if (state < 0)
+        battery_state = battery_check_state();
+        if (battery_state < 0)
         {
             /* Increment error counter if any component reports a failure */
             err_counter++;
+            LOG_WRN("Battery check failed, error counter: %d\n", err_counter);
         }
+        sdc_state = sdc_check_state();
+        if (sdc_state < 0)
+        {
+            /* Increment error counter if any component reports a failure */
+            err_counter++;
+            LOG_WRN("SDC check failed, error counter: %d\n", err_counter);
+        }
+
         if (err_counter >= 3)
         {
             /* Post event to main loop after 3 consecutive failures */
             k_event_post(&error_to_main, EVT_ERROR_BIT);
+            LOG_ERR("3 consecutive errors detected, posting event to main loop\n");
         }
-        else if (state == 0)
+        if (battery_state == 0 && sdc_state == 0)
         {
             /* No errors detected: reset error counter */
             err_counter = 0;

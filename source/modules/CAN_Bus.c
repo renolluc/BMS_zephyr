@@ -34,7 +34,7 @@ LOG_MODULE_REGISTER(can, LOG_LEVEL_WRN);
 
 // Thread defines
 #define RX_THREAD_STACK_SIZE 1024
-#define RX_THREAD_PRIORITY 2
+#define RX_THREAD_PRIORITY -6
 K_THREAD_STACK_DEFINE(can_rx_thread_stack, RX_THREAD_STACK_SIZE);
 struct k_thread can_rx_thread_data;
 
@@ -86,7 +86,7 @@ void can_thread(void *arg1, void *arg2, void *arg3)
         // send data to ECU
         can_send_ecu();
 
-        if (k_msgq_get(&can_msgq, &frame, K_MSEC(5000)) == 0)
+        if (k_msgq_get(&can_msgq, &frame, K_MSEC(100)) == 0)
         {
             LOG_INF("Received CAN message: ID=0x%X, DLC=%d", frame.id, frame.dlc);
             LOG_HEXDUMP_DBG(frame.data, frame.dlc, "Data");

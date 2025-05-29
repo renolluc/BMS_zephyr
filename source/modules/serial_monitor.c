@@ -11,8 +11,17 @@
 
  #include "serial_monitor.h"
 
- /** @brief Logger module definition for serial monitor */
- LOG_MODULE_REGISTER(serial_monitor, LOG_LEVEL_INF);
+ /**
+ * @brief Sets the name and logging levels for this module.
+ *
+ * Possible log levels:
+ * - LOG_LEVEL_NONE
+ * - LOG_LEVEL_ERR
+ * - LOG_LEVEL_WRN
+ * - LOG_LEVEL_INF
+ * - LOG_LEVEL_DBG
+ */
+ LOG_MODULE_REGISTER(serial_monitor, LOG_LEVEL_WRN);
  
  /** @brief UART device instance */
  static const struct device *uart_dev = DEVICE_DT_GET(DT_NODELABEL(usart2));

@@ -13,15 +13,16 @@
 #include <zephyr/logging/log.h>
 /* Project includes */
 #include "SPI_MB.h"
-#include "CAN_Bus.h"
 #include "shutdown_circuit.h" 
 #include "Status_error_flags.h"
 
 
 /** @brief Maximum allowable cell voltage in mV (42000 = 4.2V) */
 #define MAX_VOLT 42000
+#define MAX_VOLT_TEST 19000
 /** @brief Minimum allowable cell voltage in mV (30000 = 3.0V) */
 #define MIN_VOLT 30000
+#define MIN_VOLT_TEST 9000
 /** @brief Minimum raw temperature ADC value (≈ 20 °C) */
 #define MIN_TEMP 16725
 /** @brief Maximum raw temperature ADC value (≈ 60 °C) */
@@ -150,7 +151,7 @@ extern void battery_set_error_flag(uint8_t mask);
 /**
  * @brief Resets all battery error flags to zero.
  */
-extern void battery_reset_error_flags(void);
+extern void battery_reset_error_flag(uint8_t mask);
 
 /**
  * @brief Checks for system errors and updates the battery error state accordingly.

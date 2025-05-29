@@ -61,7 +61,7 @@
         output-low;
     };
     drive_air_pos: drive_air_pos {
-        gpios = <7 GPIO_ACTIVE_HIGH>;
+        gpios = <4 GPIO_ACTIVE_HIGH>;
         gpio-hog;
         output-low;
     };

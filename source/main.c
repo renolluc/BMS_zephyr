@@ -1,14 +1,16 @@
+
+/* Zephyr-Framework includes */
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/can.h>
-#include <CAN_Bus.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/device.h>
+/* Project includes */
+#include <CAN_Bus.h>
 #include <SPI_MB.h>
 #include <serial_monitor.h>
 #include <Battery.h>
 #include <shutdown_circuit.h>
-
 
 LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 
@@ -41,7 +43,7 @@ int main(void)
 	// variables
 	SystemState_t state = STATE_TEST;
 	static bool previous_ecu_state = BATTERY_OFF;
-	bool current_ecu_state = BATTERY_OFF;
+	static bool current_ecu_state = BATTERY_OFF;
 	uint32_t event_flags = 0;
 
 	// Initialize
@@ -69,7 +71,6 @@ int main(void)
 
 
 		//serial monitor daten senden
-		serial_generate_test_frame((uint8_t *)&battery_values, sizeof(battery_values));
 		serial_monitor((uint8_t *)&battery_values, sizeof(battery_values));
 
 		// wait for event
@@ -85,7 +86,6 @@ int main(void)
 		case STATE_TEST:
 			//spi_wake_up();
 			//spi_loopback();
-	
 			//serial_monitor((uint8_t*)(&battery_values), sizeof(battery_values));
 
 			LOG_INF("state test lululala");
@@ -102,7 +102,7 @@ int main(void)
 				state = STATE_PRECHARGE;
 				LOG_INF("ECU rising edge, entering precharge state");
 			}
-
+			previous_ecu_state = current_ecu_state;
 			break;
 		
 		case STATE_PRECHARGE:
@@ -111,11 +111,7 @@ int main(void)
 			{
 				state = STATE_RUNNING;
 			}
-			else
-			{
-				state = STATE_ERROR;
-				LOG_ERR("Precharge failed, entering error state");
-			}
+
 			break;
 
 		case STATE_RUNNING:
@@ -128,17 +124,20 @@ int main(void)
 			if (previous_ecu_state == BATTERY_ON && current_ecu_state == BATTERY_OFF)
 			{
 				state = STATE_IDLE;
+				sdc_shutdown();
 				LOG_INF("ECU falling edge, entering idle state");
 			}
-
+			previous_ecu_state = current_ecu_state;
 			break;
 
 		case STATE_ERROR:
 			// set all relays to 0
 			sdc_shutdown();
+			LOG_INF("Error state");
 			if (battery_get_error_code() == 0)
 			{
 				state = STATE_IDLE;
+				k_event_clear(&error_to_main, EVT_ERROR_BIT);
 				LOG_INF("Errors resolved, entering idle state");
 			}
 			break;
