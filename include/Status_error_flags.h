@@ -1,12 +1,8 @@
-/*
- * Status_Error_flags.h
- *
- *  Created on: 20.04.2025
- *      Author: renolluc / grossfa2
-  ******************************************************************************
-  * @file           : status_error_flags.h
-  * @brief          : Header for status and error flags from the CB to ECU and
-  *                   serial monitor.
+/**
+ * @file   Status_error_flags.h
+ * @brief  Flags for the Battery in the BMS-System.
+ * @author renolluc / grossfa2
+ * @date   20.04.2025
  */
 
  #ifndef INC_STATUS_ERROR_FLAGS_H_

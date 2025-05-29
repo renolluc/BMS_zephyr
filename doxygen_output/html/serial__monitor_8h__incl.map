@@ -1,0 +1,15 @@
+<map id="include/serial_monitor.h" name="include/serial_monitor.h">
+<area shape="rect" id="Node000001" title="API&#45;definition for the Serial Monitor module in the BMS&#45;System." alt="" coords="360,5,539,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,128,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="388,33,143,79,142,73,387,28"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="152,79,277,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="412,33,266,77,265,72,411,28"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="301,79,459,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="440,33,403,71,399,67,436,29"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="483,79,554,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="463,29,500,67,496,71,459,33"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="579,79,733,104"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="483,28,610,72,609,77,482,33"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="758,79,829,104"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="510,28,745,76,744,81,508,33"/>
+</map>

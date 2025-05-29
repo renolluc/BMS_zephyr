@@ -1,0 +1,423 @@
+\doxysection{source/modules/\+Battery.c File Reference}
+\hypertarget{Battery_8c}{}\label{Battery_8c}\index{source/modules/Battery.c@{source/modules/Battery.c}}
+
+
+Implementation of the Battery Management module for the BMS system.  
+
+
+{\ttfamily \#include "{}Battery.\+h"{}}\newline
+Include dependency graph for Battery.\+c\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{Battery_8c__incl}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{Battery_8c_aa1b7f28cab3457041eee33e4436badbd}\label{Battery_8c_aa1b7f28cab3457041eee33e4436badbd} 
+\#define {\bfseries BATTERY\+\_\+\+MONITOR\+\_\+\+STACK\+\_\+\+SIZE}~1024
+\item 
+\Hypertarget{Battery_8c_a757e93662a68969088e163332e18b450}\label{Battery_8c_a757e93662a68969088e163332e18b450} 
+\#define {\bfseries BATTERY\+\_\+\+MONITOR\+\_\+\+THREAD\+\_\+\+PRIORITY}~8
+\item 
+\#define \mbox{\hyperlink{Battery_8c_a4c3d431aac727877403bd75eb0e45ad9}{CHECK\+\_\+\+READY}}(spec)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{Battery_8c_ae2307c38840fe9593ff44c4c0309d251}\label{Battery_8c_ae2307c38840fe9593ff44c4c0309d251} 
+{\bfseries K\+\_\+\+EVENT\+\_\+\+DEFINE} (\mbox{\hyperlink{Battery_8h_af3144e669fb7b16c9ce34ef489abaa20}{error\+\_\+to\+\_\+main}})
+\item 
+\Hypertarget{Battery_8c_a106ea8f612c0e229b5e500801342a3c7}\label{Battery_8c_a106ea8f612c0e229b5e500801342a3c7} 
+{\bfseries LOG\+\_\+\+MODULE\+\_\+\+REGISTER} (battery, LOG\+\_\+\+LEVEL\+\_\+\+DBG)
+\item 
+\Hypertarget{Battery_8c_a6642727f4adb753108124cba3c8aeb9a}\label{Battery_8c_a6642727f4adb753108124cba3c8aeb9a} 
+{\bfseries K\+\_\+\+THREAD\+\_\+\+STACK\+\_\+\+DEFINE} (battery\+\_\+monitor\+\_\+thread\+\_\+stack, BATTERY\+\_\+\+MONITOR\+\_\+\+STACK\+\_\+\+SIZE)
+\item 
+void \mbox{\hyperlink{Battery_8c_aed529d1573366fac065ace2f85f5546f}{battery\+\_\+reset\+\_\+error\+\_\+flags}} (void)
+\begin{DoxyCompactList}\small\item\em Clears all stored error flags in the battery system. \end{DoxyCompactList}\item 
+uint8\+\_\+t \mbox{\hyperlink{Battery_8c_a3d2d5ff92bcffda6ddcb8b91990d4026}{battery\+\_\+get\+\_\+error\+\_\+code}} (void)
+\begin{DoxyCompactList}\small\item\em Retrieves the current battery error code. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{Battery_8c_a31483142119b07f37b32e84d0d3d1c01}{battery\+\_\+set\+\_\+error\+\_\+flag}} (uint8\+\_\+t mask)
+\begin{DoxyCompactList}\small\item\em Sets specified error flags in the battery system. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{Battery_8c_a703e5120a4fa20231099dd595baeb6b8}{battery\+\_\+set\+\_\+reset\+\_\+status\+\_\+flag}} (uint8\+\_\+t set, uint8\+\_\+t mask)
+\begin{DoxyCompactList}\small\item\em Sets or clears specified status flags in the battery system. \end{DoxyCompactList}\item 
+uint8\+\_\+t \mbox{\hyperlink{Battery_8c_a804f9a31ed54e56cb175cbfccb440859}{battery\+\_\+get\+\_\+status\+\_\+code}} (void)
+\begin{DoxyCompactList}\small\item\em Update and return the aggregated battery status flags. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{structBatterySystemTypeDef}{Battery\+System\+Type\+Def}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{Battery_8c_afe5246deaa213114998d43a2cd15b109}{battery\+\_\+calc\+\_\+values}} (const uint16\+\_\+t \texorpdfstring{$\ast$}{*}volt\+\_\+data, const uint16\+\_\+t \texorpdfstring{$\ast$}{*}temp\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Computes aggregate battery metrics from raw ADC readings. \end{DoxyCompactList}\item 
+uint8\+\_\+t \mbox{\hyperlink{Battery_8c_a778f618f566846d1286db3b4639542c1}{battery\+\_\+volt2celsius}} (uint16\+\_\+t volt\+\_\+100uV)
+\begin{DoxyCompactList}\small\item\em Convert a raw voltage reading to temperature in degrees Celsius. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{Battery_8c_ad37e4aaaf5b216f5f9c206fb5bcdb484}{battery\+\_\+check\+\_\+state}} (void)
+\begin{DoxyCompactList}\small\item\em Perform a single battery measurement cycle and update status. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{Battery_8c_af385b966f1d9efcea35e6f937d05aad5}{battery\+\_\+stop\+\_\+balancing}} (void)
+\begin{DoxyCompactList}\small\item\em Ceases all cell balancing operations. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{Battery_8c_a5fd382350295e8c184dd2e1cc4e43472}{balancing}} (void)
+\begin{DoxyCompactList}\small\item\em Perform cell balancing based on voltage differentials and internal temperature. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{Battery_8c_af287da21f3332d6eaf42c4a6f598671a}{battery\+\_\+precharge\+\_\+logic}} (void)
+\begin{DoxyCompactList}\small\item\em Handle precharge relay logic based on Precharge\+\_\+\+EN input transitions. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{Battery_8c_a192bdfe743d2e7e6e203007d2e5972e3}{battery\+\_\+charging}} (void)
+\begin{DoxyCompactList}\small\item\em Update charging state and invoke balancing or shutdown. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{Battery_8c_a5212becce11bf07c1a0b4a2b2e260629}{battery\+\_\+set\+\_\+time\+\_\+per\+\_\+measurement}} (void)
+\begin{DoxyCompactList}\small\item\em Set the measurement interval for the battery monitoring cycle. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{Battery_8c_ac26d041ed94490f19e6f53c6adddf671}{battery\+\_\+refresh\+\_\+ivt\+\_\+timer}} (void)
+\begin{DoxyCompactList}\small\item\em Reset the IVT timer. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{Battery_8c_a339aafee9c7b06a028957cfe98637d48}{battery\+\_\+monitor\+\_\+thread}} (void \texorpdfstring{$\ast$}{*}arg1, void \texorpdfstring{$\ast$}{*}arg2, void \texorpdfstring{$\ast$}{*}arg3)
+\begin{DoxyCompactList}\small\item\em Thread function for continuous battery monitoring. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{Battery_8c_a96004bd7cd7a80ef1f8145c63026a49a}{battery\+\_\+init}} (void)
+\begin{DoxyCompactList}\small\item\em Initialize the GPIO inputs for battery status pins. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{Battery_8c_af3144e669fb7b16c9ce34ef489abaa20}\label{Battery_8c_af3144e669fb7b16c9ce34ef489abaa20} 
+struct k\+\_\+event {\bfseries error\+\_\+to\+\_\+main}
+\begin{DoxyCompactList}\small\item\em Event signaling errors to the main control loop. \end{DoxyCompactList}\item 
+\Hypertarget{Battery_8c_a1b1be4cc2b733542a67d6010e0718d11}\label{Battery_8c_a1b1be4cc2b733542a67d6010e0718d11} 
+\mbox{\hyperlink{structBatterySystemTypeDef}{Battery\+System\+Type\+Def}} {\bfseries battery\+\_\+values}
+\begin{DoxyCompactList}\small\item\em Global instance containing the latest battery values. \end{DoxyCompactList}\item 
+\Hypertarget{Battery_8c_a1b6ce18e2e3c0834d20037ee1846ca3a}\label{Battery_8c_a1b6ce18e2e3c0834d20037ee1846ca3a} 
+struct k\+\_\+thread {\bfseries battery\+\_\+monitor\+\_\+thread\+\_\+data}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Implementation of the Battery Management module for the BMS system. 
+
+This module initializes battery monitoring GPIOs, manages battery-\/related data structures, starts the monitoring thread, and checks battery and shutdown circuit status. It also provides error detection and communication mechanisms.
+
+
+\begin{DoxyItemize}
+\item Initializes critical GPIOs for voltage, temperature, and charger state.
+\item Launches a dedicated monitoring thread that performs periodic health checks.
+\item Maintains battery state and error flags in a shared structure.
+\item Signals critical errors to the main control loop via Zephyr\textquotesingle{}s event API.
+\end{DoxyItemize}
+
+\begin{DoxyAuthor}{Author}
+renolluc / grossfa2 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Date}
+20.\+04.\+2025 
+\end{DoxyDate}
+
+
+\doxysubsection{Macro Definition Documentation}
+\Hypertarget{Battery_8c_a4c3d431aac727877403bd75eb0e45ad9}\label{Battery_8c_a4c3d431aac727877403bd75eb0e45ad9} 
+\index{Battery.c@{Battery.c}!CHECK\_READY@{CHECK\_READY}}
+\index{CHECK\_READY@{CHECK\_READY}!Battery.c@{Battery.c}}
+\doxysubsubsection{\texorpdfstring{CHECK\_READY}{CHECK\_READY}}
+{\footnotesize\ttfamily \#define CHECK\+\_\+\+READY(\begin{DoxyParamCaption}\item[{}]{spec }\end{DoxyParamCaption})}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{do}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ if\ (!device\_is\_ready((spec).port))\ \ \ \ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ LOG\_ERR(\textcolor{stringliteral}{"{}GPIO\ port\ \%s\ not\ ready"{}},\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ((spec).port)-\/>name);\ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ -\/ENODEV;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ \}\ \textcolor{keywordflow}{while}\ (0)}
+
+\end{DoxyCode}
+
+
+\doxysubsection{Function Documentation}
+\Hypertarget{Battery_8c_a5fd382350295e8c184dd2e1cc4e43472}\label{Battery_8c_a5fd382350295e8c184dd2e1cc4e43472} 
+\index{Battery.c@{Battery.c}!balancing@{balancing}}
+\index{balancing@{balancing}!Battery.c@{Battery.c}}
+\doxysubsubsection{\texorpdfstring{balancing()}{balancing()}}
+{\footnotesize\ttfamily void balancing (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Perform cell balancing based on voltage differentials and internal temperature. 
+
+This function reads the internal die temperature via SPI. If the temperature exceeds the safety threshold (83 °C), balancing is immediately stopped. Otherwise, if the highest cell voltage is at or above 4.\+10 V (41000 in raw units), it computes a per‑cell discharge mask\+: any cell whose voltage exceeds the lowest cell voltage by more than 100 units is flagged for balancing. The resulting mask array is sent to the ADBMS devices to activate cell‑discharge circuits. If the highest cell voltage is below the threshold, balancing is also stopped.
+
+\begin{DoxyNote}{Note}
+
+\begin{DoxyItemize}
+\item Uses {\ttfamily \doxylink{SPI__MB_8h_a756ec752a2f31def349d63920a309b52}{spi\+\_\+read\+\_\+adbms\+\_\+temp()}} and {\ttfamily \doxylink{SPI__MB_8h_af2451e5eba282f92947029ee03594821}{spi\+\_\+set\+\_\+discharge\+\_\+cell\+\_\+x()}}, which return negative errno codes on failure. 
+\end{DoxyItemize}
+\end{DoxyNote}
+\Hypertarget{Battery_8c_afe5246deaa213114998d43a2cd15b109}\label{Battery_8c_afe5246deaa213114998d43a2cd15b109} 
+\index{Battery.c@{Battery.c}!battery\_calc\_values@{battery\_calc\_values}}
+\index{battery\_calc\_values@{battery\_calc\_values}!Battery.c@{Battery.c}}
+\doxysubsubsection{\texorpdfstring{battery\_calc\_values()}{battery\_calc\_values()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structBatterySystemTypeDef}{Battery\+System\+Type\+Def}} \texorpdfstring{$\ast$}{*} battery\+\_\+calc\+\_\+values (\begin{DoxyParamCaption}\item[{const uint16\+\_\+t \texorpdfstring{$\ast$}{*}}]{volt\+\_\+data,  }\item[{const uint16\+\_\+t \texorpdfstring{$\ast$}{*}}]{temp\+\_\+data }\end{DoxyParamCaption})}
+
+
+
+Computes aggregate battery metrics from raw ADC readings. 
+
+This function processes arrays of raw cell voltages and temperatures to compute\+:
+\begin{DoxyItemize}
+\item Total pack voltage (in 0.\+1 V units)
+\item Mean cell voltage
+\item Minimum and maximum cell voltages
+\item Mean cell temperature
+\item Minimum and maximum cell temperatures
+\end{DoxyItemize}
+
+Two known-\/unpopulated cells (indices 142 and 143) are skipped in the voltage loop, and two faulty temperature sensors (indices 1 and 26) are skipped in the temperature loop.
+
+
+\begin{DoxyParams}{Parameters}
+{\em volt\+\_\+data} & Pointer to an array of raw voltage readings. Must be at least NUM\+\_\+\+OF\+\_\+\+CLIENTS \texorpdfstring{$\ast$}{*} 18 elements long. \\
+\hline
+{\em temp\+\_\+data} & Pointer to an array of raw temperature readings. Must be at least NUM\+\_\+\+OF\+\_\+\+CLIENTS \texorpdfstring{$\ast$}{*} 8 elements long. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Pointer to the global \doxylink{structBatterySystemTypeDef}{Battery\+System\+Type\+Def} instance ({\ttfamily battery\+\_\+values}), updated with the computed metrics. 
+\end{DoxyReturn}
+\Hypertarget{Battery_8c_a192bdfe743d2e7e6e203007d2e5972e3}\label{Battery_8c_a192bdfe743d2e7e6e203007d2e5972e3} 
+\index{Battery.c@{Battery.c}!battery\_charging@{battery\_charging}}
+\index{battery\_charging@{battery\_charging}!Battery.c@{Battery.c}}
+\doxysubsubsection{\texorpdfstring{battery\_charging()}{battery\_charging()}}
+{\footnotesize\ttfamily void battery\+\_\+charging (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Update charging state and invoke balancing or shutdown. 
+
+Handles the charging logic including balance management.
+
+This function must be called periodically (e.\+g., in the main loop or a timer thread). It first runs the precharge logic, then reads the charger‐connected sense pin.
+
+Active‐low logic\+:
+\begin{DoxyItemize}
+\item 0 =\texorpdfstring{$>$}{>} charger connected
+\item 1 =\texorpdfstring{$>$}{>} charger disconnected
+\end{DoxyItemize}
+
+If the charger has just connected, it sets the STATUS\+\_\+\+CHARGING flag; if already charging, it continues balancing. On disconnect, it clears STATUS\+\_\+\+CHARGING, resets the internal temperature, and stops balancing. \Hypertarget{Battery_8c_ad37e4aaaf5b216f5f9c206fb5bcdb484}\label{Battery_8c_ad37e4aaaf5b216f5f9c206fb5bcdb484} 
+\index{Battery.c@{Battery.c}!battery\_check\_state@{battery\_check\_state}}
+\index{battery\_check\_state@{battery\_check\_state}!Battery.c@{Battery.c}}
+\doxysubsubsection{\texorpdfstring{battery\_check\_state()}{battery\_check\_state()}}
+{\footnotesize\ttfamily int battery\+\_\+check\+\_\+state (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Perform a single battery measurement cycle and update status. 
+
+Checks for system errors and updates the battery error state accordingly.
+
+This function reads all cell voltages and temperatures, updates error flags on SPI communication failures, computes aggregate metrics, checks for limit violations, and finally refreshes the external SD‑\+Card interface.
+
+On Zephyr RTOS, all delays and error codes follow POSIX conventions; no HAL types are used. The measurement functions return negative errno on failure, or 0 on success.
+
+\begin{DoxyReturn}{Returns}
+int Current overall system status after SD‑\+Card refresh. 
+\end{DoxyReturn}
+\Hypertarget{Battery_8c_a3d2d5ff92bcffda6ddcb8b91990d4026}\label{Battery_8c_a3d2d5ff92bcffda6ddcb8b91990d4026} 
+\index{Battery.c@{Battery.c}!battery\_get\_error\_code@{battery\_get\_error\_code}}
+\index{battery\_get\_error\_code@{battery\_get\_error\_code}!Battery.c@{Battery.c}}
+\doxysubsubsection{\texorpdfstring{battery\_get\_error\_code()}{battery\_get\_error\_code()}}
+{\footnotesize\ttfamily uint8\+\_\+t battery\+\_\+get\+\_\+error\+\_\+code (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Retrieves the current battery error code. 
+
+Retrieves the current error bitfield from the battery system.
+
+This function returns the internal error bitfield, where each bit represents a specific error condition in the battery management system.
+
+\begin{DoxyReturn}{Returns}
+The 8‑bit error code (bitfield) from battery\+\_\+values.\+error. 
+\end{DoxyReturn}
+\Hypertarget{Battery_8c_a804f9a31ed54e56cb175cbfccb440859}\label{Battery_8c_a804f9a31ed54e56cb175cbfccb440859} 
+\index{Battery.c@{Battery.c}!battery\_get\_status\_code@{battery\_get\_status\_code}}
+\index{battery\_get\_status\_code@{battery\_get\_status\_code}!Battery.c@{Battery.c}}
+\doxysubsubsection{\texorpdfstring{battery\_get\_status\_code()}{battery\_get\_status\_code()}}
+{\footnotesize\ttfamily uint8\+\_\+t battery\+\_\+get\+\_\+status\+\_\+code (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Update and return the aggregated battery status flags. 
+
+Retrieves the current status bitfield from the battery system.
+
+Reads the error state, ADBMS internal temperature, and the three GPIO status inputs (AIR positive, AIR negative, Precharge) via Zephyr\textquotesingle{}s GPIO API, and sets or clears the corresponding bits in battery\+\_\+values.\+status.
+
+\begin{DoxyReturn}{Returns}
+The current battery status bitfield. 
+\end{DoxyReturn}
+\Hypertarget{Battery_8c_a96004bd7cd7a80ef1f8145c63026a49a}\label{Battery_8c_a96004bd7cd7a80ef1f8145c63026a49a} 
+\index{Battery.c@{Battery.c}!battery\_init@{battery\_init}}
+\index{battery\_init@{battery\_init}!Battery.c@{Battery.c}}
+\doxysubsubsection{\texorpdfstring{battery\_init()}{battery\_init()}}
+{\footnotesize\ttfamily int battery\+\_\+init (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Initialize the GPIO inputs for battery status pins. 
+
+Initializes GPIOs related to battery feedback and charger sensing.
+
+Must be called once during system init before reading status.
+
+\begin{DoxyReturn}{Returns}
+0 on success, negative errno otherwise. 
+\end{DoxyReturn}
+\Hypertarget{Battery_8c_a339aafee9c7b06a028957cfe98637d48}\label{Battery_8c_a339aafee9c7b06a028957cfe98637d48} 
+\index{Battery.c@{Battery.c}!battery\_monitor\_thread@{battery\_monitor\_thread}}
+\index{battery\_monitor\_thread@{battery\_monitor\_thread}!Battery.c@{Battery.c}}
+\doxysubsubsection{\texorpdfstring{battery\_monitor\_thread()}{battery\_monitor\_thread()}}
+{\footnotesize\ttfamily void battery\+\_\+monitor\+\_\+thread (\begin{DoxyParamCaption}\item[{void \texorpdfstring{$\ast$}{*}}]{arg1,  }\item[{void \texorpdfstring{$\ast$}{*}}]{arg2,  }\item[{void \texorpdfstring{$\ast$}{*}}]{arg3 }\end{DoxyParamCaption})}
+
+
+
+Thread function for continuous battery monitoring. 
+
+This thread performs periodic health checks on the battery system and shutdown circuit. It operates as follows\+:
+\begin{DoxyItemize}
+\item Resets error flags at the beginning of each cycle
+\item Executes checks for battery, shutdown state, and feedback
+\item Increments an internal error counter if any check fails
+\item If ≥ 3 consecutive errors occur, an error event is posted to the main thread
+\item If no errors are present, the counter is reset
+\item Records the measurement timestamp
+\end{DoxyItemize}
+
+The thread runs continuously with a 100ms delay between cycles.
+
+\begin{DoxyNote}{Note}
+Errors are only signaled after three consecutive fault detections. 
+\end{DoxyNote}
+\Hypertarget{Battery_8c_af287da21f3332d6eaf42c4a6f598671a}\label{Battery_8c_af287da21f3332d6eaf42c4a6f598671a} 
+\index{Battery.c@{Battery.c}!battery\_precharge\_logic@{battery\_precharge\_logic}}
+\index{battery\_precharge\_logic@{battery\_precharge\_logic}!Battery.c@{Battery.c}}
+\doxysubsubsection{\texorpdfstring{battery\_precharge\_logic()}{battery\_precharge\_logic()}}
+{\footnotesize\ttfamily int battery\+\_\+precharge\+\_\+logic (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Handle precharge relay logic based on Precharge\+\_\+\+EN input transitions. 
+
+Executes precharge logic by managing AIR +/-\/ and precharge relays.
+
+This function is called when the Precharge should be enabled It drives the AIR and precharge relays to prepare for charging. \Hypertarget{Battery_8c_ac26d041ed94490f19e6f53c6adddf671}\label{Battery_8c_ac26d041ed94490f19e6f53c6adddf671} 
+\index{Battery.c@{Battery.c}!battery\_refresh\_ivt\_timer@{battery\_refresh\_ivt\_timer}}
+\index{battery\_refresh\_ivt\_timer@{battery\_refresh\_ivt\_timer}!Battery.c@{Battery.c}}
+\doxysubsubsection{\texorpdfstring{battery\_refresh\_ivt\_timer()}{battery\_refresh\_ivt\_timer()}}
+{\footnotesize\ttfamily void battery\+\_\+refresh\+\_\+ivt\+\_\+timer (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Reset the IVT timer. 
+
+Refreshes the IVT (current sensor) watchdog timer.
+
+This function resets the IVT timer to the current time plus the IVT\+\_\+\+TIMEOUT\+\_\+\+MS \Hypertarget{Battery_8c_aed529d1573366fac065ace2f85f5546f}\label{Battery_8c_aed529d1573366fac065ace2f85f5546f} 
+\index{Battery.c@{Battery.c}!battery\_reset\_error\_flags@{battery\_reset\_error\_flags}}
+\index{battery\_reset\_error\_flags@{battery\_reset\_error\_flags}!Battery.c@{Battery.c}}
+\doxysubsubsection{\texorpdfstring{battery\_reset\_error\_flags()}{battery\_reset\_error\_flags()}}
+{\footnotesize\ttfamily void battery\+\_\+reset\+\_\+error\+\_\+flags (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Clears all stored error flags in the battery system. 
+
+Resets all battery error flags to zero.
+
+This function resets the internal error bitfield to zero, indicating that no error conditions are currently active. \Hypertarget{Battery_8c_a31483142119b07f37b32e84d0d3d1c01}\label{Battery_8c_a31483142119b07f37b32e84d0d3d1c01} 
+\index{Battery.c@{Battery.c}!battery\_set\_error\_flag@{battery\_set\_error\_flag}}
+\index{battery\_set\_error\_flag@{battery\_set\_error\_flag}!Battery.c@{Battery.c}}
+\doxysubsubsection{\texorpdfstring{battery\_set\_error\_flag()}{battery\_set\_error\_flag()}}
+{\footnotesize\ttfamily void battery\+\_\+set\+\_\+error\+\_\+flag (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{mask }\end{DoxyParamCaption})}
+
+
+
+Sets specified error flags in the battery system. 
+
+Sets error flags in the battery error field.
+
+This function OR‑combines the provided mask into the internal error bitfield, enabling one or more error condition flags while preserving existing ones.
+
+
+\begin{DoxyParams}{Parameters}
+{\em mask} & Bitmask representing the error flags to set. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{Battery_8c_a703e5120a4fa20231099dd595baeb6b8}\label{Battery_8c_a703e5120a4fa20231099dd595baeb6b8} 
+\index{Battery.c@{Battery.c}!battery\_set\_reset\_status\_flag@{battery\_set\_reset\_status\_flag}}
+\index{battery\_set\_reset\_status\_flag@{battery\_set\_reset\_status\_flag}!Battery.c@{Battery.c}}
+\doxysubsubsection{\texorpdfstring{battery\_set\_reset\_status\_flag()}{battery\_set\_reset\_status\_flag()}}
+{\footnotesize\ttfamily void battery\+\_\+set\+\_\+reset\+\_\+status\+\_\+flag (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{set,  }\item[{uint8\+\_\+t}]{mask }\end{DoxyParamCaption})}
+
+
+
+Sets or clears specified status flags in the battery system. 
+
+This function modifies the internal status bitfield by either setting or clearing the bits defined in {\ttfamily mask}. If {\ttfamily set} is non-\/zero, the bits in {\ttfamily mask} are OR‑combined into {\ttfamily battery\+\_\+values.\+status}; if {\ttfamily set} is zero, those bits are cleared.
+
+
+\begin{DoxyParams}{Parameters}
+{\em set} & Non-\/zero to set the flags, zero to clear them. \\
+\hline
+{\em mask} & Bitmask indicating which status flags to modify. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{Battery_8c_a5212becce11bf07c1a0b4a2b2e260629}\label{Battery_8c_a5212becce11bf07c1a0b4a2b2e260629} 
+\index{Battery.c@{Battery.c}!battery\_set\_time\_per\_measurement@{battery\_set\_time\_per\_measurement}}
+\index{battery\_set\_time\_per\_measurement@{battery\_set\_time\_per\_measurement}!Battery.c@{Battery.c}}
+\doxysubsubsection{\texorpdfstring{battery\_set\_time\_per\_measurement()}{battery\_set\_time\_per\_measurement()}}
+{\footnotesize\ttfamily void battery\+\_\+set\+\_\+time\+\_\+per\+\_\+measurement (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Set the measurement interval for the battery monitoring cycle. 
+
+This function updates the global {\ttfamily battery\+\_\+values.\+time\+\_\+per\+\_\+measurement} field to specify how long (in milliseconds) has elapsed between successive measurements of voltages and temperatures.
+
+
+\begin{DoxyParams}{Parameters}
+{\em time\+\_\+ms} & Measurement interval in milliseconds. \\
+\hline
+\end{DoxyParams}
+\Hypertarget{Battery_8c_af385b966f1d9efcea35e6f937d05aad5}\label{Battery_8c_af385b966f1d9efcea35e6f937d05aad5} 
+\index{Battery.c@{Battery.c}!battery\_stop\_balancing@{battery\_stop\_balancing}}
+\index{battery\_stop\_balancing@{battery\_stop\_balancing}!Battery.c@{Battery.c}}
+\doxysubsubsection{\texorpdfstring{battery\_stop\_balancing()}{battery\_stop\_balancing()}}
+{\footnotesize\ttfamily void battery\+\_\+stop\+\_\+balancing (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Ceases all cell balancing operations. 
+
+Stops all active cell balancing operations.
+
+This function clears the per‑cell balance mask for every ADBMS client, then issues the updated discharge‑control command to stop all balancing. \Hypertarget{Battery_8c_a778f618f566846d1286db3b4639542c1}\label{Battery_8c_a778f618f566846d1286db3b4639542c1} 
+\index{Battery.c@{Battery.c}!battery\_volt2celsius@{battery\_volt2celsius}}
+\index{battery\_volt2celsius@{battery\_volt2celsius}!Battery.c@{Battery.c}}
+\doxysubsubsection{\texorpdfstring{battery\_volt2celsius()}{battery\_volt2celsius()}}
+{\footnotesize\ttfamily uint8\+\_\+t battery\+\_\+volt2celsius (\begin{DoxyParamCaption}\item[{uint16\+\_\+t}]{volt\+\_\+100uV }\end{DoxyParamCaption})}
+
+
+
+Convert a raw voltage reading to temperature in degrees Celsius. 
+
+Converts raw voltage (in 100 µV units) to temperature in °C.
+
+This function applies a 10th‑order calibration polynomial to the input voltage (expressed in units of 100 µV) to compute the corresponding temperature.
+
+Boundary conditions\+:
+\begin{DoxyItemize}
+\item If the reading is above 23000 (i.\+e. \texorpdfstring{$>$}{>} 2.3 V), returns 0 °C.
+\item If the reading is below 2000 (i.\+e. \texorpdfstring{$<$}{<} 0.2 V), returns 100 °C.
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em volt\+\_\+100uV} & Voltage reading in units of 100 µV. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Temperature in degrees Celsius as an 8‑bit unsigned integer. 
+\end{DoxyReturn}

@@ -69,11 +69,9 @@ def uart_reader(port="/dev/ttyACM0"):
         if start != -1 and end != -1 and end > start:
             frame = buffer[start + 2:end]
             buffer = buffer[end + 2:]
-
             if len(frame) >= MIN_FRAME_LENGTH:
                 with lock:
                     battery_data = parse_frame(frame)
-
                     volt_offset = 28
                     temp_offset = volt_offset + 8*18*2
 

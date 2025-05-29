@@ -1,0 +1,13 @@
+<map id="include/CAN_Bus.h" name="include/CAN_Bus.h">
+<area shape="rect" id="Node000001" title="API&#45;definition for the Can module in the BMS&#45;System." alt="" coords="31,5,175,31"/>
+<area shape="rect" id="Node000002" href="$Battery_8h.html" title="API&#45;definition for the battery&#45;module in the BMS&#45;System." alt="" coords="37,86,168,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="97,44,99,86,93,86,92,45"/>
+<area shape="rect" id="Node000005" href="$CAN__Bus_8c.html" title="CAN Bus communication module for Zephyr RTOS." alt="" coords="192,79,349,119"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="141,34,231,76,229,81,138,39"/>
+<area shape="poly" id="edge2_Node000002_Node000001" title=" " alt="" coords="108,72,107,31,112,31,114,72"/>
+<area shape="rect" id="Node000003" href="$shutdown__circuit_8h.html" title="API&#45;definition for the shutdown&#45;circuit&#45;module in the BMS&#45;System." alt="" coords="5,167,200,192"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="97,125,99,166,93,167,92,125"/>
+<area shape="rect" id="Node000004" href="$Battery_8c.html" title="Implementation of the Battery Management module for the BMS system." alt="" coords="224,167,411,192"/>
+<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="148,113,287,164,285,169,146,118"/>
+<area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="108,153,107,112,112,111,114,153"/>
+</map>

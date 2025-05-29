@@ -1,0 +1,101 @@
+\doxysection{include/serial\+\_\+monitor.h File Reference}
+\hypertarget{serial__monitor_8h}{}\label{serial__monitor_8h}\index{include/serial\_monitor.h@{include/serial\_monitor.h}}
+
+
+API-\/definition for the Serial Monitor module in the BMS-\/\+System.  
+
+
+{\ttfamily \#include $<$zephyr/kernel.\+h$>$}\newline
+{\ttfamily \#include $<$zephyr/device.\+h$>$}\newline
+{\ttfamily \#include $<$zephyr/drivers/uart.\+h$>$}\newline
+{\ttfamily \#include $<$string.\+h$>$}\newline
+{\ttfamily \#include $<$zephyr/logging/log.\+h$>$}\newline
+{\ttfamily \#include $<$stdlib.\+h$>$}\newline
+Include dependency graph for serial\+\_\+monitor.\+h\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{serial__monitor_8h__incl}
+\end{center}
+\end{figure}
+This graph shows which files directly or indirectly include this file\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=214pt]{serial__monitor_8h__dep__incl}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{serial__monitor_8h_aff330cb4446d20e748d2e4ac2e97c8dc}\label{serial__monitor_8h_aff330cb4446d20e748d2e4ac2e97c8dc} 
+\#define {\bfseries SERIAL\+\_\+\+DEVICE}~DT\+\_\+\+LABEL(DT\+\_\+\+NODELABEL(usart2))
+\begin{DoxyCompactList}\small\item\em UART device label for Zephyr device tree. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{serial__monitor_8h_a86d9aad89104f074ba0eec6af0249f2c}{serial\+\_\+monitor\+\_\+init}} (void)
+\begin{DoxyCompactList}\small\item\em Initialize the serial monitor UART interface. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{serial__monitor_8h_a1e8b91b0e228317464db01c8ec113bf6}{serial\+\_\+monitor}} (const uint8\+\_\+t \texorpdfstring{$\ast$}{*}data, uint16\+\_\+t size)
+\begin{DoxyCompactList}\small\item\em Transmit data over UART with start/stop framing. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{serial__monitor_8h_aabb999c3fd575871cf644f70b5393b72}{serial\+\_\+generate\+\_\+test\+\_\+frame}} (uint8\+\_\+t \texorpdfstring{$\ast$}{*}data, size\+\_\+t len)
+\begin{DoxyCompactList}\small\item\em Generate a synthetic test frame simulating battery telemetry. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+API-\/definition for the Serial Monitor module in the BMS-\/\+System. 
+
+\begin{DoxyAuthor}{Author}
+renolluc / grossfa2 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Date}
+20.\+04.\+2025 
+\end{DoxyDate}
+
+
+\doxysubsection{Function Documentation}
+\Hypertarget{serial__monitor_8h_aabb999c3fd575871cf644f70b5393b72}\label{serial__monitor_8h_aabb999c3fd575871cf644f70b5393b72} 
+\index{serial\_monitor.h@{serial\_monitor.h}!serial\_generate\_test\_frame@{serial\_generate\_test\_frame}}
+\index{serial\_generate\_test\_frame@{serial\_generate\_test\_frame}!serial\_monitor.h@{serial\_monitor.h}}
+\doxysubsubsection{\texorpdfstring{serial\_generate\_test\_frame()}{serial\_generate\_test\_frame()}}
+{\footnotesize\ttfamily void serial\+\_\+generate\+\_\+test\+\_\+frame (\begin{DoxyParamCaption}\item[{uint8\+\_\+t \texorpdfstring{$\ast$}{*}}]{data,  }\item[{size\+\_\+t}]{len }\end{DoxyParamCaption})}
+
+
+
+Generate a synthetic test frame simulating battery telemetry. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em data} & Pointer to buffer to be filled \\
+\hline
+{\em len} & Length of the buffer; must be at least 476 bytes \\
+\hline
+\end{DoxyParams}
+\Hypertarget{serial__monitor_8h_a1e8b91b0e228317464db01c8ec113bf6}\label{serial__monitor_8h_a1e8b91b0e228317464db01c8ec113bf6} 
+\index{serial\_monitor.h@{serial\_monitor.h}!serial\_monitor@{serial\_monitor}}
+\index{serial\_monitor@{serial\_monitor}!serial\_monitor.h@{serial\_monitor.h}}
+\doxysubsubsection{\texorpdfstring{serial\_monitor()}{serial\_monitor()}}
+{\footnotesize\ttfamily void serial\+\_\+monitor (\begin{DoxyParamCaption}\item[{const uint8\+\_\+t \texorpdfstring{$\ast$}{*}}]{data,  }\item[{uint16\+\_\+t}]{size }\end{DoxyParamCaption})}
+
+
+
+Transmit data over UART with start/stop framing. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em data} & Pointer to data payload \\
+\hline
+{\em size} & Length of data payload in bytes \\
+\hline
+\end{DoxyParams}
+\Hypertarget{serial__monitor_8h_a86d9aad89104f074ba0eec6af0249f2c}\label{serial__monitor_8h_a86d9aad89104f074ba0eec6af0249f2c} 
+\index{serial\_monitor.h@{serial\_monitor.h}!serial\_monitor\_init@{serial\_monitor\_init}}
+\index{serial\_monitor\_init@{serial\_monitor\_init}!serial\_monitor.h@{serial\_monitor.h}}
+\doxysubsubsection{\texorpdfstring{serial\_monitor\_init()}{serial\_monitor\_init()}}
+{\footnotesize\ttfamily void serial\+\_\+monitor\+\_\+init (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Initialize the serial monitor UART interface. 
+
+This function checks if the UART device is ready and sets the UART callback handler. 

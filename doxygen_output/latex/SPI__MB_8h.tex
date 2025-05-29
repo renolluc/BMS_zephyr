@@ -1,0 +1,395 @@
+\doxysection{include/\+SPI\+\_\+\+MB.h File Reference}
+\hypertarget{SPI__MB_8h}{}\label{SPI__MB_8h}\index{include/SPI\_MB.h@{include/SPI\_MB.h}}
+
+
+API-\/definition for the SPI Module in the BMS-\/\+System.  
+
+
+{\ttfamily \#include $<$zephyr/drivers/spi.\+h$>$}\newline
+{\ttfamily \#include $<$zephyr/drivers/gpio.\+h$>$}\newline
+{\ttfamily \#include $<$zephyr/logging/log.\+h$>$}\newline
+Include dependency graph for SPI\+\_\+\+MB.\+h\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{SPI__MB_8h__incl}
+\end{center}
+\end{figure}
+This graph shows which files directly or indirectly include this file\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{SPI__MB_8h__dep__incl}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{SPI__MB_8h_a0f38cada613ae1a9c0918543abae1dfe}\label{SPI__MB_8h_a0f38cada613ae1a9c0918543abae1dfe} 
+\#define {\bfseries WRCFGA}~0x0001
+\item 
+\Hypertarget{SPI__MB_8h_ab6d148258b5969469cfe504001bee121}\label{SPI__MB_8h_ab6d148258b5969469cfe504001bee121} 
+\#define {\bfseries WRCFGB}~0x0024
+\item 
+\Hypertarget{SPI__MB_8h_a1b1c146dd530af54af74d60a52103581}\label{SPI__MB_8h_a1b1c146dd530af54af74d60a52103581} 
+\#define {\bfseries RDCFGA}~0x0002
+\item 
+\Hypertarget{SPI__MB_8h_a22f5362f21bdd040a1238a604e55c73a}\label{SPI__MB_8h_a22f5362f21bdd040a1238a604e55c73a} 
+\#define {\bfseries RDCFGB}~0x0026
+\item 
+\Hypertarget{SPI__MB_8h_a63290b7e53568396938d263c386c511b}\label{SPI__MB_8h_a63290b7e53568396938d263c386c511b} 
+\#define {\bfseries RDCVA}~0x0004
+\item 
+\Hypertarget{SPI__MB_8h_a997ab07d6f83bbc177c69e5027ce4bb1}\label{SPI__MB_8h_a997ab07d6f83bbc177c69e5027ce4bb1} 
+\#define {\bfseries RDCVB}~0x0006
+\item 
+\Hypertarget{SPI__MB_8h_a111a141ddded48b962e01eeb841955f1}\label{SPI__MB_8h_a111a141ddded48b962e01eeb841955f1} 
+\#define {\bfseries RDCVC}~0x0008
+\item 
+\Hypertarget{SPI__MB_8h_a7b5e27b4ca6ec9de3dcd5855d6c4486c}\label{SPI__MB_8h_a7b5e27b4ca6ec9de3dcd5855d6c4486c} 
+\#define {\bfseries RDCVD}~0x000A
+\item 
+\Hypertarget{SPI__MB_8h_a02656ad98f432b30aff8d0c193110ab6}\label{SPI__MB_8h_a02656ad98f432b30aff8d0c193110ab6} 
+\#define {\bfseries RDCVE}~0x0009
+\item 
+\Hypertarget{SPI__MB_8h_ac1549d136d0341e291539c0ec9cb97f3}\label{SPI__MB_8h_ac1549d136d0341e291539c0ec9cb97f3} 
+\#define {\bfseries RDCVF}~0x000B
+\item 
+\Hypertarget{SPI__MB_8h_af2c535610823c8ccc42193ee822860fc}\label{SPI__MB_8h_af2c535610823c8ccc42193ee822860fc} 
+\#define {\bfseries RDAUXA}~0x000C
+\item 
+\Hypertarget{SPI__MB_8h_a8171b21f78bdbe9c92e4a55e58bee743}\label{SPI__MB_8h_a8171b21f78bdbe9c92e4a55e58bee743} 
+\#define {\bfseries RDAUXB}~0x000E
+\item 
+\Hypertarget{SPI__MB_8h_ac0045ef707abde96e49202322e563c69}\label{SPI__MB_8h_ac0045ef707abde96e49202322e563c69} 
+\#define {\bfseries RDAUXC}~0x000D
+\item 
+\Hypertarget{SPI__MB_8h_a40105dc480a11f462a9efaa9f96bc2b7}\label{SPI__MB_8h_a40105dc480a11f462a9efaa9f96bc2b7} 
+\#define {\bfseries RDAUXD}~0x000F
+\item 
+\Hypertarget{SPI__MB_8h_ac4de550d5bdae9cfe7733164ee70a5e0}\label{SPI__MB_8h_ac4de550d5bdae9cfe7733164ee70a5e0} 
+\#define {\bfseries RDSTATA}~0x0010
+\item 
+\Hypertarget{SPI__MB_8h_a6c2598b2b6b646455599c1a0774a94bb}\label{SPI__MB_8h_a6c2598b2b6b646455599c1a0774a94bb} 
+\#define {\bfseries RDSTATB}~0x0012
+\item 
+\Hypertarget{SPI__MB_8h_af1ba8fd1c677bcb8ce2d1bd73ef01785}\label{SPI__MB_8h_af1ba8fd1c677bcb8ce2d1bd73ef01785} 
+\#define {\bfseries WRSCTRL}~0x0014
+\item 
+\Hypertarget{SPI__MB_8h_aabeefbce7b4b3c1cf42be280416d5537}\label{SPI__MB_8h_aabeefbce7b4b3c1cf42be280416d5537} 
+\#define {\bfseries WRPWM}~0x0020
+\item 
+\Hypertarget{SPI__MB_8h_aa7f2ff914896e4939e1d7ebea177c2df}\label{SPI__MB_8h_aa7f2ff914896e4939e1d7ebea177c2df} 
+\#define {\bfseries WRPSB}~0x001C
+\item 
+\Hypertarget{SPI__MB_8h_a09c0dbf0d1d3f0a1e69a940017a45932}\label{SPI__MB_8h_a09c0dbf0d1d3f0a1e69a940017a45932} 
+\#define {\bfseries RDSCTRL}~0x0016
+\item 
+\Hypertarget{SPI__MB_8h_aad5872f78e0c1e0bdb820d5291958c83}\label{SPI__MB_8h_aad5872f78e0c1e0bdb820d5291958c83} 
+\#define {\bfseries RDPWM}~0x0022
+\item 
+\Hypertarget{SPI__MB_8h_a34425f484673a85cc0ac5a3c3277a999}\label{SPI__MB_8h_a34425f484673a85cc0ac5a3c3277a999} 
+\#define {\bfseries RDPSB}~0x001E
+\item 
+\Hypertarget{SPI__MB_8h_ac1f872cf00678b2f23f6cbe54da6e80d}\label{SPI__MB_8h_ac1f872cf00678b2f23f6cbe54da6e80d} 
+\#define {\bfseries STSCTRL}~0x0019
+\item 
+\Hypertarget{SPI__MB_8h_ac4b4b155c7656f25b8e97e0a3ee6149e}\label{SPI__MB_8h_ac4b4b155c7656f25b8e97e0a3ee6149e} 
+\#define {\bfseries CLRSCTRL}~0x0018
+\item 
+\Hypertarget{SPI__MB_8h_a58cfb8c9f31480d0ac0bb5eebfedca7f}\label{SPI__MB_8h_a58cfb8c9f31480d0ac0bb5eebfedca7f} 
+\#define {\bfseries CLRCELL}~0x0711
+\item 
+\Hypertarget{SPI__MB_8h_a69b88484d6a7c40a05ce419eebffbcb7}\label{SPI__MB_8h_a69b88484d6a7c40a05ce419eebffbcb7} 
+\#define {\bfseries CLRAUX}~0x0712
+\item 
+\Hypertarget{SPI__MB_8h_a55cb0f0beb1af1c5a0cc62f66f2b7f13}\label{SPI__MB_8h_a55cb0f0beb1af1c5a0cc62f66f2b7f13} 
+\#define {\bfseries CLRSTAT}~0x0713
+\item 
+\Hypertarget{SPI__MB_8h_a71597f4411cbe68922444f73f4fef642}\label{SPI__MB_8h_a71597f4411cbe68922444f73f4fef642} 
+\#define {\bfseries PLADC}~0x0714
+\item 
+\Hypertarget{SPI__MB_8h_a8221c4ff2efa58d78d55ead3f4dc6071}\label{SPI__MB_8h_a8221c4ff2efa58d78d55ead3f4dc6071} 
+\#define {\bfseries DIAGN}~0x0715
+\item 
+\Hypertarget{SPI__MB_8h_a725b9d2986b81351736e77afe3e4a8bf}\label{SPI__MB_8h_a725b9d2986b81351736e77afe3e4a8bf} 
+\#define {\bfseries WRCOMM}~0x0721
+\item 
+\Hypertarget{SPI__MB_8h_a2dfef66de85f30ce60c4f601d40f6233}\label{SPI__MB_8h_a2dfef66de85f30ce60c4f601d40f6233} 
+\#define {\bfseries RDCOMM}~0x0722
+\item 
+\Hypertarget{SPI__MB_8h_a4706c69457a3220867336e51acc2a859}\label{SPI__MB_8h_a4706c69457a3220867336e51acc2a859} 
+\#define {\bfseries STCOMM}~0x0723
+\item 
+\Hypertarget{SPI__MB_8h_a1f61941701e0251593e01aec567e6ceb}\label{SPI__MB_8h_a1f61941701e0251593e01aec567e6ceb} 
+\#define {\bfseries MUTE}~0x0028
+\item 
+\Hypertarget{SPI__MB_8h_a7d80be1c3931b7d0fa1ecbbb9dcf552e}\label{SPI__MB_8h_a7d80be1c3931b7d0fa1ecbbb9dcf552e} 
+\#define {\bfseries UNMUTE}~0x0029
+\item 
+\Hypertarget{SPI__MB_8h_ae44092f8f622ec597f8165930718846c}\label{SPI__MB_8h_ae44092f8f622ec597f8165930718846c} 
+\#define {\bfseries ADCV}~0x0360
+\item 
+\Hypertarget{SPI__MB_8h_adec67980fc08eec423a9df78f13a496f}\label{SPI__MB_8h_adec67980fc08eec423a9df78f13a496f} 
+\#define {\bfseries ADAX}~0x04\+E0
+\item 
+\Hypertarget{SPI__MB_8h_ae3d7ea1687d9dd9efa6d8a0cf29ee035}\label{SPI__MB_8h_ae3d7ea1687d9dd9efa6d8a0cf29ee035} 
+\#define {\bfseries ADSTAT}~0x04\+EA
+\item 
+\Hypertarget{SPI__MB_8h_a600c9da9c9513cf4612350a2fb733b72}\label{SPI__MB_8h_a600c9da9c9513cf4612350a2fb733b72} 
+\#define {\bfseries NUM\+\_\+\+OF\+\_\+\+CLIENTS}~8
+\item 
+\Hypertarget{SPI__MB_8h_a35beee7b0f2f3e294c4a4a69a5f02df4}\label{SPI__MB_8h_a35beee7b0f2f3e294c4a4a69a5f02df4} 
+\#define {\bfseries DUMMY}~0x\+AA
+\item 
+\Hypertarget{SPI__MB_8h_a6254a4e77c7f2f980d5f49538893d0ab}\label{SPI__MB_8h_a6254a4e77c7f2f980d5f49538893d0ab} 
+\#define {\bfseries SPI\+\_\+\+FREQ}~1000000
+\item 
+\Hypertarget{SPI__MB_8h_a7b3fe8993c50b10f70075ac9813f5a2a}\label{SPI__MB_8h_a7b3fe8993c50b10f70075ac9813f5a2a} 
+\#define {\bfseries SPI\+\_\+\+DEVICE}~DT\+\_\+\+NODELABEL(spi1)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+uint16\+\_\+t \mbox{\hyperlink{SPI__MB_8h_a7e0a7793a9e5ac7288743e6e5ce4b0a6}{spi\+\_\+generate\+\_\+pec}} (const uint8\+\_\+t data\mbox{[}$\,$\mbox{]}, size\+\_\+t len)
+\begin{DoxyCompactList}\small\item\em Generate a 15-\/bit Packet Error Code (PEC) for a data buffer. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{SPI__MB_8h_a102d72deeb3ff6c0c9f4a9909e737b49}{spi\+\_\+read\+\_\+voltages}} (uint16\+\_\+t \texorpdfstring{$\ast$}{*}data\+\_\+buffer)
+\begin{DoxyCompactList}\small\item\em Reads voltage measurements from multiple clients. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{SPI__MB_8h_ae4d0d93aad30a1cc1056de698bfb6eae}{spi\+\_\+read\+\_\+temp}} (uint16\+\_\+t \texorpdfstring{$\ast$}{*}data\+\_\+buffer)
+\begin{DoxyCompactList}\small\item\em Reads auxiliary temperature registers via SPI. \end{DoxyCompactList}\item 
+uint16\+\_\+t \mbox{\hyperlink{SPI__MB_8h_a756ec752a2f31def349d63920a309b52}{spi\+\_\+read\+\_\+adbms\+\_\+temp}} ()
+\begin{DoxyCompactList}\small\item\em Reads and returns the maximum temperature from ADBMS status registers. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{SPI__MB_8h_af2451e5eba282f92947029ee03594821}{spi\+\_\+set\+\_\+discharge\+\_\+cell\+\_\+x}} (uint32\+\_\+t \texorpdfstring{$\ast$}{*}data\+\_\+buffer)
+\begin{DoxyCompactList}\small\item\em Configures cell discharge (balancing) settings via SPI. \end{DoxyCompactList}\item 
+\Hypertarget{SPI__MB_8h_a2fff0df9106ebd6d221e241a90817f8b}\label{SPI__MB_8h_a2fff0df9106ebd6d221e241a90817f8b} 
+uint16\+\_\+t {\bfseries generate\+PEC} (uint8\+\_\+t data\mbox{[}$\,$\mbox{]}, size\+\_\+t len)
+\item 
+void \mbox{\hyperlink{SPI__MB_8h_aaa4c99a329e2b7ec6d07e1952ca6c633}{spi\+\_\+wake\+\_\+up}} ()
+\begin{DoxyCompactList}\small\item\em Wakes up the ADBMS1818 daisy chain. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{SPI__MB_8h_a59aa2c597ccc26fa3196609668590f67}{spi\+\_\+adbms1818\+\_\+hw\+\_\+init}} ()
+\begin{DoxyCompactList}\small\item\em Initializes the ADBMS hardware. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{SPI__MB_8h_a5dafc139a3e9ecaf7be453e03ea75465}{spi\+\_\+loopback}} ()
+\begin{DoxyCompactList}\small\item\em Send a wake-\/up sequence to the ADBMS1818 using the Daisy Chain method. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{SPI__MB_8h_a493e3070f030e5730412abb2bb5b0cb2}\label{SPI__MB_8h_a493e3070f030e5730412abb2bb5b0cb2} 
+const struct device \texorpdfstring{$\ast$}{*} {\bfseries spi1\+\_\+dev}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+API-\/definition for the SPI Module in the BMS-\/\+System. 
+
+\begin{DoxyAuthor}{Author}
+renolluc / grossfa2 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Date}
+20.\+04.\+2025 
+\end{DoxyDate}
+
+
+\doxysubsection{Function Documentation}
+\Hypertarget{SPI__MB_8h_a59aa2c597ccc26fa3196609668590f67}\label{SPI__MB_8h_a59aa2c597ccc26fa3196609668590f67} 
+\index{SPI\_MB.h@{SPI\_MB.h}!spi\_adbms1818\_hw\_init@{spi\_adbms1818\_hw\_init}}
+\index{spi\_adbms1818\_hw\_init@{spi\_adbms1818\_hw\_init}!SPI\_MB.h@{SPI\_MB.h}}
+\doxysubsubsection{\texorpdfstring{spi\_adbms1818\_hw\_init()}{spi\_adbms1818\_hw\_init()}}
+{\footnotesize\ttfamily int spi\+\_\+adbms1818\+\_\+hw\+\_\+init (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Initializes the ADBMS hardware. 
+
+This function initializes the ADBMS hardware by sending configuration data to the device registers over SPI. The initialization process follows these steps\+:
+\begin{DoxyItemize}
+\item Build configuration data arrays for register groups A and B using base data arrays (CFGAR and CFGBR).
+\item Wake up the ADBMS devices using spi\+\_\+wakeup\+\_\+adbms1818().
+\item Wait 1 ms to allow hardware stabilization.
+\item Send the MUTE command to ensure that discharge is disabled during configuration.
+\item Write the configuration data to registers WRCFGA and WRCFGB using spi\+\_\+write\+\_\+registergroup().
+\item Read back the configuration from registers RDCFGA and RDCFGB using Read\+\_\+\+Registergroup().
+\item Compare the written configuration with the read-\/back data. If any discrepancies are found, the function returns an error code (-\/ENODEV); otherwise, it returns 0 indicating success.
+\end{DoxyItemize}
+
+\begin{DoxyReturn}{Returns}
+0 on success, or a negative error code if hardware initialization fails. 
+\end{DoxyReturn}
+\Hypertarget{SPI__MB_8h_a7e0a7793a9e5ac7288743e6e5ce4b0a6}\label{SPI__MB_8h_a7e0a7793a9e5ac7288743e6e5ce4b0a6} 
+\index{SPI\_MB.h@{SPI\_MB.h}!spi\_generate\_pec@{spi\_generate\_pec}}
+\index{spi\_generate\_pec@{spi\_generate\_pec}!SPI\_MB.h@{SPI\_MB.h}}
+\doxysubsubsection{\texorpdfstring{spi\_generate\_pec()}{spi\_generate\_pec()}}
+{\footnotesize\ttfamily uint16\+\_\+t spi\+\_\+generate\+\_\+pec (\begin{DoxyParamCaption}\item[{const uint8\+\_\+t}]{data\mbox{[}$\,$\mbox{]},  }\item[{size\+\_\+t}]{length }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [extern]}}
+
+
+
+Generate a 15-\/bit Packet Error Code (PEC) for a data buffer. 
+
+This function calculates a 15-\/bit PEC using the polynomial\+: x\texorpdfstring{$^\wedge$}{\string^}15 + x\texorpdfstring{$^\wedge$}{\string^}14 + x\texorpdfstring{$^\wedge$}{\string^}10 + x\texorpdfstring{$^\wedge$}{\string^}8 + x\texorpdfstring{$^\wedge$}{\string^}7 + x\texorpdfstring{$^\wedge$}{\string^}4 + x\texorpdfstring{$^\wedge$}{\string^}3 + 1.
+
+The PEC is initialized to 0x0010 and then updated bit-\/by-\/bit for each bit in the data array. For each byte, the function iterates from the most-\/significant bit (bit 7) to the least-\/significant bit (bit 0), computing intermediate values and updating specific bits of the PEC according to the polynomial. Finally, the result is shifted one last time to finalize the PEC value.
+
+
+\begin{DoxyParams}{Parameters}
+{\em data} & Pointer to the input data bytes over which the PEC is computed. \\
+\hline
+{\em length} & Number of bytes in the input data array.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The computed 15-\/bit PEC, stored in a 16-\/bit unsigned integer. 
+\end{DoxyReturn}
+\Hypertarget{SPI__MB_8h_a5dafc139a3e9ecaf7be453e03ea75465}\label{SPI__MB_8h_a5dafc139a3e9ecaf7be453e03ea75465} 
+\index{SPI\_MB.h@{SPI\_MB.h}!spi\_loopback@{spi\_loopback}}
+\index{spi\_loopback@{spi\_loopback}!SPI\_MB.h@{SPI\_MB.h}}
+\doxysubsubsection{\texorpdfstring{spi\_loopback()}{spi\_loopback()}}
+{\footnotesize\ttfamily int spi\+\_\+loopback (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [extern]}}
+
+
+
+Send a wake-\/up sequence to the ADBMS1818 using the Daisy Chain method. 
+
+This function initiates the wake-\/up process for the ADBMS1818 devices in a daisy chain. It sends a wake-\/up message (two bytes of 0x\+FF) over the SPI bus. The function checks if the SPI device is ready before performing the transmission.
+
+When the SPI\+\_\+\+WAKEUP\+\_\+\+LOOPBACK\+\_\+\+TEST flag is enabled, the function performs a loopback test\+: it receives the sent wake-\/up message, compares the received data with the transmitted data, and prints a success or failure message based on the comparison. This test helps verify proper wiring (i.\+e., MOSI to MISO connection).
+
+In the normal operation mode (when SPI\+\_\+\+WAKEUP\+\_\+\+LOOPBACK\+\_\+\+TEST is disabled), the wake-\/up message is simply transmitted without expecting a response.
+
+A short delay (10 microseconds) is inserted after the message transmission to allow the devices to settle after waking up.
+
+\begin{DoxyReturn}{Returns}
+0 on success, or a negative errno error code on failure. 
+\end{DoxyReturn}
+\Hypertarget{SPI__MB_8h_a756ec752a2f31def349d63920a309b52}\label{SPI__MB_8h_a756ec752a2f31def349d63920a309b52} 
+\index{SPI\_MB.h@{SPI\_MB.h}!spi\_read\_adbms\_temp@{spi\_read\_adbms\_temp}}
+\index{spi\_read\_adbms\_temp@{spi\_read\_adbms\_temp}!SPI\_MB.h@{SPI\_MB.h}}
+\doxysubsubsection{\texorpdfstring{spi\_read\_adbms\_temp()}{spi\_read\_adbms\_temp()}}
+{\footnotesize\ttfamily uint16\+\_\+t spi\+\_\+read\+\_\+adbms\+\_\+temp (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [extern]}}
+
+
+
+Reads and returns the maximum temperature from ADBMS status registers. 
+
+This function performs the following steps\+:
+\begin{DoxyEnumerate}
+\item Wakes up the device chain by calling wake\+\_\+up().
+\item Sends the ADC status command (ADSTAT) using spi\+\_\+send\+\_\+command() to initiate temperature conversion.
+\item Waits for 3 milliseconds using k\+\_\+msleep() to allow the ADC conversion to complete.
+\item Reads the status register group using spi\+\_\+read\+\_\+registergroup() with the command RDSTATA.
+\item For each client, extracts the 16-\/bit raw temperature value from the received data (located at byte indices 2 and 3 of a 6-\/byte data block per client).
+\item Determines the highest (maximum) raw temperature among all clients.
+\item Converts the maximum raw temperature to a calibrated value using the formula\+: \begin{DoxyVerb}calibrated_temperature = (raw_temperature * 0.0001 / 0.0076) - 276
+\end{DoxyVerb}
+ If an SPI error occurs during the register read, the function returns a constant error value of 100.
+\end{DoxyEnumerate}
+
+\begin{DoxyReturn}{Returns}
+The calibrated maximum temperature among all clients, or 100 if an SPI read error occurs. 
+\end{DoxyReturn}
+\Hypertarget{SPI__MB_8h_ae4d0d93aad30a1cc1056de698bfb6eae}\label{SPI__MB_8h_ae4d0d93aad30a1cc1056de698bfb6eae} 
+\index{SPI\_MB.h@{SPI\_MB.h}!spi\_read\_temp@{spi\_read\_temp}}
+\index{spi\_read\_temp@{spi\_read\_temp}!SPI\_MB.h@{SPI\_MB.h}}
+\doxysubsubsection{\texorpdfstring{spi\_read\_temp()}{spi\_read\_temp()}}
+{\footnotesize\ttfamily int spi\+\_\+read\+\_\+temp (\begin{DoxyParamCaption}\item[{uint16\+\_\+t \texorpdfstring{$\ast$}{*}}]{data\+\_\+buffer }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [extern]}}
+
+
+
+Reads auxiliary temperature registers via SPI. 
+
+This function reads temperature (and auxiliary) data from the device by performing a series of SPI transactions. It uses the following workflow\+:
+\begin{DoxyItemize}
+\item Wake up the device chain using spi\+\_\+wake\+\_\+up().
+\item Send the ADC auxiliary conversion command (ADAX) using spi\+\_\+send\+\_\+command().
+\item Wait 3 ms for the conversion to complete using k\+\_\+msleep().
+\item For each of the 4 auxiliary register groups (AUXA to AUXD)\+:
+\begin{DoxyItemize}
+\item For AUXA to AUXC (i.\+e. when i \texorpdfstring{$<$}{<} 3), read 6 bytes per client.
+\item For AUXD (i.\+e. when i == 3), read 2 bytes per client.
+\end{DoxyItemize}
+\item The data from each register group is stored in a temporary buffer (sbuffer) and then copied into the output buffer in a format that allocates 20 bytes per client.
+\item Finally, the function rearranges the output buffer to remove unwanted data items (such as reference voltage and certain GPIO values).
+\end{DoxyItemize}
+
+\begin{DoxyNote}{Note}
+The data\+\_\+buffer parameter is of type uint16\+\_\+t\texorpdfstring{$\ast$}{*} but is accessed as a raw byte array by casting it to uint8\+\_\+t\texorpdfstring{$\ast$}{*}. Ensure that the provided buffer is large enough to hold the expected data (NUM\+\_\+\+OF\+\_\+\+CLIENTS \texorpdfstring{$\ast$}{*} 20 bytes).
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em data\+\_\+buffer} & Pointer to the output data buffer.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+0 on success, or a negative error code on failure. 
+\end{DoxyReturn}
+\Hypertarget{SPI__MB_8h_a102d72deeb3ff6c0c9f4a9909e737b49}\label{SPI__MB_8h_a102d72deeb3ff6c0c9f4a9909e737b49} 
+\index{SPI\_MB.h@{SPI\_MB.h}!spi\_read\_voltages@{spi\_read\_voltages}}
+\index{spi\_read\_voltages@{spi\_read\_voltages}!SPI\_MB.h@{SPI\_MB.h}}
+\doxysubsubsection{\texorpdfstring{spi\_read\_voltages()}{spi\_read\_voltages()}}
+{\footnotesize\ttfamily int spi\+\_\+read\+\_\+voltages (\begin{DoxyParamCaption}\item[{uint16\+\_\+t \texorpdfstring{$\ast$}{*}}]{data\+\_\+buffer }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [extern]}}
+
+
+
+Reads voltage measurements from multiple clients. 
+
+This function performs the following sequence\+:
+\begin{DoxyEnumerate}
+\item Wakes up the devices using spi\+\_\+wake\+\_\+up().
+\item Sends the ADC voltage conversion command using spi\+\_\+send\+\_\+command(\+ADCV), which internally builds and sends the command using spi\+\_\+create\+\_\+command.
+\item Waits 3 milliseconds for the ADC conversion to complete (using Zephyr\textquotesingle{}s k\+\_\+msleep).
+\item Reads voltage data from 6 different register groups (one per voltage channel) via Read\+\_\+\+Registergroup. Each register group read returns a 6-\/byte block per client.
+\item If the read is successful for a channel, the 6-\/byte block for each client is placed into the output buffer in a byte-\/wise manner. Each client has 36 bytes allocated in the output (6 channels \texorpdfstring{$\ast$}{*} 6 bytes each).
+\item On any read error, the entire output buffer is cleared and the function returns the error status.
+\end{DoxyEnumerate}
+
+The input parameter, data\+\_\+buffer, is declared as a pointer to uint16\+\_\+t; however, the underlying byte-\/wise storage is used. This is why a cast to a uint8\+\_\+t pointer is performed.
+
+
+\begin{DoxyParams}{Parameters}
+{\em data\+\_\+buffer} & Pointer to a 16-\/bit data buffer that will receive the voltage measurements. The buffer must be large enough to hold NUM\+\_\+\+OF\+\_\+\+CLIENTS \texorpdfstring{$\ast$}{*} 36 bytes.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+0 on success, or a negative errno error code on failure. 
+\end{DoxyReturn}
+\Hypertarget{SPI__MB_8h_af2451e5eba282f92947029ee03594821}\label{SPI__MB_8h_af2451e5eba282f92947029ee03594821} 
+\index{SPI\_MB.h@{SPI\_MB.h}!spi\_set\_discharge\_cell\_x@{spi\_set\_discharge\_cell\_x}}
+\index{spi\_set\_discharge\_cell\_x@{spi\_set\_discharge\_cell\_x}!SPI\_MB.h@{SPI\_MB.h}}
+\doxysubsubsection{\texorpdfstring{spi\_set\_discharge\_cell\_x()}{spi\_set\_discharge\_cell\_x()}}
+{\footnotesize\ttfamily int spi\+\_\+set\+\_\+discharge\+\_\+cell\+\_\+x (\begin{DoxyParamCaption}\item[{uint32\+\_\+t \texorpdfstring{$\ast$}{*}}]{cells\+\_\+to\+\_\+balance }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [extern]}}
+
+
+
+Configures cell discharge (balancing) settings via SPI. 
+
+This function configures the discharge settings (cell balancing) for each battery cell by writing configuration data to the device registers over SPI. Two configuration arrays are prepared (config\+\_\+data\+\_\+A and config\+\_\+data\+\_\+B) based on base arrays (CFGAR and CFGBR). Specific bits in these arrays are modified using data from the cells\+\_\+to\+\_\+balance array. The modified configuration data is then sent to the device using spi\+\_\+write\+\_\+registergroup(). After a short delay, a final command is sent via spi\+\_\+send\+\_\+command() to either enable (UNMUTE) or disable (MUTE) cell discharge based on whether any cell requires balancing.
+
+
+\begin{DoxyParams}{Parameters}
+{\em cells\+\_\+to\+\_\+balance} & Pointer to an array of uint32\+\_\+t values, where each element specifies the balancing configuration for the corresponding cell. The array length is assumed to be at least NUM\+\_\+\+OF\+\_\+\+CLIENTS.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+0 on success, or a negative error code if any SPI operation fails. 
+\end{DoxyReturn}
+\Hypertarget{SPI__MB_8h_aaa4c99a329e2b7ec6d07e1952ca6c633}\label{SPI__MB_8h_aaa4c99a329e2b7ec6d07e1952ca6c633} 
+\index{SPI\_MB.h@{SPI\_MB.h}!spi\_wake\_up@{spi\_wake\_up}}
+\index{spi\_wake\_up@{spi\_wake\_up}!SPI\_MB.h@{SPI\_MB.h}}
+\doxysubsubsection{\texorpdfstring{spi\_wake\_up()}{spi\_wake\_up()}}
+{\footnotesize\ttfamily void spi\+\_\+wake\+\_\+up (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Wakes up the ADBMS1818 daisy chain. 
+
+NEUE FUNKTIONEN 
+
+This function sends a series of chip-\/select (CS) pulses to wake up a daisy chain of ADBMS1818 devices. The sequence consists of (NUM\+\_\+\+OF\+\_\+\+CLIENTS + 2) pulses. For each pulse\+:
+\begin{DoxyItemize}
+\item The CS pin is set low.
+\item A 1 µs delay is applied using k\+\_\+busy\+\_\+wait().
+\item The CS pin is set high.
+\item A 400 µs delay is applied using k\+\_\+busy\+\_\+wait() to allow the device to register the pulse. Finally, a short delay of about 10 µs is applied to ensure the device is ready for subsequent SPI communication.
+\end{DoxyItemize}
+
+\begin{DoxyNote}{Note}
+Adjust the delays if your ADBMS1818 datasheet requires different timings. 
+\end{DoxyNote}

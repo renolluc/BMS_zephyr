@@ -1,0 +1,29 @@
+<map id="source/modules/CAN_Bus.c" name="source/modules/CAN_Bus.c">
+<area shape="rect" id="Node000001" title="CAN Bus communication module for Zephyr RTOS." alt="" coords="183,5,340,45"/>
+<area shape="rect" id="Node000002" href="$CAN__Bus_8h.html" title="API&#45;definition for the Can module in the BMS&#45;System." alt="" coords="215,93,308,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="264,46,264,79,259,79,259,46"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,167,160,192"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="234,121,125,164,123,159,232,116"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="77,313,232,339"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="258,120,169,302,164,300,253,118"/>
+<area shape="rect" id="Node000005" href="$Battery_8h.html" title="API&#45;definition for the battery&#45;module in the BMS&#45;System." alt="" coords="325,167,405,192"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="273,116,331,157,328,162,270,121"/>
+<area shape="poly" id="edge11_Node000005_Node000002" title=" " alt="" coords="354,169,295,128,298,124,357,164"/>
+<area shape="poly" id="edge6_Node000005_Node000004" title=" " alt="" coords="349,194,275,242,183,307,180,303,272,238,346,190"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="431,313,590,339"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="375,191,399,225,433,263,483,304,479,308,429,267,395,228,371,194"/>
+<area shape="rect" id="Node000007" href="$SPI__MB_8h.html" title="API&#45;definition for the SPI Module in the BMS&#45;System." alt="" coords="285,240,368,265"/>
+<area shape="poly" id="edge7_Node000005_Node000007" title=" " alt="" coords="361,194,342,229,337,227,357,191"/>
+<area shape="rect" id="Node000009" href="$shutdown__circuit_8h.html" title="API&#45;definition for the shutdown&#45;circuit&#45;module in the BMS&#45;System." alt="" coords="443,240,587,265"/>
+<area shape="poly" id="edge12_Node000005_Node000009" title=" " alt="" coords="384,190,472,232,470,237,381,194"/>
+<area shape="rect" id="Node000010" href="$Status__error__flags_8h.html" title="Flags for the Battery in the BMS&#45;System." alt="" coords="614,313,765,339"/>
+<area shape="poly" id="edge17_Node000005_Node000010" title=" " alt="" coords="406,182,497,199,550,215,600,238,641,268,673,301,670,304,638,272,597,242,548,220,496,205,405,187"/>
+<area shape="poly" id="edge10_Node000007_Node000004" title=" " alt="" coords="300,268,196,310,194,306,298,263"/>
+<area shape="poly" id="edge9_Node000007_Node000006" title=" " alt="" coords="357,263,469,306,467,311,355,268"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="257,313,407,339"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="330,265,333,300,327,300,325,266"/>
+<area shape="poly" id="edge14_Node000009_Node000004" title=" " alt="" coords="457,268,227,313,226,308,456,263"/>
+<area shape="poly" id="edge16_Node000009_Node000005" title=" " alt="" coords="496,242,407,200,410,195,498,237"/>
+<area shape="poly" id="edge13_Node000009_Node000006" title=" " alt="" coords="517,266,515,300,509,300,511,266"/>
+<area shape="poly" id="edge15_Node000009_Node000010" title=" " alt="" coords="544,263,649,306,647,310,542,268"/>
+</map>

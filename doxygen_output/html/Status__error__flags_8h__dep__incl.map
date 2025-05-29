@@ -1,0 +1,16 @@
+<map id="include/Status_error_flags.h" name="include/Status_error_flags.h">
+<area shape="rect" id="Node000001" title="Flags for the Battery in the BMS&#45;System." alt="" coords="304,5,456,45"/>
+<area shape="rect" id="Node000002" href="$Battery_8h.html" title="API&#45;definition for the battery&#45;module in the BMS&#45;System." alt="" coords="236,93,367,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="353,57,315,95,311,91,349,53"/>
+<area shape="rect" id="Node000005" href="$shutdown__circuit_8h.html" title="API&#45;definition for the shutdown&#45;circuit&#45;module in the BMS&#45;System." alt="" coords="391,167,585,192"/>
+<area shape="poly" id="edge8_Node000001_Node000005" title=" " alt="" coords="404,55,482,165,478,168,399,58"/>
+<area shape="rect" id="Node000003" href="$CAN__Bus_8h.html" title="API&#45;definition for the Can module in the BMS&#45;System." alt="" coords="12,167,156,192"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="247,125,114,169,112,164,246,120"/>
+<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="338,121,452,164,450,169,336,126"/>
+<area shape="rect" id="Node000006" href="$Battery_8c.html" title="Implementation of the Battery Management module for the BMS system." alt="" coords="180,167,367,192"/>
+<area shape="poly" id="edge7_Node000002_Node000006" title=" " alt="" coords="294,133,280,168,275,166,289,131"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="138,160,272,116,274,121,140,165"/>
+<area shape="rect" id="Node000004" href="$CAN__Bus_8c.html" title="CAN Bus communication module for Zephyr RTOS." alt="" coords="5,240,163,280"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="87,206,87,240,81,240,81,206"/>
+<area shape="poly" id="edge6_Node000005_Node000002" title=" " alt="" coords="451,164,337,121,339,116,453,159"/>
+</map>

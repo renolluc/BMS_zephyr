@@ -41,7 +41,7 @@ int main(void)
 	}
 
 	// variables
-	SystemState_t state = STATE_IDLE;
+	SystemState_t state = STATE_TEST;
 	static bool previous_ecu_state = BATTERY_OFF;
 	static bool current_ecu_state = BATTERY_OFF;
 	uint32_t event_flags = 0;
@@ -86,7 +86,6 @@ int main(void)
 		case STATE_TEST:
 			//spi_wake_up();
 			//spi_loopback();
-
 			//serial_monitor((uint8_t*)(&battery_values), sizeof(battery_values));
 
 			LOG_INF("state test lululala");

@@ -1,0 +1,29 @@
+<map id="source/modules/Battery.c" name="source/modules/Battery.c">
+<area shape="rect" id="Node000001" title="Implementation of the Battery Management module for the BMS system." alt="" coords="387,5,574,31"/>
+<area shape="rect" id="Node000002" href="$Battery_8h.html" title="API&#45;definition for the battery&#45;module in the BMS&#45;System." alt="" coords="441,79,521,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="483,31,483,65,478,65,478,31"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="180,225,339,251"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="444,107,395,126,344,154,308,185,279,216,275,213,304,181,340,150,392,121,442,102"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="363,225,518,251"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="493,103,512,137,516,158,512,178,496,202,475,220,472,216,492,198,508,176,511,158,507,139,488,106"/>
+<area shape="rect" id="Node000005" href="$SPI__MB_8h.html" title="API&#45;definition for the SPI Module in the BMS&#45;System." alt="" coords="197,152,279,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="442,107,291,151,289,146,441,101"/>
+<area shape="rect" id="Node000007" href="$CAN__Bus_8h.html" title="API&#45;definition for the Can module in the BMS&#45;System." alt="" coords="573,152,666,177"/>
+<area shape="poly" id="edge8_Node000002_Node000007" title=" " alt="" coords="497,102,579,144,576,148,495,106"/>
+<area shape="rect" id="Node000009" href="$shutdown__circuit_8h.html" title="API&#45;definition for the shutdown&#45;circuit&#45;module in the BMS&#45;System." alt="" coords="354,152,498,177"/>
+<area shape="poly" id="edge12_Node000002_Node000009" title=" " alt="" coords="467,106,437,142,433,139,463,103"/>
+<area shape="rect" id="Node000010" href="$Status__error__flags_8h.html" title="Flags for the Battery in the BMS&#45;System." alt="" coords="721,225,872,251"/>
+<area shape="poly" id="edge17_Node000002_Node000010" title=" " alt="" coords="522,98,596,118,679,150,732,181,775,214,771,218,729,186,677,154,595,123,520,103"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="244,177,255,211,249,213,239,178"/>
+<area shape="poly" id="edge7_Node000005_Node000004" title=" " alt="" coords="271,175,396,218,394,223,270,180"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="5,225,156,251"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="214,180,120,222,118,217,212,175"/>
+<area shape="poly" id="edge11_Node000007_Node000002" title=" " alt="" coords="602,154,521,112,523,107,605,149"/>
+<area shape="poly" id="edge10_Node000007_Node000004" title=" " alt="" coords="592,180,483,223,481,218,590,175"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="542,225,697,251"/>
+<area shape="poly" id="edge9_Node000007_Node000008" title=" " alt="" coords="622,178,622,212,617,212,617,178"/>
+<area shape="poly" id="edge16_Node000009_Node000002" title=" " alt="" coords="440,150,469,114,473,118,444,154"/>
+<area shape="poly" id="edge13_Node000009_Node000003" title=" " alt="" coords="400,180,300,222,298,217,398,175"/>
+<area shape="poly" id="edge14_Node000009_Node000004" title=" " alt="" coords="431,177,438,211,433,212,426,178"/>
+<area shape="poly" id="edge15_Node000009_Node000010" title=" " alt="" coords="486,175,724,220,723,225,485,180"/>
+</map>

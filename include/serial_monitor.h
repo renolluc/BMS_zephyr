@@ -1,4 +1,9 @@
-/* serial_monitor.h - Header for UART asynchronous transmit using Zephyr RTOS */
+/**
+ * @file   serial_monitor.h
+ * @brief  API-definition for the Serial Monitor module in the BMS-System.
+ * @author renolluc / grossfa2
+ * @date   20.04.2025
+ */
 
 #ifndef SERIAL_MONITOR_H
 #define SERIAL_MONITOR_H
