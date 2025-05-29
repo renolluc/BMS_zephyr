@@ -634,7 +634,7 @@ void battery_monitor_thread(void *arg1, void *arg2, void *arg3)
         battery_get_status_code();
         //battery_reset_error_flags();
         battery_values.adbms_itemp = spi_read_adbms_temp();
-        if (sdc_check_feedback() == -1)
+        if (sdc_check_feedback() < 0)
         {
         /* Post event to main loop after falling edge in sdc */
         k_event_post(&error_to_main, EVT_ERROR_BIT);
