@@ -145,9 +145,13 @@ stateDiagram-v2
 state main{
     [*] --> Idle: all Inits passed
     error --> Idle: no errrors
+    Idle --> error
+    PreCharge --> error
+    Running --> error
     Idle --> PreCharge: ECU rising edge
     PreCharge --> Running : precharge succesful
-    Running --> Idle : ECU falling edge 
+    Running --> Idle : ECU falling edge
+
 }
 
 state battery_thread{
