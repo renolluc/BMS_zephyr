@@ -264,7 +264,7 @@ int can_ivt_init()
     */
     // Enable Current Counter
    	uint8_t can_data5[] = {(MUX_SETCONFIG|IVT_NQ), CYCLIC, (CYCLETIME >> 8) & 0xFF, CYCLETIME & 0xFF};
-	status |= send_CAN_IVT_nbytes(IVT_MSG_COMMAND, can_data5, 4);
+	status |= can_send_ivt_nbytes(IVT_MSG_COMMAND, can_data5, 4);
     // Set sensor mode to RUN
     k_msleep(100);
     uint8_t can_datan[] = {SET_MODE, 0x01, 0x01, 0x00, 0x00};
