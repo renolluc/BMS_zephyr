@@ -475,6 +475,7 @@ void battery_balancing(void)
 int battery_precharge_logic(void)
 {
     uint32_t actualVoltageConverted = 0;
+    // convert actualVoltage to 0.1V units
     actualVoltageConverted = battery_values.actualVoltage / 100;
     gpio_pin_set_dt(&drive_air_neg_spec, 1);
     gpio_pin_set_dt(&drive_precharge_spec, 1);
@@ -482,8 +483,8 @@ int battery_precharge_logic(void)
     LOG_INF("actualVoltage: %d ", actualVoltageConverted);
     LOG_INF("totalVoltage: %d ", battery_values.totalVoltage);
 
-    if ((actualVoltageConverted <= (battery_values.totalVoltage + battery_values.totalVoltage * 0.05)) && 
-        (actualVoltageConverted >= (battery_values.totalVoltage - battery_values.totalVoltage * 0.05)))
+    if ((actualVoltageConverted <= (battery_values.totalVoltage + battery_values.totalVoltage * 0.02)) && 
+        (actualVoltageConverted >= (battery_values.totalVoltage - battery_values.totalVoltage * 0.02)))
     {
 
         gpio_pin_set_dt(&drive_air_pos_spec, 1);
@@ -561,7 +562,6 @@ void battery_charging(void)
         if (battery_values.status & STATUS_CHARGING)
         {
             battery_set_reset_status_flag(0, STATUS_CHARGING);
-            battery_values.adbms_itemp = 0;
             battery_stop_balancing();
         }
     }

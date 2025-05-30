@@ -48,7 +48,7 @@ extern struct k_event error_to_main;
  * diagnostic calculation and communication with other modules.
  */
 typedef struct {
-  uint16_t totalVoltage;          // Total voltage of the accumulator system
+  uint16_t totalVoltage;          // Total voltage of the accumulator system in 0.1 V units
   uint16_t highestCellVoltage;    // Highest voltage among individual cells
   uint16_t lowestCellVoltage;     // Lowest voltage among individual cells
   uint16_t meanCellVoltage;       // Mean voltage of all cells
@@ -60,9 +60,9 @@ typedef struct {
   uint8_t status;                 // Current status of the accumulator
   uint8_t error;		              // current error flags of the accumulator
 
-  int32_t actualCurrent;          // Actual current from IVT
-  int32_t actualVoltage;          // Actual voltage from IVT 
-  int32_t CurrentCounter;         // Current counter (Charge Counter) from IVT (SOC estimation)
+  int32_t actualCurrent;          // Actual current from IVT in mA
+  int32_t actualVoltage;          // Actual voltage from IVT in mV
+  int32_t CurrentCounter;         // Current counter (Charge Counter) from IVT (SOC estimation) in As
 
   uint16_t time_per_measurement;  // sets the time between two measurements
   uint16_t adbms_itemp;           // Internal temperature of the ADBMS chip

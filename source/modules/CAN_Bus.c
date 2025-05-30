@@ -94,7 +94,6 @@ void can_thread(void *arg1, void *arg2, void *arg3)
             // Process received message
             if (frame.id == ADDR_ECU_RX)
             {
-                // set_relays(frame.data[0]);
                 if (frame.data[0] == BATTERY_ON)
                 {
                     // Set ecu_ok_flag high
@@ -255,13 +254,17 @@ int can_ivt_init()
     uint8_t can_data2[] = {(MUX_SETCONFIG | IVT_NU1), CYCLIC, (CYCLETIME >> 8) & 0xFF, CYCLETIME & 0xFF};
     status |= can_send_ivt_nbytes(IVT_MSG_COMMAND, can_data2, 4);
     k_msleep(10);
+    /*
     uint8_t can_data3[] = {(MUX_SETCONFIG | IVT_NU2), CYCLIC, (CYCLETIME >> 8) & 0xFF, CYCLETIME & 0xFF};
     status |= can_send_ivt_nbytes(IVT_MSG_COMMAND, can_data3, 4);
     k_msleep(10);
     uint8_t can_data4[] = {(MUX_SETCONFIG | IVT_NU3), CYCLIC, (CYCLETIME >> 8) & 0xFF, CYCLETIME & 0xFF};
     status |= can_send_ivt_nbytes(IVT_MSG_COMMAND, can_data4, 4);
     k_msleep(10);
-
+    */
+    // Enable Current Counter
+   	uint8_t can_data5[] = {(MUX_SETCONFIG|IVT_NQ), CYCLIC, (CYCLETIME >> 8) & 0xFF, CYCLETIME & 0xFF};
+	status |= send_CAN_IVT_nbytes(IVT_MSG_COMMAND, can_data5, 4);
     // Set sensor mode to RUN
     k_msleep(100);
     uint8_t can_datan[] = {SET_MODE, 0x01, 0x01, 0x00, 0x00};
