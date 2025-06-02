@@ -9,10 +9,10 @@ project(app)
 
 target_sources(app
         PRIVATE
-        source/modules/CAN_Bus.c        
-        source/modules/SPI_MB.c
+        source/modules/can_bus.c        
+        source/modules/spi_mb.c
         source/modules/serial_monitor.c
-        source/modules/Battery.c
+        source/modules/battery.c
         source/modules/shutdown_circuit.c
 )
 

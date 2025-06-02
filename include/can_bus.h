@@ -1,5 +1,5 @@
 /** 
- * @file   CAN_Bus.h
+ * @file   can_bus.h
  * @brief  API-definition for the Can module in the BMS-System.
  * @author renolluc / grossfa2
  * @date   20.04.2025
@@ -12,7 +12,7 @@
 #include <zephyr/drivers/can.h>
 #include <zephyr/logging/log.h>
 /* Project includes */
-#include <Battery.h>
+#include <battery.h>
 
 /** @brief CAN device label for Zephyr device tree */
 #define CAN_DEVICE DT_LABEL(DT_NODELABEL(can1))

@@ -9,10 +9,10 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 /** @brief Project includes */
-#include <CAN_Bus.h>
-#include <SPI_MB.h>
+#include <can_bus.h>
+#include <spi_mb.h>
 #include <serial_monitor.h>
-#include <Battery.h>
+#include <battery.h>
 #include <shutdown_circuit.h>
 
 LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);

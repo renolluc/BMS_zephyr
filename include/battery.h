@@ -1,5 +1,5 @@
 /**
- * @file   Battery.h
+ * @file   battery.h
  * @brief  API-definition for the battery-module in the BMS-System.
  * @author renolluc / grossfa2
  * @date   20.04.2025
@@ -12,9 +12,9 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
 /* Project includes */
-#include "SPI_MB.h"
+#include "spi_mb.h"
 #include "shutdown_circuit.h" 
-#include "Status_error_flags.h"
+#include "status_error_flags.h"
 
 
 /** @brief Maximum allowable cell voltage in mV (42000 = 4.2V) */

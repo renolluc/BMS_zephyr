@@ -1,5 +1,5 @@
 /**
-* @file Battery.c
+* @file battery.c
 * @brief Implementation of the Battery Management module for the BMS system.
 * 
 * This module initializes battery monitoring GPIOs, manages battery-related
@@ -10,7 +10,7 @@
 * @date 20.04.2025
 */
 
-#include "Battery.h"
+#include "battery.h"
 
 /**
  * @brief Sets the name and logging levels for this module.

@@ -12,8 +12,8 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
 /* Project Includes */
-#include "Status_error_flags.h"
-#include "Battery.h"
+#include "status_error_flags.h"
+#include "battery.h"
 
 /** @brief Device-Label for GPIO-Port A */
 #define GPIOA_DEVICE DT_NODELABEL(gpioa)

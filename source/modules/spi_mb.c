@@ -1,11 +1,11 @@
  /**
- * @file    SPI_MB.c
+ * @file    spi_mb.c
  * @brief   This module handles SPI communication for the BMS system.
  * @author  renolluc / grossfa2
  * @date    22.03.2025
  */
 
-#include <SPI_MB.h>
+#include <spi_mb.h>
 
 /**
  * @brief Sets the name and logging levels for this module.

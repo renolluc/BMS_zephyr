@@ -1,5 +1,5 @@
 /**
- * @file Shutdown_circuit.c
+ * @file shutdown_circuit.c
  * @brief Implementation of the shutdown circuit module in the BMS system.
  * @author renolluc / grossfa2
  * @date 20.04.2025

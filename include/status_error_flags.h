@@ -1,5 +1,5 @@
 /**
-* @file   Status_error_flags.h
+* @file   status_error_flags.h
 * @brief  Flags for the Battery in the BMS-System.
 * @author renolluc / grossfa2
 * @date   20.04.2025

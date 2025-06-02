@@ -1,5 +1,5 @@
 /**
- * @file   SPI_MB.h
+ * @file   spi_mb.h
  * @brief  API-definition for the SPI Module in the BMS-System.
  * @author renolluc / grossfa2
  * @date   20.04.2025

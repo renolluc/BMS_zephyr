@@ -1,5 +1,5 @@
 /**
- * @file CAN_Bus.c
+ * @file can_bus.c
  * @brief CAN Bus communication module for Zephyr RTOS.
  * @author renolluc / grossfa2
  * @date 20.04.2025
@@ -9,7 +9,7 @@
  * specific to an automotive battery management system.
  */
 
-#include <CAN_Bus.h>
+#include <can_bus.h>
 
 
 /**
