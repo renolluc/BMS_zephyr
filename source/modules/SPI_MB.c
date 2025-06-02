@@ -1,11 +1,8 @@
-/*
- * SPI_MB.c
- * 
- * Description: This module handles SPI communication for the BMS system.
- * 
- * Author: renolluc / grossfa2
- * Date: 22.03.2025
- * 
+ /**
+ * @file    SPI_MB.c
+ * @brief   This module handles SPI communication for the BMS system.
+ * @author  renolluc / grossfa2
+ * @date    22.03.2025
  */
 
 #include <SPI_MB.h>
@@ -22,9 +19,10 @@
  */
 LOG_MODULE_REGISTER(spi, LOG_LEVEL_DBG);
 
-/* SPI Definitions */
+/** @brief  SPI Device Definition */
 const struct device *spi1_dev = DEVICE_DT_GET(SPI_DEVICE);
 
+/** @brief  SPI Configuration */
 struct spi_config spi_cfg= {
 	// 8-bit word size, MSB first, Master mode  
     .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_OP_MODE_MASTER,
@@ -33,6 +31,7 @@ struct spi_config spi_cfg= {
     .cs = {.gpio = spi_cs_pb1_spec, .delay = 0},
 };
 
+/** @brief  SPI Configuration for Test */
 struct spi_config spi_cfg_test= {
 	// 8-bit word size, MSB first, Master mode  
     .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_OP_MODE_MASTER,
@@ -42,29 +41,21 @@ struct spi_config spi_cfg_test= {
 
 
 
-//define Test Variables
+/** @name define Test Variables */
 #define SPI_LOOPBACK_TEST false
 
-//#define ISO_SPI_CS1_Pin GPIO_PIN_1
 
 
-
-// Default Configuration Register
-// data for CRFA, ADCOPT = 1, REFON = 1, GPIOx = 1
+/** @name Default Configuration Register */
+/** @brief data for CRFA, ADCOPT = 1, REFON = 1, GPIOx = 1 */
 static const uint8_t CFGAR[] = {0xF9, 0x00, 0xF0, 0xFF, 0x00, 0x00};
-// data for CRFB, MUTE = 1, GPIOx = 1		
+/** @brief data for CRFB, MUTE = 1, GPIOx = 1 */		
 static const uint8_t CFGBR[] = {0x0F, 0x80, 0x00, 0x00, 0x00, 0x00};	
-// Read Voltages Register	
+/** @brief Read Voltages Register */	
 static const uint8_t RDCV[] = {RDCVA, RDCVB, RDCVC, RDCVD, RDCVE, RDCVF};
-// Read Temp Register	
+/** @brief Read Temp Register */	
 static const uint8_t RDAUX[] = {RDAUXA, RDAUXB, RDAUXC, RDAUXD};			
 
-
-/**NEUE FUNKTIONEN
- * 
- * 
- * 
- * **/
 
 /**
  * @brief Wakes up the ADBMS1818 daisy chain.
@@ -114,7 +105,7 @@ void spi_wake_up(void){
  * A short delay (10 microseconds) is inserted after the message transmission to allow the devices to
  * settle after waking up.
  *
- * @return 0 on success, or a negative errno error code on failure.
+ * @retval 0 on success, or a negative errno error code on failure.
  */
 int spi_loopback() {
     // Check if the SPI device is ready. If not, log an error message and return -ENODEV.
@@ -191,7 +182,7 @@ int spi_loopback() {
  * specific bits of the PEC according to the polynomial. Finally, the result is shifted
  * one last time to finalize the PEC value.
  *
- * @param data   Pointer to the input data bytes over which the PEC is computed.
+ * @param data to the input data bytes over which the PEC is computed.
  * @param length Number of bytes in the input data array.
  *
  * @return The computed 15-bit PEC, stored in a 16-bit unsigned integer.
@@ -280,7 +271,7 @@ void spi_create_command(uint16_t cmd_in, uint8_t *cmd_out) {
  * discarded (or could be used for validation if needed).
  *
  * @param command The 16-bit command to send.
- * @return 0 on success, or a negative errno error code on failure.
+ * @retval 0 on success, or a negative errno error code on failure.
  */
 int spi_send_command(uint16_t command) {
     uint8_t cmd[4];
@@ -314,7 +305,7 @@ int spi_send_command(uint16_t command) {
  * @param command A 16-bit command to be sent.
  * @param data Pointer to the data buffer containing 6 bytes for each client.
  *
- * @return 0 on success, or a negative errno error code on failure.
+ * @retval 0 on success, or a negative errno error code on failure.
  */
 int spi_write_registergroup(uint16_t command, uint8_t *data) {
     /* Create a transmit buffer that includes:
@@ -390,7 +381,7 @@ int spi_write_registergroup(uint16_t command, uint8_t *data) {
  * @param data Pointer to the buffer where the read register data for all clients will be stored.
  *             The buffer should be large enough to accommodate 6 bytes per client.
  *
- * @return 0 on success, or a negative errno error code on failure.
+ * @retval 0 on success, or a negative errno error code on failure.
  */
 int spi_read_registergroup(uint16_t command, uint8_t *data) {
     /* Allocate a transmit buffer containing:
@@ -482,7 +473,7 @@ int spi_read_registergroup(uint16_t command, uint8_t *data) {
  * @param data_buffer Pointer to a 16-bit data buffer that will receive the voltage measurements.
  *                    The buffer must be large enough to hold NUM_OF_CLIENTS * 36 bytes.
  *
- * @return 0 on success, or a negative errno error code on failure.
+ * @retval 0 on success, or a negative errno error code on failure.
  */
 int spi_read_voltages(uint16_t *data_buffer) {
     /* Cast the 16-bit pointer to an 8-bit pointer to allow for byte-wise access. */
@@ -545,7 +536,7 @@ int spi_read_voltages(uint16_t *data_buffer) {
  *
  * @param data_buffer Pointer to the output data buffer.
  *
- * @return 0 on success, or a negative error code on failure.
+ * @retval 0 on success, or a negative error code on failure.
  */
 int spi_read_temp(uint16_t *data_buffer) {
     int status = 0;
@@ -630,7 +621,7 @@ int spi_read_temp(uint16_t *data_buffer) {
  * If an SPI error occurs during the register read, the function returns a constant error
  * value of 100.
  *
- * @return The calibrated maximum temperature among all clients, or 100 if an SPI read error occurs.
+ * @return The maximum temperature among all clients, or -1 if an SPI read error occurs.
  */
 uint16_t spi_read_adbms_temp() {
     int status = 0;
@@ -649,8 +640,8 @@ uint16_t spi_read_adbms_temp() {
     // Read the status registers using the command RDSTATA.
     status = spi_read_registergroup(RDSTATA, short_buffer);
     if (status < 0) {
-        // Return error value 100 if the SPI read fails.
-        return 100;
+        // Return error value -1 if the SPI read fails.
+        return -1;
     }
     
     // Loop through each client.
@@ -683,7 +674,7 @@ uint16_t spi_read_adbms_temp() {
  *                         configuration for the corresponding cell. The array length is assumed to be at least
  *                         NUM_OF_CLIENTS.
  *
- * @return 0 on success, or a negative error code if any SPI operation fails.
+ * @retval 0 on success, or a negative error code if any SPI operation fails.
  */
 int spi_set_discharge_cell_x(uint32_t* cells_to_balance) {
     int status = 0;                      /* Initialize status to 0 (no errors) */
@@ -749,7 +740,7 @@ int spi_set_discharge_cell_x(uint32_t* cells_to_balance) {
  *  - Compare the written configuration with the read-back data. If any discrepancies are found, the function
  *    returns an error code (-ENODEV); otherwise, it returns 0 indicating success.
  *
- * @return 0 on success, or a negative error code if hardware initialization fails.
+ * @retval 0 on success, or a negative error code if hardware initialization fails.
  */
 int spi_adbms1818_hw_init() {
 

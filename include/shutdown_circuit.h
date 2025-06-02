@@ -22,30 +22,36 @@
 #define SDC_BATTERY_STATUS_ERROR_MASK 0x47
 
 /* External GPIO specifications */
+
+/** @brief GPIO input: SDC feedback line */
 static const struct gpio_dt_spec sdc_in_spec = {
     .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(sdc_in))),
     .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(sdc_in), 0),
     .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(sdc_in), 0),
 };
 
+/** @brief GPIO output: SDC control line */
 static const struct gpio_dt_spec sdc_out_spec = {
     .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(sdc_out))),
     .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(sdc_out), 0),
     .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(sdc_out), 0),
 };
 
+/** @brief GPIO output: Drive AIR+ feedback signal */
 static const struct gpio_dt_spec drive_air_pos_spec = {
     .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(drive_air_pos))),
     .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(drive_air_pos), 0),
     .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(drive_air_pos), 0),
 };
 
+/** @brief GPIO output: Drive AIR− feedback signal */
 static const struct gpio_dt_spec drive_air_neg_spec = {
     .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(drive_air_neg))),
     .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(drive_air_neg), 0),
     .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(drive_air_neg), 0),
 };
 
+/** @brief GPIO output: Drive precharge relay feedback signal */
 static const struct gpio_dt_spec drive_precharge_spec = {
     .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(drive_precharge))),
     .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(drive_precharge), 0),
@@ -55,7 +61,7 @@ static const struct gpio_dt_spec drive_precharge_spec = {
 /**
  * @brief      Checks if the sdc is in a valid state.
  * @retval 0   Running without errors
- * @retval <0  Error when there is an error in he battery system
+ * @retval <0  Error when there is an error in the battery system
  */
 int sdc_check_state(void);
 
@@ -70,14 +76,14 @@ int sdc_check_feedback(void);
 /**
  * @brief      Initializes the Shutdown-Circuit and the GPIOs.
  * @retval 0   Initialization successful
- * @retval <0  Error during initialization
+ * @retval <0  Error when initialization fails
  */
 
 int sdc_init(void);
 
 /**
  * @brief      De-energizes all relays
- * @retval 0   Relais erfolgreich abgeschaltet
+ * @retval 0   Relays de-energized
  */
 int sdc_shutdown(void);
 

@@ -1,11 +1,14 @@
+/**
+ * @file main.c
+ * @brief Main application for the Battery Management System (BMS).
+ * @author renolluc / grossfa2
+ * @date 02.06.2025
+ */
 
-/* Zephyr-Framework includes */
+/** @brief Zephyr-Framework includes */
 #include <zephyr/kernel.h>
-#include <zephyr/drivers/gpio.h>
-#include <zephyr/drivers/can.h>
 #include <zephyr/logging/log.h>
-#include <zephyr/device.h>
-/* Project includes */
+/** @brief Project includes */
 #include <CAN_Bus.h>
 #include <SPI_MB.h>
 #include <serial_monitor.h>

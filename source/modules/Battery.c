@@ -1,19 +1,14 @@
 /**
- * @file Battery.c
- * @brief Implementation of the Battery Management module for the BMS system.
- * 
- * This module initializes battery monitoring GPIOs, manages battery-related
- * data structures, starts the monitoring thread, and checks battery and shutdown
- * circuit status. It also provides error detection and communication mechanisms.
- * 
- * - Initializes critical GPIOs for voltage, temperature, and charger state.
- * - Launches a dedicated monitoring thread that performs periodic health checks.
- * - Maintains battery state and error flags in a shared structure.
- * - Signals critical errors to the main control loop via Zephyr's event API.
- * 
- * @author renolluc / grossfa2
- * @date 20.04.2025
- */
+* @file Battery.c
+* @brief Implementation of the Battery Management module for the BMS system.
+* 
+* This module initializes battery monitoring GPIOs, manages battery-related
+* data structures, starts the monitoring thread, and checks battery and shutdown
+* circuit status. It also provides error detection and communication mechanisms.
+* 
+* @author renolluc / grossfa2
+* @date 20.04.2025
+*/
 
 #include "Battery.h"
 
@@ -29,13 +24,13 @@
  */
 LOG_MODULE_REGISTER(battery, LOG_LEVEL_INF);
 
-/* Variables */
+/** @name Variables */
 static uint64_t ivt_deadline_ms;
 struct k_event error_to_main;
 K_EVENT_DEFINE(error_to_main);
 BatterySystemTypeDef battery_values;
 
-/* Thread defines */
+/** @name Thread defines */
 #define BATTERY_MONITOR_STACK_SIZE 1024
 #define BATTERY_MONITOR_THREAD_PRIORITY -5
 K_THREAD_STACK_DEFINE(battery_monitor_thread_stack, BATTERY_MONITOR_STACK_SIZE);
@@ -471,6 +466,7 @@ void battery_balancing(void)
  * This function is called when the Precharge should be enabled
  * It drives the AIR and precharge relays to prepare for charging.
  *
+ * @retval 0 if precharge is successfully completed, -1 if not.
  */
 int battery_precharge_logic(void)
 {
@@ -682,7 +678,7 @@ void battery_monitor_thread(void *arg1, void *arg2, void *arg3)
  *
  * Must be called once during system init before reading status.
  *
- * @return 0 on success, negative errno otherwise.
+ * @retval 0 on success, negative errno otherwise.
  */
 int battery_init(void)
 {

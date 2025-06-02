@@ -28,7 +28,6 @@ extern struct k_sem test_ack_sem;
 #define ADDR_ECU_TX 0x310 // Address used CB => ECU
 
 /** @brief Message ID used for IVT communication */
-// adresses
 #define IVT_MSG_COMMAND   0x411		// CB => ISA
 #define IVT_MSG_RESPONSE  0x511		// ISA => CB
 #define IVT_MSG_RESULT_I  0x521		// ISA => CB
@@ -40,7 +39,7 @@ extern struct k_sem test_ack_sem;
 #define IVT_MSG_RESULT_AS 0x527		// ISA => CB
 #define IVT_MSG_RESULT_WH 0x528		// ISA => CB
 
-// Muxbyte
+/** @brief Muxbyte used for IVT communication */
 #define MUX_RESULTS 	0x00
 #define MUX_SETCANID 	0x10
 #define MUX_SETCONFIG 	0x20
@@ -59,7 +58,7 @@ extern struct k_sem test_ack_sem;
 
 #define ISA_SERIAL_NUMBER 10139584
 
-// channel n
+/** @brief defines which measurement is sent */
 #define IVT_NCURRENT 0
 #define IVT_NU1 1
 #define IVT_NU2 2
@@ -69,12 +68,12 @@ extern struct k_sem test_ack_sem;
 #define IVT_NQ 6
 #define IVT_NE 7
 
-// operating mode
+/** @brief defines operating mode */
 #define DISABLED 0
 #define TRIGGERED 1
 #define CYCLIC 2
 
-// settings
+/** @brief defines the cycle time for cyclic measurements */
 #define CYCLETIME 100  // in ms
 
 
@@ -94,16 +93,16 @@ extern struct k_sem test_ack_sem;
 /**
  * @brief Initializes CAN controller and receive thread.
  *
- * @return 0 on success, error code otherwise.
+ * @retval 0 on success, error code otherwise.
  */
-extern int can_init(void);
+int can_init(void);
 
 /**
  * @brief Sends an 8-byte CAN frame to the specified address.
  *
  * @param address Target CAN ID.
  * @param TxBuffer Pointer to 8-byte data buffer.
- * @return 0 on success, error code otherwise.
+ * @retval 0 on success, error code otherwise.
  */
 int can_send_8bytes(uint32_t address, uint8_t *TxBuffer);
 
@@ -113,7 +112,7 @@ int can_send_8bytes(uint32_t address, uint8_t *TxBuffer);
  * @param address Target CAN ID.
  * @param TxBuffer Pointer to data buffer.
  * @param length Number of bytes to send.
- * @return 0 on success, error code otherwise.
+ * @retval 0 on success, error code otherwise.
  */
 int can_send_ivt_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length);
 
@@ -121,22 +120,22 @@ int can_send_ivt_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length);
  * @brief Formats and sends sensor data to the ECU.
  *
  * @param GPIO_Input GPIO input encoding system status.
- * @return 0 on success, error code otherwise.
+ * @retval 0 on success, error code otherwise.
  */
 int can_send_ecu(void);
 
 /**
  * @brief Checks if the ECU flag is OK or NOK. OK means the accumulator can be connected.
  *
- * @return 1 if ECU is OK, 0 otherwise.
+ * @retval 1 if ECU is OK, 0 otherwise.
  */
-extern int can_get_ecu_state();
+bool can_get_ecu_state();
 
 /**
  * @brief Initializes IVT sensor with measurement configurations.
  *
- * @return 0 on success, error code otherwise.
+ * @retval 0 on success, error code otherwise.
  */
-extern int can_ivt_init(void);
+int can_ivt_init(void);
 
 #endif
