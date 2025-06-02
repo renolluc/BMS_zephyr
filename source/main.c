@@ -33,6 +33,8 @@ static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 
 /** @brief define sleep time; 1000 msec = 1 sec */
 #define SLEEP_TIME_MS 250
+/** @brief define precharge timeout; 1000 msec = 1 sec */
+#define PRECHARGE_TIMEOUT_MS 1000 // 1
 
 /** @brief typedef for the Statemachine */
 typedef enum
@@ -58,6 +60,7 @@ int main(void)
 	static bool previous_ecu_state = 0;
 	static bool current_ecu_state = 0;
 	uint32_t event_flags = 0;
+	static uint32_t precharge_start_time = 0;
 
 	// Initialize
 	can_init();
@@ -93,6 +96,8 @@ int main(void)
 		LOG_INF("got Error-Event! switching to Error-State.\n");
 		}
 
+		current_ecu_state = can_get_ecu_state();
+
 		switch (state)
 		{
 		case STATE_TEST:
@@ -107,8 +112,7 @@ int main(void)
 		case STATE_IDLE:
 			LOG_INF("Waiting for ECU OK");
 
-			current_ecu_state = can_get_ecu_state();
-
+			// rising ECU edge detection
 			if (previous_ecu_state != BATTERY_ON && current_ecu_state == BATTERY_ON)
 			{
 				state = STATE_PRECHARGE;
@@ -116,14 +120,41 @@ int main(void)
 			}
 			previous_ecu_state = current_ecu_state;
 			break;
-		
+
 		case STATE_PRECHARGE:
-			// precharge logic
+
+			// set precharge start time
+			if (precharge_start_time == 0)
+			{
+				precharge_start_time = k_uptime_get();
+				LOG_INF("Precharge started");
+			}
+
+			// precharge logic done?
 			if (battery_precharge_logic() == 0)
 			{
 				state = STATE_RUNNING;
+				precharge_start_time = 0;
+				LOG_INF("Precharge abgeschlossen, entering RUNNING state");
+			}
+			// check if precharge timeout has occurred
+			else if ((k_uptime_get() - precharge_start_time) > PRECHARGE_TIMEOUT_MS)
+			{
+				state = STATE_ERROR;
+				precharge_start_time = 0;
+				sdc_shutdown();
+				LOG_ERR("Precharge Timeout -> entering ERROR state");
+			}
+			// falling ECU edge detection
+			else if (previous_ecu_state == BATTERY_ON && current_ecu_state != BATTERY_ON)
+			{
+				state = STATE_IDLE;
+				precharge_start_time = 0;
+				sdc_shutdown();
+				LOG_INF("ECU Falling Edge, entering IDLE");
 			}
 
+			previous_ecu_state = current_ecu_state;
 			break;
 
 		case STATE_RUNNING:
@@ -131,8 +162,7 @@ int main(void)
 			battery_charging();
 			LOG_INF("Battery management process running");
 
-			current_ecu_state = can_get_ecu_state();
-
+			// falling ECU edge detection
 			if (previous_ecu_state == BATTERY_ON && current_ecu_state != BATTERY_ON)
 			{
 				state = STATE_IDLE;
