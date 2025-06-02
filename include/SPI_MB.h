@@ -103,7 +103,7 @@
 
 
 /* Settings */
-#define NUM_OF_CLIENTS 8
+#define NUM_OF_CLIENTS 2
 #define DUMMY 0xAA
 /* Frequency in Hz */
 #define SPI_FREQ 1000000

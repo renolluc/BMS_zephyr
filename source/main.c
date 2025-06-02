@@ -41,7 +41,7 @@ int main(void)
 	}
 
 	// variables
-	SystemState_t state = STATE_TEST;
+	SystemState_t state = STATE_IDLE;
 	static bool previous_ecu_state = BATTERY_OFF;
 	static bool current_ecu_state = BATTERY_OFF;
 	uint32_t event_flags = 0;
