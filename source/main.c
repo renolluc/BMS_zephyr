@@ -15,15 +15,26 @@
 #include <battery.h>
 #include <shutdown_circuit.h>
 
+/**
+ * @brief Sets the name and logging levels for this module.
+ *
+ * Possible log levels:
+ * - LOG_LEVEL_NONE
+ * - LOG_LEVEL_ERR
+ * - LOG_LEVEL_WRN
+ * - LOG_LEVEL_INF
+ * - LOG_LEVEL_DBG
+ */
 LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 
-/* LED configuration */
+/** @brief LED configuration */
 #define LED0_NODE DT_ALIAS(led0)
 static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 
-/* 1000 msec = 1 sec */
+/** @brief define sleep time; 1000 msec = 1 sec */
 #define SLEEP_TIME_MS 250
 
+/** @brief typedef for the Statemachine */
 typedef enum
 {
 	STATE_TEST,   // systemreset
@@ -44,8 +55,8 @@ int main(void)
 
 	// variables
 	SystemState_t state = STATE_TEST;
-	static bool previous_ecu_state = BATTERY_OFF;
-	static bool current_ecu_state = BATTERY_OFF;
+	static bool previous_ecu_state = 0;
+	static bool current_ecu_state = 0;
 	uint32_t event_flags = 0;
 
 	// Initialize
@@ -98,7 +109,7 @@ int main(void)
 
 			current_ecu_state = can_get_ecu_state();
 
-			if (previous_ecu_state == BATTERY_OFF && current_ecu_state == BATTERY_ON)
+			if (previous_ecu_state != BATTERY_ON && current_ecu_state == BATTERY_ON)
 			{
 				state = STATE_PRECHARGE;
 				LOG_INF("ECU rising edge, entering precharge state");
@@ -122,7 +133,7 @@ int main(void)
 
 			current_ecu_state = can_get_ecu_state();
 
-			if (previous_ecu_state == BATTERY_ON && current_ecu_state == BATTERY_OFF)
+			if (previous_ecu_state == BATTERY_ON && current_ecu_state != BATTERY_ON)
 			{
 				state = STATE_IDLE;
 				sdc_shutdown();

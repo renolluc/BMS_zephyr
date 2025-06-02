@@ -113,7 +113,7 @@ void can_thread(void *arg1, void *arg2, void *arg3)
                         // Set ecu_ok_flag high
                         ecu_ok_flag = 1;
                     }
-                    else if (frame.data[0] == BATTERY_OFF)
+                    else
                     {
                         // Set ecu_ok_flag low
                         ecu_ok_flag = 0;

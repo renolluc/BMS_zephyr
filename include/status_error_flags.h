@@ -68,7 +68,4 @@
 /** @brief Event bitmask for reporting battery errors */
 #define EVT_ERROR_BIT (1 << 0)
 
-
-#define BATTERY_OFF 	    (0<<0)  // WEG MIT DEM
-
 #endif /* INC_STATUS_ERROR_FLAGS_H_ */
