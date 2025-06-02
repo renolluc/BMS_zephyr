@@ -1,3 +1,5 @@
+# battery_web_dashboard.py
+
 from flask import Flask, jsonify
 import threading
 import serial
@@ -10,6 +12,7 @@ app = Flask(__name__)
 battery_data = "<b>Waiting for data...</b>"
 voltage_grid = [[0.0 for _ in range(18)] for _ in range(8)]
 temperature_grid = [[0.0 for _ in range(8)] for _ in range(8)]
+log_buffer = []
 frame_count = 0
 blink = False
 lock = threading.Lock()
@@ -19,11 +22,11 @@ STOP_FRAME = b'\xFF\xB3'
 MIN_FRAME_LENGTH = 476
 READ_CHUNK_SIZE = 512
 BAUDRATE = 115200
+MAX_LOG_LINES = 100
 
-# Copied from notebook
-coeff = [6.87565181e-40,-9.27411410e-35,5.48516319e-30,-1.87118391e-25,
-         4.07565006e-21,-5.93033515e-17,5.86752736e-13,-3.95278974e-09,
-         1.80075051e-05,-5.76649020e-02,1.65728946e+02]
+coeff = [6.87565181e-40, -9.27411410e-35, 5.48516319e-30, -1.87118391e-25,
+         4.07565006e-21, -5.93033515e-17, 5.86752736e-13, -3.95278974e-09,
+         1.80075051e-05, -5.76649020e-02, 1.65728946e+02]
 
 def calc_temp(volt):
     if volt > 23000:
@@ -53,7 +56,6 @@ def parse_frame(data):
         time_per_cycle = data[28] + data[29]*256
         adbms_temp = (data[30] + data[31]*256) * 0.01
 
-        # Relay status decode
         relays = f"AIR pos: {'1' if status & 32 else '0'}<br>"
         relays += f"AIR neg: {'1' if status & 8 else '0'}<br>"
         relays += f"Precharge: {'1' if status & 16 else '0'}<br>"
@@ -84,12 +86,23 @@ def parse_frame(data):
         return f"<b>Parse error:</b> {e}"
 
 def uart_reader(port="/dev/ttyACM0"):
-    global battery_data, voltage_grid, temperature_grid
-    ser = serial.Serial(port, BAUDRATE, timeout=0.5)
+    global battery_data, voltage_grid, temperature_grid, log_buffer
+    ser = serial.Serial(port, BAUDRATE, timeout=0.1)
     buffer = bytearray()
     print("[UART] Reader started.")
 
     while True:
+        line = ser.readline()
+        try:
+            text = line.decode(errors='ignore').strip()
+            if text.startswith("["):
+                with lock:
+                    log_buffer.append(text)
+                    if len(log_buffer) > MAX_LOG_LINES:
+                        log_buffer = log_buffer[-MAX_LOG_LINES:]
+        except:
+            pass
+
         buffer += ser.read(READ_CHUNK_SIZE)
         start = buffer.find(START_FRAME)
         end = buffer.find(STOP_FRAME, start + 250)
@@ -100,7 +113,7 @@ def uart_reader(port="/dev/ttyACM0"):
             if len(frame) >= MIN_FRAME_LENGTH:
                 with lock:
                     battery_data = parse_frame(frame)
-                    volt_offset = 28 + 8  # skip balance cells (8 * 4)
+                    volt_offset = 28 + 8
                     temp_offset = volt_offset + 8*18*2
 
                     for row in range(8):
@@ -130,6 +143,11 @@ def battery_json():
             "voltage_grid": voltage_grid,
             "temperature_grid": temperature_grid
         })
+
+@app.route("/logs")
+def logs():
+    with lock:
+        return jsonify(log_buffer)
 
 def select_serial_port():
     ports = list(serial.tools.list_ports.comports())

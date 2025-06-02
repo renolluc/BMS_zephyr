@@ -10,9 +10,14 @@
             margin-top: 5px;
             border: 1px solid #ccc;
         }
-        .table-container {
-            overflow-x: auto;
-            max-width: 100%;
+        #log-view {
+            background: #ccc;
+            color: rgb(0, 0, 255);
+            padding: 10px;
+            height: 300px;
+            overflow-y: scroll;
+            white-space: pre-wrap;
+            font-size: 12px;
         }
     </style>
 </head>
@@ -28,18 +33,24 @@
     </div>
 
     <div style="display: flex; gap: 40px; align-items: flex-start;">
-        <div style="display: flex; flex-direction: row; gap: 20px;">
-            <div>
-                <h3>Voltage Map</h3>
-                <canvas id="voltageCanvas" width="600" height="300"></canvas>
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div style="display: flex; flex-direction: row; gap: 20px;">
+                <div>
+                    <h3>Voltage Map</h3>
+                    <canvas id="voltageCanvas" width="600" height="300"></canvas>
+                </div>
+                <div>
+                    <h3>Temperature Map</h3>
+                    <canvas id="temperatureCanvas" width="600" height="300"></canvas>
+                </div>
+                <div style="min-width: 300px;">
+                    <h3>Battery Summary</h3>
+                    <div id="monitor">Loading battery data...</div>
+                </div>
             </div>
             <div>
-                <h3>Temperature Map</h3>
-                <canvas id="temperatureCanvas" width="600" height="300"></canvas>
-            </div>
-            <div style="min-width: 300px;">
-                <h3>Battery Summary</h3>
-                <div id="monitor">Loading battery data...</div>
+                <h3>Serial Console</h3>
+                <div id="log-view">Waiting for logs...</div>
             </div>
         </div>
     </div>
@@ -123,13 +134,25 @@
             });
     }
 
+    function updateLogs() {
+        fetch("/logs")
+            .then(resp => resp.json())
+            .then(lines => {
+                const logDiv = document.getElementById("log-view");
+                logDiv.textContent = lines.join("\n");
+                logDiv.scrollTop = logDiv.scrollHeight;
+            });
+    }
+
     setInterval(() => {
         updateMonitor();
         updateGraphics();
+        updateLogs();
     }, 1000);
 
     updateMonitor();
     updateGraphics();
+    updateLogs();
     window.addEventListener("load", () => {
         const splash = document.getElementById("splash-screen");
         if (splash) {
