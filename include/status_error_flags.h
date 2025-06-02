@@ -46,7 +46,7 @@
 /** @brief unused, set to 0 */
 #define ERROR_RESERVE1		(1<<7)		
 
-/** >> Status Flags from ECU */
+/** >> Status Flags from ECU, 1 Byte */
 
 #define BATTERY_ON 		    (1<<0)
 /** @brief unused, set to 0 */
@@ -63,6 +63,10 @@
 #define ECU_STATUS_RESERVE6		(1<<6)
 /** @brief unused, set to 0 */
 #define ECU_STATUS_RESERVE7		(1<<7)
+
+/** >> Event Flags */
+/** @brief Event bitmask for reporting battery errors */
+#define EVT_ERROR_BIT (1 << 0)
 
 
 #define BATTERY_OFF 	    (0<<0)  // WEG MIT DEM

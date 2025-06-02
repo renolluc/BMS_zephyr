@@ -1,8 +1,7 @@
 #include <zephyr/ztest.h>
-#include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/can.h>
-#include <CAN_Bus.h>
+#include <can_bus.h>
 
 #define TEST_CAN_MSG_ID 0x123
 #define TEST_RXTHREAD_ID 0x7A0

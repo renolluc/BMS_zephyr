@@ -1,10 +1,9 @@
 #include <zephyr/ztest.h>
-#include <zephyr/kernel.h>
 #include <zephyr/device.h>
 
 #include "shutdown_circuit.h"
-#include "Battery.h"
-#include "Status_error_flags.h"
+#include "battery.h"
+#include "status_error_flags.h"
 
 /* Test suite for the shutdown circuit module */
 ZTEST_SUITE(shutdown_circuit_tests, NULL, NULL, NULL, NULL, NULL);

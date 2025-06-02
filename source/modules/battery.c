@@ -35,6 +35,7 @@ BatterySystemTypeDef battery_values;
 #define BATTERY_MONITOR_THREAD_PRIORITY -5
 K_THREAD_STACK_DEFINE(battery_monitor_thread_stack, BATTERY_MONITOR_STACK_SIZE);
 struct k_thread battery_monitor_thread_data;
+#define SLEEP_TIME_MS 100
 
 /**
  * @brief Clears all stored error flags in the battery system.
@@ -669,7 +670,7 @@ void battery_monitor_thread(void *arg1, void *arg2, void *arg3)
         battery_set_time_per_measurement();
 
         /* Wait 100ms before the next cycle */
-        k_msleep(100);
+        k_msleep(SLEEP_TIME_MS);
     }
 }
 

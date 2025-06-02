@@ -32,11 +32,6 @@
 /** @brief Timeout value for IVT response in milliseconds */
 #define IVT_TIMEOUT_MS 400
 
-
-/** @brief Event bitmask for reporting battery errors */
-#define EVT_ERROR_BIT (1 << 0)
-
-
 /** @brief Event signaling errors to the main control loop */
 extern struct k_event error_to_main;
 

@@ -6,7 +6,7 @@
  */
 
 /** @brief Zephyr-Framework includes */
-#include <zephyr/kernel.h>
+//#include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 /** @brief Project includes */
 #include <can_bus.h>

@@ -1,8 +1,6 @@
 #include <zephyr/ztest.h>
-#include <zephyr/kernel.h>
 #include <zephyr/device.h>
-#include <SPI_MB.h>
-#include <zephyr/sys/crc.h>
+#include <spi_mb.h>
 
 void spi_create_command(uint16_t cmd_in, uint8_t *cmd_out);
 

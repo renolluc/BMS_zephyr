@@ -1,5 +1,5 @@
 #include <zephyr/ztest.h>
-#include "Battery.h"
+#include "battery.h"
 #include <stdint.h>
 
 // declarations for internal functions
