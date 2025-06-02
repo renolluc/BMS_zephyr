@@ -98,88 +98,78 @@ void can_thread(void *arg1, void *arg2, void *arg3)
             can_send_ecu();
         #endif
 
-        if (k_msgq_get(&can_msgq, &frame, K_MSEC(100)) == 0)
-        {
-            LOG_INF("Received CAN message: ID=0x%X, DLC=%d", frame.id, frame.dlc);
-            LOG_HEXDUMP_DBG(frame.data, frame.dlc, "Data");
+            if (k_msgq_get(&can_msgq, &frame, K_MSEC(100)) == 0)
+            {
+                LOG_INF("Received CAN message: ID=0x%X, DLC=%d", frame.id, frame.dlc);
+                LOG_HEXDUMP_DBG(frame.data, frame.dlc, "Data");
 
-            // Process received message
-            if (frame.id == ADDR_ECU_RX)
-            {
-                if (frame.data[0] == BATTERY_ON)
+                // Process received message
+                switch (frame.id)
                 {
-                    // Set ecu_ok_flag high
-                    ecu_ok_flag = 1;
-                }
-                else if (frame.data[0] == BATTERY_OFF)
-                {
-                    // Set ecu_ok_flag low
-                    ecu_ok_flag = 0;
-                }
-            }
-            else if (frame.id == IVT_MSG_RESPONSE)
-            {
-                return;
-            }
-            // current measurement from the IVT
-            else if (frame.id == IVT_MSG_RESULT_I)
-            {
-                // refresh ivt timer
-                battery_refresh_ivt_timer();
+                /** ECU Message */
+                case ADDR_ECU_TX:
+                    if (frame.data[0] == BATTERY_ON)
+                    {
+                        // Set ecu_ok_flag high
+                        ecu_ok_flag = 1;
+                    }
+                    else if (frame.data[0] == BATTERY_OFF)
+                    {
+                        // Set ecu_ok_flag low
+                        ecu_ok_flag = 0;
+                    }
+                    break;
+                /** current measurement from the IVT */
+                case IVT_MSG_RESULT_I:
+                    // refresh ivt timer
+                    battery_refresh_ivt_timer();
 
-                if (frame.data[0] == IVT_NCURRENT)
-                {
-                    battery_values.actualCurrent = frame.data[5] | frame.data[4] << 8 | frame.data[3] << 16 | frame.data[2] << 24;
-                }
-            }
-            // voltage measurement from the IVT
-            else if (frame.id == IVT_MSG_RESULT_U1 || frame.id == IVT_MSG_RESULT_U2 || frame.id == IVT_MSG_RESULT_U3)
-            {
-                // refresh ivt timer
-                battery_refresh_ivt_timer();
+                    if (frame.data[0] == IVT_NCURRENT)
+                    {
+                        battery_values.actualCurrent = frame.data[5] | frame.data[4] << 8 | frame.data[3] << 16 | frame.data[2] << 24;
+                    }
+                    break;
+                /** Voltage measurement from IVT */
+                case IVT_MSG_RESULT_U1:
+                    // refresh ivt timer
+                    battery_refresh_ivt_timer();
 
-                if (frame.data[0] == IVT_NU1)
-                {
-                    battery_values.actualVoltage = frame.data[5] | frame.data[4] << 8 | frame.data[3] << 16 | frame.data[2] << 24;
+                    if (frame.data[0] == IVT_NU1)
+                    {
+                        battery_values.actualVoltage = frame.data[5] | frame.data[4] << 8 | frame.data[3] << 16 | frame.data[2] << 24;
+                    }
+                    break;
+                /** Actual Current measurement from IVT */
+                case IVT_MSG_RESULT_AS:
+                    if (frame.data[0] == IVT_NQ)
+                    {
+                        battery_values.CurrentCounter = frame.data[5] | frame.data[4] << 8 | frame.data[3] << 16 | frame.data[2] << 24;
+                    }
+                    break;
+                /** Case for the Unit Test*/
+                case TEST_RXTHREAD_ID:
+                    LOG_DBG("Test message received. Giving semaphore.\n");
+                    k_sem_give(&test_ack_sem); // Let the unit test know it was received
+                    break;
+
+                default:
+                    LOG_WRN("Unknown CAN message ID: 0x%X", frame.id);
+                    break;
                 }
-                /* else if (frame.data[0] == IVT_NU2)
-                {
-                    //battery_values.actualVoltages[1] = frame.data[5] | frame.data[4] << 8 | frame.data[3] << 16 | frame.data[2] << 24;
-                }
-                else if (frame.data[0] == IVT_NU3)
-                {
-                    //battery_values.actualVoltages[2] = frame.data[5] | frame.data[4] << 8 | frame.data[3] << 16 | frame.data[2] << 24;
-                } */
             }
-            else if (frame.id == IVT_MSG_RESULT_T)
-            {
-                return;
-            }
-            else if (frame.id == IVT_MSG_RESULT_AS)
-            {
-                if (frame.data[0] == IVT_NQ)
-                {
-                    battery_values.CurrentCounter = frame.data[5] | frame.data[4] << 8 | frame.data[3] << 16 | frame.data[2] << 24;
-                }
-            }
-            else if (frame.id == TEST_RXTHREAD_ID)
-            {
-                LOG_DBG("Test message received. Giving semaphore.\n");
-                k_sem_give(&test_ack_sem); // Let the unit test know it was received
-            }
-        }
         else
         {
             LOG_DBG("No message in queue\n");
         }
     }
 }
-
-/** @brief Function to send CAN messages with 8 bytes of data
- *  @param Message ID
- *  @param TxBuffer Pointer to data buffer
- *  @retval 0 on success, negative error code otherwise
- */ 
+/**
+ * @brief Sends an 8-byte CAN frame to the specified address.
+ *
+ * @param address Target CAN ID.
+ * @param TxBuffer Pointer to 8-byte data buffer.
+ * @return 0 on success, negative error code otherwise.
+ */
 int can_send_8bytes(uint32_t address, uint8_t *TxBuffer)
 {
     struct can_frame frame = {
@@ -205,12 +195,14 @@ int can_send_8bytes(uint32_t address, uint8_t *TxBuffer)
     return 0;
 }
 
-/** @brief Function to send CAN messages with variable length 
- *  @param Message ID
- *  @param TxBuffer Pointer to data buffer
- *  @param length of the data to send
- *  @retval 0 on success, negative error code otherwise
- */ 
+/**
+ * @brief Sends a CAN frame with specified byte length.
+ *
+ * @param address Target CAN ID.
+ * @param TxBuffer Pointer to data buffer.
+ * @param length Number of bytes to send.
+ * @return 0 on success, error code otherwise.
+ */
 int can_send_ivt_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length)
 {
     struct can_frame frame = {
@@ -236,10 +228,12 @@ int can_send_ivt_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length)
     return 0;
 }
 
-/** @brief Function to send ECU status and battery information
- *  This function sends the current status of the battery management system
- *  @retval 0 on success, negative error code otherwise
- */ 
+/**
+ * @brief Formats and sends sensor data to the ECU.
+ *
+ * @param GPIO_Input GPIO input encoding system status.
+ * @return 0 on success, error code otherwise.
+ */
 int can_send_ecu(void)
 {
     uint8_t can_data[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -271,33 +265,27 @@ int can_ivt_init(void)
 
     // Set sensor mode to STOP
     uint8_t can_data0[] = {SET_MODE, 0x00, 0x01, 0x00, 0x00};
-    status |= can_send_ivt_nbytes(IVT_MSG_COMMAND, can_data0, 5);
+    status |= can_send_ivt_nbytes(IVT_MSG_COMMAND, can_data0, ARRAY_SIZE(can_data0));
     k_msleep(10);
 
     // Set current measurement to CYCLIC 100 Hz
     uint8_t can_data1[] = {(MUX_SETCONFIG | IVT_NCURRENT), CYCLIC, (CYCLETIME >> 8) & 0xFF, CYCLETIME & 0xFF};
-    status |= can_send_ivt_nbytes(IVT_MSG_COMMAND, can_data1, 4);
+    status |= can_send_ivt_nbytes(IVT_MSG_COMMAND, can_data1, ARRAY_SIZE(can_data1));
     k_msleep(10);
 
     // Enable Voltage Measurement
     uint8_t can_data2[] = {(MUX_SETCONFIG | IVT_NU1), CYCLIC, (CYCLETIME >> 8) & 0xFF, CYCLETIME & 0xFF};
-    status |= can_send_ivt_nbytes(IVT_MSG_COMMAND, can_data2, 4);
+    status |= can_send_ivt_nbytes(IVT_MSG_COMMAND, can_data2, ARRAY_SIZE(can_data2));
     k_msleep(10);
-    /*
-    uint8_t can_data3[] = {(MUX_SETCONFIG | IVT_NU2), CYCLIC, (CYCLETIME >> 8) & 0xFF, CYCLETIME & 0xFF};
-    status |= can_send_ivt_nbytes(IVT_MSG_COMMAND, can_data3, 4);
-    k_msleep(10);
-    uint8_t can_data4[] = {(MUX_SETCONFIG | IVT_NU3), CYCLIC, (CYCLETIME >> 8) & 0xFF, CYCLETIME & 0xFF};
-    status |= can_send_ivt_nbytes(IVT_MSG_COMMAND, can_data4, 4);
-    k_msleep(10);
-    */
+
     // Enable Current Counter
-   	uint8_t can_data5[] = {(MUX_SETCONFIG|IVT_NQ), CYCLIC, (CYCLETIME >> 8) & 0xFF, CYCLETIME & 0xFF};
-	status |= can_send_ivt_nbytes(IVT_MSG_COMMAND, can_data5, 4);
+   	uint8_t can_data3[] = {(MUX_SETCONFIG|IVT_NQ), CYCLIC, (CYCLETIME >> 8) & 0xFF, CYCLETIME & 0xFF};
+	status |= can_send_ivt_nbytes(IVT_MSG_COMMAND, can_data3, ARRAY_SIZE(can_data3));
+    k_msleep(10);
+
     // Set sensor mode to RUN
-    k_msleep(100);
-    uint8_t can_datan[] = {SET_MODE, 0x01, 0x01, 0x00, 0x00};
-    status |= can_send_ivt_nbytes(IVT_MSG_COMMAND, can_datan, 5);
+    uint8_t can_data4[] = {SET_MODE, 0x01, 0x01, 0x00, 0x00};
+    status |= can_send_ivt_nbytes(IVT_MSG_COMMAND, can_data4, ARRAY_SIZE(can_data4));
     k_msleep(10);
 
     return status;

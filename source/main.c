@@ -35,8 +35,7 @@ typedef enum
 
 int main(void)
 {
-	int ret; 
-	bool led_state = true;
+	int ret;
 
 	ret = gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
 	if (ret < 0) {
@@ -69,7 +68,6 @@ int main(void)
 		if (ret < 0) {
 			return 0;
 		}
-		led_state = !led_state;
 		k_msleep(SLEEP_TIME_MS);
 
 
@@ -145,8 +143,8 @@ int main(void)
 			}
 			break;
 		default:
-			LOG_INF("default case");
-			break;
+			LOG_ERR("Invalid State");
+			return 0;
 		}
 
 	}

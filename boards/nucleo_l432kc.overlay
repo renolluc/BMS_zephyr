@@ -1,6 +1,3 @@
-/{
-};
-
 &can1 {
     status       = "okay";
     bitrate      = <500000>;

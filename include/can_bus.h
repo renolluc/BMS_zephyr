@@ -87,9 +87,6 @@ extern struct k_sem test_ack_sem;
 // 6 SOC
 // 7 reserved
 
-//wird vermutlich nicht mehr gebraucht
-//extern CAN_HandleTypeDef hcan1;
-
 /**
  * @brief Initializes CAN controller and receive thread.
  *
