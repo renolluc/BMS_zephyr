@@ -27,7 +27,7 @@ LOG_MODULE_REGISTER(shutdown_circuit, LOG_LEVEL_WRN);
 /**
  * @brief Initializes the SDC GPIO and internal timers.
  *
- * @return 0 on success, negative errno otherwise.
+ * @retval 0 on success, negative error code otherwise.
  */
 int sdc_init(void)
 {
@@ -65,8 +65,8 @@ int sdc_init(void)
  *
  * Must be called periodically
  *
- * @return 0 If SDC-Out high or error not yet latched or
- * @return <0 If SDC-Error latched (after ≥3 errors)
+ * @retval 0 If SDC-Out high or error not yet latched or
+ * @retval <0 If SDC-Error latched (after ≥3 errors)
  */
 int sdc_check_state(void)
 {
@@ -96,6 +96,8 @@ int sdc_check_state(void)
  *
  * Must be called periodically
  *
+ * @retval 0 If no falling edge detected, or
+ * @retval -1 If a falling edge was detected, relays de-energized, and ERROR_SDC set.
  */
 int sdc_check_feedback(void)
 {

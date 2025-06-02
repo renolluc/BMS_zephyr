@@ -17,7 +17,9 @@
 #include <stdlib.h>
 /* Project includes */
 
-/** @brief UART device label for Zephyr device tree */
+
+
+/** @brief Zephyr UART device binding */
 #define SERIAL_DEVICE DT_LABEL(DT_NODELABEL(usart2))
 
  /**

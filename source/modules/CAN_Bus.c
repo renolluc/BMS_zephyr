@@ -24,33 +24,39 @@
  */
 LOG_MODULE_REGISTER(can, LOG_LEVEL_WRN);
 
+/** @brief Can defines */
 #define CAN_MSG_ID 0x123
 #define SLEEP_TIME_MS 1000
 
-// Define loopback mode for testing
+/** @brief defines Loopback for testing */
 #ifdef CONFIG_ZTEST
 #define CONFIG_LOOPBACK_MODE
 #endif
 
-// Thread defines
+/** @name Thread defines */
 #define RX_THREAD_STACK_SIZE 1024
 #define RX_THREAD_PRIORITY -6
 K_THREAD_STACK_DEFINE(can_rx_thread_stack, RX_THREAD_STACK_SIZE);
 struct k_thread can_rx_thread_data;
 
-// Get CAN device
+/** @brief CAN device define */ 
 const struct device *const can_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_canbus));
 
-// struct for test feedback
+/** @brief semaphore for test feedback*/ 
 struct k_sem test_ack_sem;
 
-// Define message queue
+/** @brief  Define message queue */ 
 CAN_MSGQ_DEFINE(can_msgq, 10);
 
-// private variables set by the ECU
-static int ecu_ok_flag = 0;
+/** @brief private variable set by the ECU */ 
+static bool ecu_ok_flag = 0;
 
-// Callback function for sending messages
+/** @brief Callback function for sending messages
+ *  @param dev Pointer to the CAN device (unused)
+ *  @param error Error code from the send operation
+ *  @param arg Pointer to user-defined argument (sender name)
+ *  
+ */ 
 void tx_irq_callback(const struct device *dev, int error, void *arg)
 {
     char *sender = (char *)arg;
@@ -63,7 +69,11 @@ void tx_irq_callback(const struct device *dev, int error, void *arg)
     }
 }
 
-// Thread for receiving CAN messages
+/** @brief Thread for receiving CAN messages 
+ *  @param arg1 Pointer to first argument (unused)
+ *  @param arg2 Pointer to second argument (unused)
+ *  @param arg3 Pointer to third argument (unused)
+ * */ 
 void can_thread(void *arg1, void *arg2, void *arg3)
 {
     ARG_UNUSED(arg1);
@@ -165,7 +175,11 @@ void can_thread(void *arg1, void *arg2, void *arg3)
     }
 }
 
-// Function to send CAN messages
+/** @brief Function to send CAN messages with 8 bytes of data
+ *  @param Message ID
+ *  @param TxBuffer Pointer to data buffer
+ *  @retval 0 on success, negative error code otherwise
+ */ 
 int can_send_8bytes(uint32_t address, uint8_t *TxBuffer)
 {
     struct can_frame frame = {
@@ -191,6 +205,12 @@ int can_send_8bytes(uint32_t address, uint8_t *TxBuffer)
     return 0;
 }
 
+/** @brief Function to send CAN messages with variable length 
+ *  @param Message ID
+ *  @param TxBuffer Pointer to data buffer
+ *  @param length of the data to send
+ *  @retval 0 on success, negative error code otherwise
+ */ 
 int can_send_ivt_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length)
 {
     struct can_frame frame = {
@@ -216,6 +236,10 @@ int can_send_ivt_nbytes(uint32_t address, uint8_t *TxBuffer, uint8_t length)
     return 0;
 }
 
+/** @brief Function to send ECU status and battery information
+ *  This function sends the current status of the battery management system
+ *  @retval 0 on success, negative error code otherwise
+ */ 
 int can_send_ecu(void)
 {
     uint8_t can_data[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -238,7 +262,10 @@ int can_send_ecu(void)
     return can_send_8bytes(ADDR_ECU_TX, can_data);
 }
 
-int can_ivt_init()
+/** @brief This function initializes IVT  
+ *  @retval 0 on success, negative error code otherwise
+ */ 
+int can_ivt_init(void)
 {
     int status = 0;
 
@@ -276,12 +303,18 @@ int can_ivt_init()
     return status;
 }
 
-int can_get_ecu_state()
+/** @brief Function to get the current state of the ECU
+ *  @retval true if ECU is OK, false if not
+ */ 
+bool can_get_ecu_state()
 {
     return ecu_ok_flag;
 }
 
-// Function to initialize CAN Bus
+/** @brief Function to initialize CAN Bus
+ *  @retval 0 on success, negative error code otherwise
+ */ 
+// 
 int can_init()
 {
     int ret;
