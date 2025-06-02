@@ -4,7 +4,7 @@
 #include <SPI_MB.h>
 #include <zephyr/sys/crc.h>
 
-
+void spi_create_command(uint16_t cmd_in, uint8_t *cmd_out);
 
 ZTEST(spi_tests, test_pec_example0)
 {
@@ -49,18 +49,19 @@ ZTEST(spi_tests, test_create_command)
  __weak void spi_write_registergroup(uint16_t command, uint8_t *data)
 {
     printk("Mock spi_write_registergroup called with command 0x%04X\n", command);
-    return 0;
+    return;
 }
 
 __weak void spi_send_command(uint16_t command)
 {
     printk("Mock spi_send_command called with command 0x%04X\n", command);
-    return 0;
+    return;
 }
 
 __weak int spi_wakeup_adbms1818(void)
 {
     printk("Mock spi_wakeup_adbms1818 called\n");
+    return 0;
 }
 
 ZTEST(spi_tests, test_discharge_mapping_logic)

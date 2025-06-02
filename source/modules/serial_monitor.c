@@ -69,6 +69,7 @@
      LOG_INF("UART device %s is ready\n", uart_dev->name);
 
      uart_callback_set(uart_dev, serial_callback, NULL);
+     LOG_INF("Serial monitor initialized\n");
  }
  
  /**

@@ -99,7 +99,7 @@ int sdc_check_state(void)
  */
 int sdc_check_feedback(void)
 {
-    static bool prev_state = true;
+    static bool prev_state = false;
     bool curr_sdc_in_state;
 
 

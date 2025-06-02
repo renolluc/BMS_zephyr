@@ -83,8 +83,10 @@ void can_thread(void *arg1, void *arg2, void *arg3)
     // While loop to receive messages
     while (1)
     {
-        // send data to ECU
-        can_send_ecu();
+        // send data to ECU, don't send in ZTEST mode
+        #ifndef CONFIG_ZTEST
+            can_send_ecu();
+        #endif
 
         if (k_msgq_get(&can_msgq, &frame, K_MSEC(100)) == 0)
         {
