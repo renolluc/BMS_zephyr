@@ -244,7 +244,7 @@ int can_send_ecu(void)
     can_data[3] = total_volt >> 8;
     uint16_t actualCurrent = battery_values.actualCurrent;
     can_data[4] = (uint8_t)(actualCurrent / 1000);
-    can_data[5] = battery_volt2celsius(battery_values.highestCellTemp);
+    can_data[5] = can_volt2celsius(battery_values.highestCellTemp);
     if (battery_values.CurrentCounter > AKKU_CAPACITANCE)
     {
         can_data[6] = 0;
@@ -299,10 +299,59 @@ bool can_get_ecu_state()
     return ecu_ok_flag;
 }
 
+/**
+ * @brief Convert a raw voltage reading to temperature in degrees Celsius.
+ *
+ * This function applies a 10th‑order calibration polynomial to the input voltage
+ * (expressed in units of 100 µV) to compute the corresponding temperature.
+ *
+ * Boundary conditions:
+ *   - If the reading is above 23000 (i.e. > 2.3 V), returns 0 °C.
+ *   - If the reading is below  2000 (i.e. < 0.2 V), returns 100 °C.
+ *
+ * @param volt_100uV Voltage reading in units of 100 µV.
+ * @return Temperature in degrees Celsius as an 8‑bit unsigned integer.
+ */
+uint8_t can_volt2celsius(uint16_t volt_100uV)
+{
+    /* Handle out‑of‑range inputs */
+    if (volt_100uV > 23000U)
+    {
+        return 0U;
+    }
+    else if (volt_100uV < 2000U)
+    {
+        return 100U;
+    }
+
+    /* Calibration polynomial coefficients (a0..a10), single‑precision */
+    static const float coefficients[11] = {
+        1.65728946e+02f,
+        -5.76649020e-02f,
+        1.80075051e-05f,
+        -3.95278974e-09f,
+        5.86752736e-13f,
+        -5.93033515e-17f,
+        4.07565006e-21f,
+        -1.87118391e-25f,
+        5.48516319e-30f,
+        -9.27411410e-35f,
+        6.87565181e-40f};
+
+    /* Evaluate polynomial via Horner's method */
+    float result = coefficients[10];
+    for (int i = 9; i >= 0; --i)
+    {
+        result = result * (float)volt_100uV + coefficients[i];
+    }
+
+    /* Cast to uint8_t for return (°C) */
+    return (uint8_t)result;
+}
+
 /** @brief Function to initialize CAN Bus
  *  @retval 0 on success, negative error code otherwise
  */ 
-// 
 int can_init()
 {
     int ret;
