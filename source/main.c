@@ -54,7 +54,7 @@ int main(void)
 	}
 
 	// variables
-	SystemState_t state = STATE_TEST;
+	SystemState_t state = STATE_IDLE;
 	static bool previous_ecu_state = 0;
 	static bool current_ecu_state = 0;
 	uint32_t event_flags = 0;

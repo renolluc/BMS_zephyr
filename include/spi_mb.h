@@ -105,10 +105,10 @@
 
 
 /** @brief Settings */
-#define NUM_OF_CLIENTS 8
+#define NUM_OF_CLIENTS 2
 #define DUMMY 0xAA
 /** @brief Frequency for SPI-Communication in Hz */
-#define SPI_FREQ 1000000
+#define SPI_FREQ 500000
 
 
 /** @brief Zephyr SPI device binding */

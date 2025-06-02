@@ -80,15 +80,6 @@
  */
  void serial_monitor(const uint8_t *data, uint16_t size)
  {
-    uint32_t data_terminal_ready = 0;
-    int ret = 0;
-
-    //if uart is not connected, do not send data
-    ret = uart_line_ctrl_get(uart_dev, UART_LINE_CTRL_DTR, &data_terminal_ready);
-    if (ret < 0) {
-        LOG_ERR("Failed to get DTR line control: %d", ret);
-        return;
-    }
 
     static const uint8_t start[] = {0xFF, 0xA3};
     static const uint8_t stop[]  = {0xFF, 0xB3};
