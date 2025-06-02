@@ -135,4 +135,11 @@ bool can_get_ecu_state();
  */
 int can_ivt_init(void);
 
+/**
+ * @brief Converts raw voltage (in 100 µV units) to temperature in °C.
+ * @param volt_100uV Voltage in units of 100 µV
+ * @return Temperature in degrees Celsius
+ */
+uint8_t can_volt2celsius(uint16_t volt_100uV);
+
 #endif

@@ -131,13 +131,6 @@ uint8_t battery_get_status_code(void);
 uint8_t battery_get_error_code(void);
 
 /**
- * @brief Converts raw voltage (in 100 µV units) to temperature in °C.
- * @param volt_100uV Voltage in units of 100 µV
- * @return Temperature in degrees Celsius
- */
-uint8_t battery_volt2celsius(uint16_t volt_100uV);
-
-/**
  * @brief Sets error flags in the battery error field.
  * @param Bitmask (8-bit) representing error flags to set
  */
@@ -175,6 +168,5 @@ void battery_refresh_ivt_timer(void);
  * @return 0 on successful precharge, <0 if feedback is incorrect
  */
 int battery_precharge_logic(void);
-
 
 #endif /* INC_BATTERY_H_ */

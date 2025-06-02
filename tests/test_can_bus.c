@@ -57,4 +57,17 @@ ZTEST(can_bus_tests, test_can_rx_thread)
     zassert_equal(ret, 0, "Test message was not handled in time");
 }
 
+ZTEST(can_bus_tests, test_volt2celsius_boundaries)
+{
+    zassert_equal(can_volt2celsius(24000), 0, ">2.3V should return 0°C");
+    zassert_equal(can_volt2celsius(1000), 100, "<0.2V should return 100°C");
+    zassert_equal(can_volt2celsius(50000), 0, "Extreme high value should still return 0°C");
+}
+
+ZTEST(can_bus_tests, test_volt2celsius_polynomial)
+{
+    uint8_t temp = can_volt2celsius(10000);
+    zassert_true(temp > 0 && temp < 100, "Temperature from polynomial out of range");
+}
+
 ZTEST_SUITE(can_bus_tests, NULL,  can_init_wrapper, NULL, NULL, NULL);

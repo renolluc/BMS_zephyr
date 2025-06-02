@@ -49,17 +49,4 @@ ZTEST(battery, test_calc_values_basic)
     zassert_equal(val->meanCellTemp, 70, "Mean temperature incorrect");
 }
 
-ZTEST(battery, test_volt2celsius_boundaries)
-{
-    zassert_equal(battery_volt2celsius(24000), 0, ">2.3V should return 0°C");
-    zassert_equal(battery_volt2celsius(1000), 100, "<0.2V should return 100°C");
-    zassert_equal(battery_volt2celsius(50000), 0, "Extreme high value should still return 0°C");
-}
-
-ZTEST(battery, test_volt2celsius_polynomial)
-{
-    uint8_t temp = battery_volt2celsius(10000);
-    zassert_true(temp > 0 && temp < 100, "Temperature from polynomial out of range");
-}
-
 ZTEST_SUITE(battery, NULL, NULL, NULL, NULL, NULL);
