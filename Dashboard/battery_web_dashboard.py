@@ -5,13 +5,14 @@ import threading
 import serial
 import time
 import serial.tools.list_ports
+import argparse
+import sys
+import re
 import numpy as np
 
 app = Flask(__name__)
 
 battery_data = "<b>Waiting for data...</b>"
-voltage_grid = [[0.0 for _ in range(18)] for _ in range(8)]
-temperature_grid = [[0.0 for _ in range(8)] for _ in range(8)]
 log_buffer = []
 frame_count = 0
 blink = False
@@ -19,7 +20,7 @@ lock = threading.Lock()
 
 START_FRAME = b'\xFF\xA3'
 STOP_FRAME = b'\xFF\xB3'
-MIN_FRAME_LENGTH = 476
+MIN_FRAME_LENGTH = 100
 READ_CHUNK_SIZE = 512
 BAUDRATE = 115200
 MAX_LOG_LINES = 100
@@ -86,46 +87,61 @@ def parse_frame(data):
         return f"<b>Parse error:</b> {e}"
 
 def uart_reader(port="/dev/ttyACM0"):
-    global battery_data, voltage_grid, temperature_grid, log_buffer
+    global battery_data, voltage_grid, temperature_grid, balance_grid, log_buffer
     ser = serial.Serial(port, BAUDRATE, timeout=0.1)
     buffer = bytearray()
+    line_buf = ''
+    timestamp_pattern = re.compile(r"^\[\d{2}:\d{2}:\d{2}\.\d{3},\d{3}\]")
+    START_SEQ = bytes.fromhex('FFA3')
+    STOP_SEQ = bytes.fromhex('FFB3')
     print("[UART] Reader started.")
 
     while True:
-        line = ser.readline()
+        byte = ser.read(1)
+        if not byte:
+            continue
+
+        # Append to buffer for frame extraction
+        buffer += byte
+
+        # Decode byte for log line buffering
         try:
-            text = line.decode(errors='ignore').strip()
-            if text.startswith("["):
-                with lock:
-                    log_buffer.append(text)
+            char = byte.decode('utf-8', errors='ignore')
+        except:
+            char = ''
+
+        if char:
+            line_buf += char
+            if char == '\n':
+                # Check if line starts with timestamp
+                if timestamp_pattern.match(line_buf):
+                    log_buffer.append(line_buf)
                     if len(log_buffer) > MAX_LOG_LINES:
                         log_buffer = log_buffer[-MAX_LOG_LINES:]
-        except:
-            pass
+                    #sys.stdout.write(line_buf)
+                    #sys.stdout.flush()
+                # Reset line buffer regardless
+                line_buf = ''
 
-        buffer += ser.read(READ_CHUNK_SIZE)
-        start = buffer.find(START_FRAME)
-        end = buffer.find(STOP_FRAME, start + 250)
+        # Check for start marker in buffer
+        start_idx = buffer.find(START_SEQ)
+        if start_idx != -1:
+            stop_idx = buffer.find(STOP_SEQ, start_idx + len(START_SEQ))
+            if stop_idx != -1:
+                # Extract full frame including markers
+                frame = buffer[start_idx: stop_idx + len(STOP_SEQ)]
+                hex_str = frame.hex().upper()
+                print(f"\n[UART FRAME] {hex_str}")
+                if len(frame) >= MIN_FRAME_LENGTH:
+                    with lock:
+                        raw = bytearray(frame[2:-2])  # Remove start and stop markers
+                        battery_data = parse_frame(raw)
+                        
+                        # fill the grids with data and add functions for that like in pare_frame, the rest of the grid should be filled with zeros
 
-        if start != -1 and end != -1 and end > start:
-            frame = buffer[start + 2:end]
-            buffer = buffer[end + 2:]
-            if len(frame) >= MIN_FRAME_LENGTH:
-                with lock:
-                    battery_data = parse_frame(frame)
-                    volt_offset = 28 + 8
-                    temp_offset = volt_offset + 8*18*2
 
-                    for row in range(8):
-                        for col in range(18):
-                            idx = volt_offset + 2 * (row * 18 + col)
-                            raw = frame[idx] + (frame[idx+1] << 8)
-                            voltage_grid[row][col] = round(raw / 10000, 3)
-
-                        for col in range(8):
-                            idx = temp_offset + 2 * (row * 3 + col)
-                            raw = frame[idx] + (frame[idx+1] << 8)
-                            temperature_grid[row][col] = round(calc_temp(raw), 1)
+                # Remove processed bytes                
+                buffer = buffer[stop_idx + len(STOP_SEQ):]
 
 @app.route("/")
 def index():
@@ -141,7 +157,8 @@ def battery_json():
     with lock:
         return jsonify({
             "voltage_grid": voltage_grid,
-            "temperature_grid": temperature_grid
+            "temperature_grid": temperature_grid,
+            "balance_grid": balance_grid
         })
 
 @app.route("/logs")
