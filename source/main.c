@@ -34,7 +34,7 @@ static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 /** @brief define sleep time; 1000 msec = 1 sec */
 #define SLEEP_TIME_MS 250
 /** @brief define precharge timeout; 1000 msec = 1 sec */
-#define PRECHARGE_TIMEOUT_MS 1000 // 1
+#define PRECHARGE_TIMEOUT_MS 10000 // 1
 
 /** @brief typedef for the Statemachine */
 typedef enum
