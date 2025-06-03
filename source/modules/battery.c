@@ -35,7 +35,7 @@ BatterySystemTypeDef battery_values;
 #define BATTERY_MONITOR_THREAD_PRIORITY -5
 K_THREAD_STACK_DEFINE(battery_monitor_thread_stack, BATTERY_MONITOR_STACK_SIZE);
 struct k_thread battery_monitor_thread_data;
-#define SLEEP_TIME_MS 100
+#define SLEEP_TIME_MS 70
 
 /**
  * @brief Clears all stored error flags in the battery system.

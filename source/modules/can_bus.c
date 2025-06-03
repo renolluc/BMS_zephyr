@@ -107,7 +107,7 @@ void can_thread(void *arg1, void *arg2, void *arg3)
                 switch (frame.id)
                 {
                 /** ECU Message */
-                case ADDR_ECU_TX:
+                case ADDR_ECU_RX:
                     if (frame.data[0] == BATTERY_ON)
                     {
                         // Set ecu_ok_flag high
