@@ -9,6 +9,7 @@
         #voltageCanvas, #temperatureCanvas {
             margin-top: 5px;
             border: 1px solid #ccc;
+            cursor: pointer;
         }
         #log-view {
             background: #ccc;
@@ -62,7 +63,11 @@
 
     <script>
     // Change this to match your backend's CLIENTS constant:
-    const CLIENTS = 2;
+    const CLIENTS = 8;
+
+    // These will hold any user‐entered values for cells that were "n/a":
+    const manualVoltage = {};
+    const manualTemp    = {};
 
     function updateMonitor() {
         fetch("/battery")
@@ -81,50 +86,72 @@
             });
     }
 
-    // Draw voltage as CLIENTS rows × 18 columns, then overlay blue where balance bit = 1.
+    // Draw voltage heatmap:
+    // - Normal cells (idx < voltageArray.length) are color‐mapped.
+    // - Cells with manualVoltage overrides behave like normal cells.
+    // - Cells idx >= voltageArray.length and no override are gray with "n/a".
     function drawVoltageHeatmap(voltageArray, balanceArray) {
         const canvas = document.getElementById("voltageCanvas");
         const ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         const cols = 18;
-        const totalCells = voltageArray.length;
-        const rows = Math.ceil(totalCells / cols);
-
-        // If for some reason the backend didn't send exactly CLIENTS * 18, adjust rows accordingly:
-        // rows = voltageArray.length / cols
+        const totalCells = CLIENTS * cols; 
+        const rows = CLIENTS;
 
         const cellW = canvas.width / cols;
         const cellH = canvas.height / rows;
 
-        // Compute min/max for color normalization:
-        const flatVolt = voltageArray.slice(); // just a copy
-        let minV = Math.min(...flatVolt);
-        let maxV = Math.max(...flatVolt);
-        if (maxV === minV) { maxV += 1e-6; } // avoid divide by zero
-
-        for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) {
-                const idx = r * cols + c;
-                if (idx >= voltageArray.length) {
-                    // No cell here
-                    continue;
-                }
-                const v = voltageArray[idx];
-                const norm = (v - minV) / (maxV - minV);
-                const blue = Math.floor(255 * (1 - norm));
-                const red = Math.floor(255 * norm);
-                ctx.fillStyle = `rgb(${red}, 0, ${blue})`;
-                ctx.fillRect(c * cellW, r * cellH, cellW, cellH);
-
-                // Draw the voltage text (white, small)
-                ctx.fillStyle = "white";
-                ctx.font = "12px monospace";
-                ctx.fillText(v.toFixed(3), c * cellW + 4, r * cellH + 14);
+        // Build an array of "effective" voltages, combining real data + manual overrides:
+        const effective = new Array(rows * cols).fill(null);
+        // 1) Fill from real data:
+        for (let i = 0; i < voltageArray.length && i < rows * cols; i++) {
+            effective[i] = voltageArray[i];
+        }
+        // 2) Fill from manual overrides, if any:
+        for (const idxStr in manualVoltage) {
+            const idx = Number(idxStr);
+            if (!isNaN(idx) && idx >= 0 && idx < rows * cols) {
+                effective[idx] = manualVoltage[idx];
             }
         }
 
-        // Now overlay blue‐tinted rectangles for any balancing bits
+        // Compute min/max for coloring only among the cells that have numeric values:
+        const numericVals = effective.filter(v => v !== null);
+        let minV = numericVals.length ? Math.min(...numericVals) : 0;
+        let maxV = numericVals.length ? Math.max(...numericVals) : 1;
+        if (maxV === minV) { maxV += 1e-6; } // avoid zero‐range
+
+        // Draw every cell in an CLIENTS×18 grid:
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const idx = r * cols + c;
+                const val = effective[idx];
+
+                if (val === null) {
+                    // “n/a” cell
+                    ctx.fillStyle = "#777";   // gray
+                    ctx.fillRect(c * cellW, r * cellH, cellW, cellH);
+                    ctx.fillStyle = "white";
+                    ctx.font = "12px monospace";
+                    ctx.fillText("n/a", c * cellW + 4, r * cellH + 14);
+                } else {
+                    // Numeric cell → color‐map from blue→red
+                    const norm = (val - minV) / (maxV - minV);
+                    const blue = Math.floor(255 * (1 - norm));
+                    const red  = Math.floor(255 * norm);
+                    ctx.fillStyle = `rgb(${red}, 0, ${blue})`;
+                    ctx.fillRect(c * cellW, r * cellH, cellW, cellH);
+
+                    // Draw the numeric text (white, small)
+                    ctx.fillStyle = "white";
+                    ctx.font = "12px monospace";
+                    ctx.fillText(val.toFixed(3), c * cellW + 4, r * cellH + 14);
+                }
+            }
+        }
+
+        // Overlay balance‐bits (semi‐transparent blue) on real cells and manual cells alike:
         if (Array.isArray(balanceArray) && balanceArray.length === rows) {
             for (let r = 0; r < rows; r++) {
                 const bmp = balanceArray[r];
@@ -138,39 +165,59 @@
         }
     }
 
-    // Draw temperature as CLIENTS rows × 8 columns
+    // Draw temperature heatmap similarly (CLIENTS × 8):
     function drawTemperatureHeatmap(tempArray) {
         const canvas = document.getElementById("temperatureCanvas");
         const ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         const cols = 8;
-        const totalCells = tempArray.length;
-        const rows = Math.ceil(totalCells / cols);
+        const totalCells = CLIENTS * cols;
+        const rows = CLIENTS;
         const cellW = canvas.width / cols;
         const cellH = canvas.height / rows;
 
-        const flatTemp = tempArray.slice();
-        let minT = Math.min(...flatTemp);
-        let maxT = Math.max(...flatTemp);
+        // Combine real + manual:
+        const effective = new Array(rows * cols).fill(null);
+        for (let i = 0; i < tempArray.length && i < rows * cols; i++) {
+            effective[i] = tempArray[i];
+        }
+        for (const idxStr in manualTemp) {
+            const idx = Number(idxStr);
+            if (!isNaN(idx) && idx >= 0 && idx < rows * cols) {
+                effective[idx] = manualTemp[idx];
+            }
+        }
+
+        const numericVals = effective.filter(v => v !== null);
+        let minT = numericVals.length ? Math.min(...numericVals) : 0;
+        let maxT = numericVals.length ? Math.max(...numericVals) : 1;
         if (maxT === minT) { maxT += 1e-6; }
 
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
                 const idx = r * cols + c;
-                if (idx >= tempArray.length) {
-                    continue;
-                }
-                const t = tempArray[idx];
-                const norm = (t - minT) / (maxT - minT);
-                const blue = Math.floor(255 * (1 - norm));
-                const red = Math.floor(255 * norm);
-                ctx.fillStyle = `rgb(${red}, 0, ${blue})`;
-                ctx.fillRect(c * cellW, r * cellH, cellW, cellH);
+                const t = effective[idx];
 
-                ctx.fillStyle = "white";
-                ctx.font = "12px monospace";
-                ctx.fillText(t.toFixed(1) + "°C", c * cellW + 4, r * cellH + 14);
+                if (t === null) {
+                    // “n/a” cell
+                    ctx.fillStyle = "#777";
+                    ctx.fillRect(c * cellW, r * cellH, cellW, cellH);
+                    ctx.fillStyle = "white";
+                    ctx.font = "12px monospace";
+                    ctx.fillText("n/a", c * cellW + 4, r * cellH + 14);
+                } else {
+                    // Numeric cell → color‐map
+                    const norm = (t - minT) / (maxT - minT);
+                    const blue = Math.floor(255 * (1 - norm));
+                    const red  = Math.floor(255 * norm);
+                    ctx.fillStyle = `rgb(${red}, 0, ${blue})`;
+                    ctx.fillRect(c * cellW, r * cellH, cellW, cellH);
+
+                    ctx.fillStyle = "white";
+                    ctx.font = "12px monospace";
+                    ctx.fillText(t.toFixed(1) + "°C", c * cellW + 4, r * cellH + 14);
+                }
             }
         }
     }
@@ -179,10 +226,6 @@
         fetch("/battery-json")
             .then(r => r.json())
             .then(data => {
-                // Expect data.voltage_grid (1D array length = CLIENTS*18)
-                //         data.temperature_grid (1D length = CLIENTS*8)
-                //         data.balance_grid (1D length = CLIENTS)
-
                 if (Array.isArray(data.voltage_grid) && Array.isArray(data.balance_grid)) {
                     drawVoltageHeatmap(data.voltage_grid, data.balance_grid);
                 }
@@ -205,18 +248,87 @@
             });
     }
 
-    setInterval(() => {
+    function updateAll() {
         updateMonitor();
         updateGraphics();
         updateLogs();
-    }, 1000);
+    }
 
-    // Run once immediately
-    updateMonitor();
-    updateGraphics();
-    updateLogs();
+    // Set up click handlers to prompt user for manual entry if "n/a" is clicked:
+    window.addEventListener("DOMContentLoaded", () => {
+        const vCanvas = document.getElementById("voltageCanvas");
+        const tCanvas = document.getElementById("temperatureCanvas");
 
-    window.addEventListener("load", () => {
+        vCanvas.addEventListener("click", (e) => {
+            const rect = vCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const cols = 18, rows = CLIENTS;
+            const cellW = vCanvas.width / cols;
+            const cellH = vCanvas.height / rows;
+            const c = Math.floor(x / cellW);
+            const r = Math.floor(y / cellH);
+            const idx = r * cols + c;
+
+            // We need to fetch the latest data length to compare:
+            fetch("/battery-json")
+                .then(r => r.json())
+                .then(data => {
+                    const dataLen = data.voltage_grid.length;
+                    if (idx >= dataLen) {
+                        const input = prompt(`Enter a numeric voltage for cell index ${idx}:`);
+                        if (input !== null) {
+                            const num = parseFloat(input);
+                            if (!isNaN(num)) {
+                                manualVoltage[idx] = num;
+                                drawVoltageHeatmap(data.voltage_grid, data.balance_grid);
+                            } else {
+                                alert("Invalid number—please try again.");
+                            }
+                        }
+                    }
+                })
+                .catch(console.error);
+        });
+
+        tCanvas.addEventListener("click", (e) => {
+            const rect = tCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const cols = 8, rows = CLIENTS;
+            const cellW = tCanvas.width / cols;
+            const cellH = tCanvas.height / rows;
+            const c = Math.floor(x / cellW);
+            const r = Math.floor(y / cellH);
+            const idx = r * cols + c;
+
+            fetch("/battery-json")
+                .then(r => r.json())
+                .then(data => {
+                    const dataLen = data.temperature_grid.length;
+                    if (idx >= dataLen) {
+                        const input = prompt(`Enter a numeric temperature (°C) for cell index ${idx}:`);
+                        if (input !== null) {
+                            const num = parseFloat(input);
+                            if (!isNaN(num)) {
+                                manualTemp[idx] = num;
+                                drawTemperatureHeatmap(data.temperature_grid);
+                            } else {
+                                alert("Invalid number—please try again.");
+                            }
+                        }
+                    }
+                })
+                .catch(console.error);
+        });
+
+        // Start the polling loop:
+        setInterval(updateAll, 1000);
+        updateAll();
+
+        // Fade out splash screen after load:
         const splash = document.getElementById("splash-screen");
         if (splash) {
             splash.style.transition = "opacity 5s ease";
