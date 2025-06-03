@@ -22,14 +22,19 @@
     </style>
 </head>
 <body>
-    <div id="splash-screen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; display: flex; justify-content: center; align-items: center; z-index: 9999;">
-        <img src="/static/black_logo_white_background.jpg" alt="Zurich UAS Racing Logo" style="max-width: 1000px;">
+    <div id="splash-screen"
+         style="position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: white; display: flex; justify-content: center; align-items: center; z-index: 9999;">
+        <img src="/static/black_logo_white_background.jpg"
+             alt="Zurich UAS Racing Logo" style="max-width: 1000px;">
     </div>
 
     <div style="display: flex; align-items: center; gap: 20px;">
-        <img src="/static/black_logo_white_background.jpg" alt="Zurich UAS Racing Logo" height="50">
+        <img src="/static/black_logo_white_background.jpg"
+             alt="Zurich UAS Racing Logo" height="50">
         <h2>Battery Monitor</h2>
-        <div id="status-banner" style="color: red; font-weight: bold; margin-bottom: 10px;"></div>
+        <div id="status-banner"
+             style="color: red; font-weight: bold; margin-bottom: 10px;"></div>
     </div>
 
     <div style="display: flex; gap: 40px; align-items: flex-start;">
@@ -56,67 +61,116 @@
     </div>
 
     <script>
-    function updateMonitor() {
-        fetch("/battery").then(resp => resp.text()).then(html => {
-            const banner = document.getElementById("status-banner");
-            document.getElementById("monitor").innerHTML = html;
+    // Change this to match your backend's CLIENTS constant:
+    const CLIENTS = 2;
 
-            if (html.includes("Parse error")) {
-                banner.textContent = "❌ Warning: Invalid or false frame received!";
-            } else if (html.includes("Waiting for data")) {
-                banner.textContent = "⏳ Waiting for data from board...";
-            } else {
-                banner.textContent = "";
-            }
-        });
+    function updateMonitor() {
+        fetch("/battery")
+            .then(resp => resp.text())
+            .then(html => {
+                const banner = document.getElementById("status-banner");
+                document.getElementById("monitor").innerHTML = html;
+
+                if (html.includes("Parse error")) {
+                    banner.textContent = "❌ Warning: Invalid or false frame received!";
+                } else if (html.includes("Waiting for data")) {
+                    banner.textContent = "⏳ Waiting for data from board...";
+                } else {
+                    banner.textContent = "";
+                }
+            });
     }
 
-    function drawVoltageHeatmap(voltageArray) {
+    // Draw voltage as CLIENTS rows × 18 columns, then overlay blue where balance bit = 1.
+    function drawVoltageHeatmap(voltageArray, balanceArray) {
         const canvas = document.getElementById("voltageCanvas");
         const ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const cols = 18, rows = 8;
+
+        const cols = 18;
+        const totalCells = voltageArray.length;
+        const rows = Math.ceil(totalCells / cols);
+
+        // If for some reason the backend didn't send exactly CLIENTS * 18, adjust rows accordingly:
+        // rows = voltageArray.length / cols
+
         const cellW = canvas.width / cols;
         const cellH = canvas.height / rows;
-        const flat = voltageArray.flat();
-        const maxV = Math.max(...flat);
-        const minV = Math.min(...flat);
+
+        // Compute min/max for color normalization:
+        const flatVolt = voltageArray.slice(); // just a copy
+        let minV = Math.min(...flatVolt);
+        let maxV = Math.max(...flatVolt);
+        if (maxV === minV) { maxV += 1e-6; } // avoid divide by zero
 
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
-                const v = voltageArray[r][c];
+                const idx = r * cols + c;
+                if (idx >= voltageArray.length) {
+                    // No cell here
+                    continue;
+                }
+                const v = voltageArray[idx];
                 const norm = (v - minV) / (maxV - minV);
                 const blue = Math.floor(255 * (1 - norm));
                 const red = Math.floor(255 * norm);
                 ctx.fillStyle = `rgb(${red}, 0, ${blue})`;
                 ctx.fillRect(c * cellW, r * cellH, cellW, cellH);
+
+                // Draw the voltage text (white, small)
                 ctx.fillStyle = "white";
-                ctx.fillText(v.toFixed(3), c * cellW + 5, r * cellH + 15);
+                ctx.font = "12px monospace";
+                ctx.fillText(v.toFixed(3), c * cellW + 4, r * cellH + 14);
+            }
+        }
+
+        // Now overlay blue‐tinted rectangles for any balancing bits
+        if (Array.isArray(balanceArray) && balanceArray.length === rows) {
+            for (let r = 0; r < rows; r++) {
+                const bmp = balanceArray[r];
+                for (let c = 0; c < cols; c++) {
+                    if (bmp & (1 << c)) {
+                        ctx.fillStyle = "rgba(0, 0, 255, 0.3)";
+                        ctx.fillRect(c * cellW, r * cellH, cellW, cellH);
+                    }
+                }
             }
         }
     }
 
+    // Draw temperature as CLIENTS rows × 8 columns
     function drawTemperatureHeatmap(tempArray) {
         const canvas = document.getElementById("temperatureCanvas");
         const ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const cols = 8, rows = 8;
+
+        const cols = 8;
+        const totalCells = tempArray.length;
+        const rows = Math.ceil(totalCells / cols);
         const cellW = canvas.width / cols;
         const cellH = canvas.height / rows;
-        const flat = tempArray.flat();
-        const maxT = Math.max(...flat);
-        const minT = Math.min(...flat);
+
+        const flatTemp = tempArray.slice();
+        let minT = Math.min(...flatTemp);
+        let maxT = Math.max(...flatTemp);
+        if (maxT === minT) { maxT += 1e-6; }
 
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
-                const t = tempArray[r][c];
+                const idx = r * cols + c;
+                if (idx >= tempArray.length) {
+                    continue;
+                }
+                const t = tempArray[idx];
                 const norm = (t - minT) / (maxT - minT);
                 const blue = Math.floor(255 * (1 - norm));
                 const red = Math.floor(255 * norm);
                 ctx.fillStyle = `rgb(${red}, 0, ${blue})`;
                 ctx.fillRect(c * cellW, r * cellH, cellW, cellH);
+
                 ctx.fillStyle = "white";
-                ctx.fillText(t.toFixed(1) + "°C", c * cellW + 5, r * cellH + 15);
+                ctx.font = "12px monospace";
+                ctx.fillText(t.toFixed(1) + "°C", c * cellW + 4, r * cellH + 14);
             }
         }
     }
@@ -125,12 +179,19 @@
         fetch("/battery-json")
             .then(r => r.json())
             .then(data => {
-                if (data.voltage_grid) {
-                    drawVoltageHeatmap(data.voltage_grid);
+                // Expect data.voltage_grid (1D array length = CLIENTS*18)
+                //         data.temperature_grid (1D length = CLIENTS*8)
+                //         data.balance_grid (1D length = CLIENTS)
+
+                if (Array.isArray(data.voltage_grid) && Array.isArray(data.balance_grid)) {
+                    drawVoltageHeatmap(data.voltage_grid, data.balance_grid);
                 }
-                if (data.temperature_grid) {
+                if (Array.isArray(data.temperature_grid)) {
                     drawTemperatureHeatmap(data.temperature_grid);
                 }
+            })
+            .catch(err => {
+                console.error("Error fetching battery-json:", err);
             });
     }
 
@@ -150,9 +211,11 @@
         updateLogs();
     }, 1000);
 
+    // Run once immediately
     updateMonitor();
     updateGraphics();
     updateLogs();
+
     window.addEventListener("load", () => {
         const splash = document.getElementById("splash-screen");
         if (splash) {

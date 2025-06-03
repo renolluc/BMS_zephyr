@@ -18,12 +18,18 @@ frame_count = 0
 blink = False
 lock = threading.Lock()
 
+# --- NEW: initialize the three grids as globals ---
+voltage_grid = []
+temperature_grid = []
+balance_grid = []
+
 START_FRAME = b'\xFF\xA3'
 STOP_FRAME = b'\xFF\xB3'
 MIN_FRAME_LENGTH = 100
 READ_CHUNK_SIZE = 512
 BAUDRATE = 115200
 MAX_LOG_LINES = 100
+CLIENTS = 2  # Number of clients in the battery system
 
 coeff = [6.87565181e-40, -9.27411410e-35, 5.48516319e-30, -1.87118391e-25,
          4.07565006e-21, -5.93033515e-17, 5.86752736e-13, -3.95278974e-09,
@@ -86,6 +92,63 @@ def parse_frame(data):
     except Exception as e:
         return f"<b>Parse error:</b> {e}"
 
+# --- NEW HELPER FUNCTIONS to build each grid --- 
+def parse_voltage_grid(data):
+    """
+    After parsing CLIENTS*4 bytes of balancing info, the next CLIENTS*18*2 bytes
+    correspond to per-cell voltages. Each 2-byte little-endian value is scaled
+    by 0.0001 to get volts. Returns a flat list of length (CLIENTS * 18).
+    """
+    # first skip balance bytes:
+    offset = 32 + CLIENTS * 4
+    volt_buffer = []
+    for i in range(CLIENTS * 18):
+        lo = data[offset + i*2]
+        hi = data[offset + i*2 + 1]
+        raw_val = lo + (hi << 8)
+        cell_voltage = raw_val * 0.0001
+        volt_buffer.append(cell_voltage)
+    return volt_buffer
+
+
+def parse_temperature_grid(data):
+    """
+    After balance (CLIENTS*4 bytes) and voltage (CLIENTS*18*2 bytes),
+    the next CLIENTS*8*2 bytes correspond to per-cell temperature ADC values.
+    We read each 2-byte little-endian word, then apply calc_temp(raw_adc) to get °C.
+    Returns a list of length (CLIENTS * 8).
+    """
+    # compute offset: 32 (header) + balance + voltage
+    offset = 32 + CLIENTS*4 + CLIENTS*18*2
+    temp_buffer = []
+    for i in range(CLIENTS * 8):
+        lo = data[offset + i*2]
+        hi = data[offset + i*2 + 1]
+        raw_adc = lo + (hi << 8)
+        temp_c = calc_temp(raw_adc)
+        temp_buffer.append(temp_c)
+    return temp_buffer
+
+def parse_balance_grid(data):
+    """
+    From byte offset 32 onward, every 4 bytes correspond to one client's balance
+    word (little-endian). Returns a list of integers of length CLIENTS.
+    """
+    offset = 32
+    balance_cells = []
+    for i in range(CLIENTS):
+        # read 4 bytes for client i, little-endian:
+        b0 = data[offset + i*4]
+        b1 = data[offset + i*4 + 1]
+        b2 = data[offset + i*4 + 2]
+        b3 = data[offset + i*4 + 3]
+        word = (b0
+                + (b1 << 8)
+                + (b2 << 16)
+                + (b3 << 24))
+        balance_cells.append(word)
+    return balance_cells
+
 def uart_reader(port="/dev/ttyACM0"):
     global battery_data, voltage_grid, temperature_grid, balance_grid, log_buffer
     ser = serial.Serial(port, BAUDRATE, timeout=0.1)
@@ -118,8 +181,6 @@ def uart_reader(port="/dev/ttyACM0"):
                     log_buffer.append(line_buf)
                     if len(log_buffer) > MAX_LOG_LINES:
                         log_buffer = log_buffer[-MAX_LOG_LINES:]
-                    #sys.stdout.write(line_buf)
-                    #sys.stdout.flush()
                 # Reset line buffer regardless
                 line_buf = ''
 
@@ -137,8 +198,10 @@ def uart_reader(port="/dev/ttyACM0"):
                         raw = bytearray(frame[2:-2])  # Remove start and stop markers
                         battery_data = parse_frame(raw)
                         
-                        # fill the grids with data and add functions for that like in pare_frame, the rest of the grid should be filled with zeros
-
+                        # --- NEW: fill each grid based on 'raw' ---
+                        voltage_grid = parse_voltage_grid(raw)
+                        temperature_grid = parse_temperature_grid(raw)
+                        balance_grid = parse_balance_grid(raw)
 
                 # Remove processed bytes                
                 buffer = buffer[stop_idx + len(STOP_SEQ):]
