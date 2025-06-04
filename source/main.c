@@ -175,6 +175,7 @@ int main(void)
 		case STATE_ERROR:
 			// set all relays to 0
 			sdc_shutdown();
+			spi_enable_disable_discharge(false);
 			LOG_INF("Error state");
 			if (battery_get_error_code() == 0)
 			{

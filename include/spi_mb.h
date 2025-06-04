@@ -158,4 +158,11 @@ int spi_adbms1818_hw_init();
  */
 int spi_loopback();
 
+/** @brief sends the unmute command to enable balancing 
+ * @param state true to enable balancing, false to disable
+*/
+void spi_enable_disable_discharge(bool state);
+
+/** @brief sends the mute command to disable balancing */
+
 #endif /* INC_SPI_MB_H_ */
