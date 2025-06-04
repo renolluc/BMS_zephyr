@@ -12,7 +12,7 @@
 
 /** @brief set to 1 when accumulator system is ok, otherwise 0 */
 #define STATUS_BATTERY_OK	    (1<<0)
-/** @brief set to 1 when system is in charging mode, otherwise 0 */
+/** @brief set to 1 when system is in balancing mode, blinking in charging mode otherwise 0 */
 #define STATUS_CHARGING		    (1<<1)		
 /** @brief set to 1 when MB temperature is ok, set to 0 if one or more MB has overtemperature due to balancing */
 #define STATUS_MB_TEMP_OK	    (1<<2)		

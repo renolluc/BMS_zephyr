@@ -35,7 +35,7 @@
         output-low;
     };
     charger_con: charger_con {
-        gpios = <10 GPIO_ACTIVE_HIGH>;
+        gpios = <10 GPIO_ACTIVE_LOW>;
         gpio-hog;
         input;
     };

@@ -43,6 +43,7 @@ typedef enum
 	STATE_IDLE,    // idle state
 	STATE_PRECHARGE, // precharge state
 	STATE_RUNNING, // battery management process
+	STATE_CHARGING, // charging state
 	STATE_ERROR,   // error state
 } SystemState_t;
 
@@ -137,16 +138,22 @@ int main(void)
 			// precharge logic done?
 			if (battery_precharge_logic() == 0)
 			{
-				state = STATE_RUNNING;
+				if (gpio_pin_get_dt(&charger_con_spec) == 1){
+					state = STATE_CHARGING;
+					LOG_INF("entering CHARGING state");
+				}
+				else {
+					state = STATE_RUNNING;
+					LOG_INF("entering RUNNING state");
+				}
 				precharge_start_time = 0;
-				LOG_INF("Precharge abgeschlossen, entering RUNNING state");
+				LOG_INF("Precharge finished");
 			}
 			// check if precharge timeout has occurred
 			else if ((k_uptime_get() - precharge_start_time) > PRECHARGE_TIMEOUT_MS)
 			{
 				state = STATE_ERROR;
 				precharge_start_time = 0;
-				sdc_shutdown();
 				LOG_ERR("Precharge Timeout -> entering ERROR state");
 			}
 			// falling ECU edge detection
@@ -162,8 +169,6 @@ int main(void)
 			break;
 
 		case STATE_RUNNING:
-			// rename old charging function
-			battery_charging();
 			LOG_INF("Battery management process running");
 
 			// falling ECU edge detection
@@ -174,6 +179,20 @@ int main(void)
 				LOG_INF("ECU falling edge, entering idle state");
 			}
 			previous_ecu_state = current_ecu_state;
+			break;
+
+		case STATE_CHARGING:
+			battery_charging();
+			LOG_INF("Battery charging process running");
+
+			// falling ECU edge detection
+			if (gpio_pin_get_dt(&charger_con_spec) == 0)
+			{
+				state = STATE_IDLE;
+				sdc_shutdown();
+				battery_stop_balancing();
+				LOG_INF("Charger disconnected, entering idle state");
+			}
 			break;
 
 		case STATE_ERROR:

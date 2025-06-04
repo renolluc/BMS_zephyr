@@ -215,7 +215,7 @@
                 for (let c = 0; c < cols; c++) {
                     const idx = r * cols + c;
                     if (effective[idx] !== null && (bmp & (1 << c))) {
-                        ctx.fillStyle = "rgba(0, 0, 255, 0.3)";
+                        ctx.fillStyle = "rgba(0, 255, 0, 0.3)";
                         ctx.fillRect(c * cellW, r * cellH, cellW, cellH);
                     }
                 }

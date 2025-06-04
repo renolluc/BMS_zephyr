@@ -477,41 +477,18 @@ int battery_precharge_logic(void)
  */
 void battery_charging(void)
 {
-    int gpio_val;
-    bool charger_connected;
 
-    /* Read the charger‐connected sense pin (active low) */
-    gpio_val = gpio_pin_get_dt(&charger_con_spec);
-    if (gpio_val < 0)
+    /* battery charging logic */
+    if (!(battery_values.status & STATUS_CHARGING))
     {
-        LOG_ERR("Failed to read Charger_Con pin (err %d)", gpio_val);
-        return;
-    }
-    charger_connected = (gpio_val == 0);
-
-    /* Charging state logic */
-    if (charger_connected)
-    {
-        /* Charger plugged in */
-        if (!(battery_values.status & STATUS_CHARGING))
-        {
-            battery_set_reset_status_flag(1, STATUS_CHARGING);
-            LOG_INF("Charger connected");
-        }
-        else
-        {
-            /* Continue balancing while charging */
-            gpio_pin_set_dt(&charge_en_spec, 1);
-            battery_balancing();
-        }
+        battery_set_reset_status_flag(1, STATUS_CHARGING);
+        LOG_INF("Charger connected");
     }
     else
     {
-        /* Charger has been unplugged */
-        if (battery_values.status & STATUS_CHARGING)
-        {
-            battery_stop_balancing();
-        }
+        /* Continue balancing while charging */
+        gpio_pin_set_dt(&charge_en_spec, 1);
+        battery_balancing();
     }
 }
 
