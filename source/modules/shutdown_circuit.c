@@ -138,7 +138,6 @@ int sdc_shutdown(void)
     gpio_pin_set_dt(&drive_air_pos_spec, 0);
     gpio_pin_set_dt(&drive_air_neg_spec, 0);
     gpio_pin_set_dt(&drive_precharge_spec, 0);
-    gpio_pin_set_dt(&sdc_out_spec, 0);
     LOG_ERR("entered shutdown");
     return 0;
 }

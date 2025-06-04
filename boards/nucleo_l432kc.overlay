@@ -5,7 +5,7 @@
 
 &gpioa {
     sdc_in: sdc_in {
-        gpios = <0 GPIO_ACTIVE_HIGH>;
+        gpios = <0 GPIO_ACTIVE_LOW>;
         gpio-hog;
         input;
     };

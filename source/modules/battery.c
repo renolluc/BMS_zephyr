@@ -585,6 +585,8 @@ void battery_monitor_thread(void *arg1, void *arg2, void *arg3)
         if (err_counter >= 3)
         {
             /* Post event to main loop after 3 consecutive failures */
+            gpio_pin_set_dt(&sdc_out_spec, 0);
+            LOG_ERR("setting SDC low\n");
             k_event_post(&error_to_main, EVT_ERROR_BIT);
             LOG_ERR("3 consecutive errors detected, posting event to main loop\n");
         }
