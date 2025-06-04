@@ -6,7 +6,7 @@
     <style>
         body { font-family: monospace; padding: 20px; }
         #monitor { margin-bottom: 20px; }
-        #voltageCanvas, #temperatureCanvas {
+        #voltageCanvas, #temperatureCanvas, #statusCanvas {
             margin-top: 5px;
             border: 1px solid #ccc;
             cursor: pointer;
@@ -16,6 +16,7 @@
             color: rgb(0, 0, 255);
             padding: 10px;
             height: 300px;
+            width: 1000px;
             overflow-y: scroll;
             white-space: pre-wrap;
             font-size: 12px;
@@ -38,6 +39,7 @@
              style="color: red; font-weight: bold; margin-bottom: 10px;"></div>
     </div>
 
+    <!-- Top row: Voltage / Temperature / Summary -->
     <div style="display: flex; gap: 40px; align-items: flex-start;">
         <div style="display: flex; flex-direction: column; gap: 20px;">
             <div style="display: flex; flex-direction: row; gap: 20px;">
@@ -54,17 +56,49 @@
                     <div id="monitor">Loading battery data...</div>
                 </div>
             </div>
-            <div>
-                <h3>Serial Console</h3>
-                <div id="log-view">Waiting for logs...</div>
+            <!-- Below: Serial Console + Status/Error Canvas -->
+            <div style="display: flex; flex-direction: row; gap: 20px; align-items: flex-start;">
+                <div style="flex: 1;">
+                    <h3>Serial Console</h3>
+                    <div id="log-view">Waiting for logs...</div>
+                </div>
+                <div style="min-width: 600px;">
+                    <h3>Status / Error Flags</h3>
+                    <canvas id="statusCanvas" width="700" height="100"></canvas>
+                    <div style="font-size: 12px; margin-top: 5px;">
+                        <span style="color: green;">■</span> Status bits — <span style="color: red;">■</span> Error bits
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
     // === CONFIGURATION ===
-    // Change CLIENTS to match your backend constant:
+    // Must match battery_web_dashboard.py's CLIENTS:
     const CLIENTS = 8;
+
+    const statusLabels = [
+  "BAT OK",         // bit 0
+  "CHARG",         // bit 1
+  "MB TEMP",         // bit 2
+  "AIR NEG",         // bit 3
+  "PRECH",          // bit 4
+  "AIR POS",       // bit 5
+  "IDLE",  // bit 6
+  "RESERVE"     // bit 7
+];
+
+    const errorLabels = [
+    "BAT",     // bit 0
+    "TEMP",   // bit 1
+    "VOLT",     // bit 2
+    "SDC",  // bit 3
+    "SPI",       // bit 4
+    "CAN",      // bit 5
+    "IVT", // bit 6
+    "RESERVE"    // bit 7
+    ];
 
     // Any indices you list here will be forced to "n/a" on the voltage map:
     // e.g. if sensor at index 42 fails, add 42 to this array.
@@ -120,15 +154,15 @@
         const cellW = canvas.width / cols;
         const cellH = canvas.height / rows;
 
-        // Build "effective" array: start with nulls
+        // Build an "effective" array combining real data + manual overrides:
         const effective = new Array(totalCells).fill(null);
 
-        // 1) Real data:
+        // 1) Fill from real data if not disabled:
         for (let i = 0; i < voltageArray.length && i < totalCells; i++) {
             // If this index is marked disabled, skip (leave null)
             if (!isVoltageDisabled(i)) {
-                effective[i] = voltageArray[i];
-            }
+            effective[i] = voltageArray[i];
+        }
         }
 
         // 2) Manual overrides (always override, even if disabled list is empty):
@@ -139,16 +173,13 @@
             }
         }
 
-        // 3) Any index explicitly disabled but also manually overridden:
-        // If manually overridden, that value stays. Otherwise, remains null.
-
-        // Compute min/max among numeric values for color scaling:
+        // Determine dynamic min/max across all numeric cells:
         const numericVals = effective.filter(v => v !== null);
         let minV = numericVals.length ? Math.min(...numericVals) : 0;
         let maxV = numericVals.length ? Math.max(...numericVals) : 1;
-        if (maxV === minV) { maxV += 1e-6; }
+        if (maxV === minV) { maxV += 1e-6; } // avoid zero-range
 
-        // Draw grid:
+        // Draw each cell; "null" cells get gray + "n/a":
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
                 const idx = r * cols + c;
@@ -162,13 +193,14 @@
                     ctx.font = "12px monospace";
                     ctx.fillText("n/a", c * cellW + 4, r * cellH + 14);
                 } else {
-                    // Valid numeric → color-map
+                    // Numeric cell → color-map from blue (low) to red (high)
                     const norm = (val - minV) / (maxV - minV);
                     const blue = Math.floor(255 * (1 - norm));
                     const red  = Math.floor(255 * norm);
                     ctx.fillStyle = `rgb(${red}, 0, ${blue})`;
                     ctx.fillRect(c * cellW, r * cellH, cellW, cellH);
 
+                    // Overlay the numeric text
                     ctx.fillStyle = "white";
                     ctx.font = "12px monospace";
                     ctx.fillText(val.toFixed(3), c * cellW + 4, r * cellH + 14);
@@ -176,13 +208,12 @@
             }
         }
 
-        // Overlay balance bits (semi-transparent blue) on all non-null cells:
+        // Overlay balance bits (semi-transparent blue) on any non-null cell:
         if (Array.isArray(balanceArray) && balanceArray.length === rows) {
             for (let r = 0; r < rows; r++) {
                 const bmp = balanceArray[r];
                 for (let c = 0; c < cols; c++) {
                     const idx = r * cols + c;
-                    // Only overlay if cell is not null
                     if (effective[idx] !== null && (bmp & (1 << c))) {
                         ctx.fillStyle = "rgba(0, 0, 255, 0.3)";
                         ctx.fillRect(c * cellW, r * cellH, cellW, cellH);
@@ -204,16 +235,14 @@
         const cellW = canvas.width / cols;
         const cellH = canvas.height / rows;
 
-        // Build "effective" array: start with nulls
+        // Build "effective" array combining real data + manual overrides:
         const effective = new Array(totalCells).fill(null);
 
-        // 1) Real data:
+        // 1) Real data if not disabled:
         for (let i = 0; i < tempArray.length && i < totalCells; i++) {
             if (!isTempDisabled(i)) {
-                effective[i] = tempArray[i];
-            }
+            effective[i] = tempArray[i];
         }
-
         // 2) Manual overrides:
         for (const idxStr in manualTemp) {
             const idx = Number(idxStr);
@@ -222,13 +251,13 @@
             }
         }
 
-        // Compute min/max for color scaling:
+        // Determine min/max across numeric values:
         const numericVals = effective.filter(v => v !== null);
         let minT = numericVals.length ? Math.min(...numericVals) : 0;
         let maxT = numericVals.length ? Math.max(...numericVals) : 1;
         if (maxT === minT) { maxT += 1e-6; }
 
-        // Draw grid:
+        // Draw each cell; “null” cells = gray + “n/a”:
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
                 const idx = r * cols + c;
@@ -256,6 +285,57 @@
             }
         }
     }
+}
+
+    function drawStatusCanvas(statusByte, errorByte) {
+        const canvas = document.getElementById("statusCanvas");
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const cols = 8;
+        const rows = 2; // row 0 = status, row 1 = error
+        const cellW = canvas.width / cols;
+        const cellH = canvas.height / rows;
+
+        // Draw status bits in green (row 0)
+        for (let bit = 0; bit < 8; bit++) {
+            if (statusByte & (1 << bit)) {
+                ctx.fillStyle = "green";
+            } else {
+                ctx.fillStyle = "#ddd";
+            }
+            ctx.fillRect(bit * cellW, 0, cellW, cellH);
+
+            // Label the bit index inside
+            ctx.fillStyle = "black";
+            ctx.font = "12px monospace";
+            ctx.fillText(statusLabels[bit], bit * cellW + 4, cellH - 4);
+        }
+
+        // Draw error bits in red (row 1)
+        for (let bit = 0; bit < 8; bit++) {
+            if (errorByte & (1 << bit)) {
+                ctx.fillStyle = "red";
+            } else {
+                ctx.fillStyle = "#ddd";
+            }
+            ctx.fillRect(bit * cellW, cellH, cellW, cellH);
+
+            // Label the bit index inside
+            ctx.fillStyle = "black";
+            ctx.font = "12px monospace";
+            ctx.fillText(errorLabels[bit], bit * cellW + 4,cellH + cellH - 4);
+        }
+
+        // Draw horizontal line between status and error rows:
+        ctx.strokeStyle = "#444";
+        ctx.beginPath();
+        ctx.moveTo(0, cellH);
+        ctx.lineTo(canvas.width, cellH);
+        ctx.stroke();
+    }
+
+    // === FETCH + UPDATE ===
 
     function updateGraphics() {
         fetch("/battery-json")
@@ -266,6 +346,10 @@
                 }
                 if (Array.isArray(data.temperature_grid)) {
                     drawTemperatureHeatmap(data.temperature_grid);
+                }
+                // Draw status/error if present
+                if (typeof data.status_byte === "number" && typeof data.error_byte === "number") {
+                    drawStatusCanvas(data.status_byte, data.error_byte);
                 }
             })
             .catch(err => {
@@ -289,10 +373,7 @@
         updateLogs();
     }
 
-    // === CLICK HANDLERS ===
-    // Clicking on a cell that is currently "n/a" (beyond real data length or in disabled list)
-    // allows the user to enter a manual override. This works for both voltage and temperature.
-
+    // === CLICK HANDLERS for "n/a" overrides ===
     window.addEventListener("DOMContentLoaded", () => {
         const vCanvas = document.getElementById("voltageCanvas");
         const tCanvas = document.getElementById("temperatureCanvas");
@@ -362,11 +443,11 @@
                 .catch(console.error);
         });
 
-        // Start polling every 0.1s (100ms)
+        // Start polling every 100 ms
         setInterval(updateAll, 100);
         updateAll();
 
-        // Fade out splash
+        // Fade out splash screen
         const splash = document.getElementById("splash-screen");
         if (splash) {
             splash.style.transition = "opacity 5s ease";
