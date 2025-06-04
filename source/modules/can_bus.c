@@ -66,6 +66,11 @@ void tx_irq_callback(const struct device *dev, int error, void *arg)
     if (error != 0)
     {
         LOG_ERR("Callback! error-code: %d\nSender: %s\n", error, sender);
+        battery_set_error_flag(ERROR_CAN);
+    }
+    if (error == 0)
+    {
+        battery_reset_error_flag(ERROR_CAN);
     }
 }
 

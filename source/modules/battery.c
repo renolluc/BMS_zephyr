@@ -432,8 +432,8 @@ int battery_precharge_logic(void)
     LOG_INF("actualVoltage: %d ", actualVoltageConverted);
     LOG_INF("totalVoltage: %d ", battery_values.totalVoltage);
 
-    if ((actualVoltageConverted <= (battery_values.totalVoltage + battery_values.totalVoltage * 0.02)) && 
-        (actualVoltageConverted >= (battery_values.totalVoltage - battery_values.totalVoltage * 0.02)))
+    if ((actualVoltageConverted <= (battery_values.totalVoltage + battery_values.totalVoltage * 0.04)) && 
+        (actualVoltageConverted >= (battery_values.totalVoltage - battery_values.totalVoltage * 0.04)))
     {
 
         gpio_pin_set_dt(&drive_air_pos_spec, 1);
