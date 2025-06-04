@@ -28,8 +28,9 @@ struct spi_config spi_cfg= {
     .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB | SPI_OP_MODE_MASTER,
 	// Frequency in Hz
     .frequency = SPI_FREQ,
-    .cs = {.gpio = spi_cs_pb1_spec, .delay = 0},
+    .cs = {.gpio = spi_cs_pin_spec, .delay = 0}
 };
+
 
 /** @brief  SPI Configuration for Test */
 struct spi_config spi_cfg_test= {
@@ -75,11 +76,11 @@ void spi_wake_up(void){
         /* (NUM_OF_CLIENTS + 2) Wake‑up CS‑Pulse senden */
         for (uint8_t i = 0; i < NUM_OF_CLIENTS + 2; i++) {
             /* CS low */
-            gpio_pin_set_dt(&spi_cs_pb1_spec, 1);
+            gpio_pin_set_dt(&spi_cs_pin_spec, 1);
             k_busy_wait(1);      /* 1 µs */
 
             /* CS high */
-            gpio_pin_set_dt(&spi_cs_pb1_spec, 0);
+            gpio_pin_set_dt(&spi_cs_pin_spec, 0);
             k_busy_wait(400);    /* 400 µs */
         }
     
@@ -743,11 +744,6 @@ int spi_set_discharge_cell_x(uint32_t* cells_to_balance) {
  * @retval 0 on success, or a negative error code if hardware initialization fails.
  */
 int spi_adbms1818_hw_init() {
-
-    /********************************************************************************/
-    //AUSKOMMENTIERT SOLANGE HARDWARE NICHT VERFÜGBAR IST
-    /********************************************************************************/
-
 
     int status = 0;                           /* Initialize status to 0 (no errors) */
     uint8_t not_valid = 0;                     /* Accumulator for any discrepancies in configuration verification */

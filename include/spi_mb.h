@@ -115,10 +115,10 @@
 #define SPI_DEVICE DT_NODELABEL(spi1)
 
 /** @brief SPI chip select pin specification */
-static const struct gpio_dt_spec spi_cs_pb1_spec = {
-    .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(spi_cs_pb1))),
-    .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(spi_cs_pb1), 0),
-    .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(spi_cs_pb1), 0),
+static const struct gpio_dt_spec spi_cs_pin_spec = {
+    .port = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(spi_cs_pin))),
+    .pin = DT_GPIO_HOG_PIN_BY_IDX(DT_NODELABEL(spi_cs_pin), 0),
+    .dt_flags = DT_GPIO_HOG_FLAGS_BY_IDX(DT_NODELABEL(spi_cs_pin), 0),
 };
 
 /** @brief read voltages of the battery cells and store them in the data_buffer

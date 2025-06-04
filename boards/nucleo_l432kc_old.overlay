@@ -42,8 +42,8 @@
 };
 
 &gpiob{
-    spi_cs_pin: spi_cs_pin {
-        gpios = <0 GPIO_ACTIVE_LOW>;
+    spi_cs_pb1: spi_cs_pb1 {
+        gpios = <1 GPIO_ACTIVE_LOW>;
         gpio-hog;
         output-high;
     };
@@ -58,7 +58,7 @@
         output-low;
     };
     drive_air_pos: drive_air_pos {
-        gpios = <7 GPIO_ACTIVE_HIGH>;
+        gpios = <4 GPIO_ACTIVE_HIGH>;
         gpio-hog;
         output-low;
     };
