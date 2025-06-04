@@ -117,6 +117,10 @@ int main(void)
 			{
 				state = STATE_PRECHARGE;
 				LOG_INF("ECU rising edge, entering precharge state");
+			}else if (gpio_pin_get_dt(&charger_con_spec) == 1)
+			{
+				state = STATE_PRECHARGE;
+				LOG_INF("Charger connected, entering precharge state");
 			}
 			previous_ecu_state = current_ecu_state;
 			break;
