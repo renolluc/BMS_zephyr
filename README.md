@@ -69,38 +69,38 @@ classDiagram
 
     class main
 
-    class Can_Bus{
-        extern int can_init(void)
-        extern int can_ivt_init(void)
-        extern int can_get_ecu_state()
+    class can_bus{
+        int can_init(void)
+        int can_ivt_init(void)
+        int can_get_ecu_state()
     }
 
-    class spiMB{
-        extern uint16_t spi_generate_pec(const uint8_t data[], size_t len);
-        extern int spi_read_voltages(uint16_t *data_buffer);
-        extern int spi_read_temp(uint16_t *data_buffer);
-        extern uint16_t spi_read_adbms_temp();
-        extern int spi_set_discharge_cell_x(uint32_t *data_buffer);
+    class spi_mb{
+        uint16_t spi_generate_pec(const uint8_t data[], size_t len);
+        int spi_read_voltages(uint16_t *data_buffer);
+        int spi_read_temp(uint16_t *data_buffer);
+        uint16_t spi_read_adbms_temp();
+        int spi_set_discharge_cell_x(uint32_t *data_buffer);
         void spi_wake_up();
         int spi_adbms1818_hw_init();
-        extern int spi_loopback();
+        int spi_loopback();
     }
 
     class battery{
-        extern struct k_event error_to_main;
+        struct k_event error_to_main;
         extern BatterySystemTypeDef battery_values;
 
-        extern int battery_init(void);
-        extern uint8_t battery_get_status_code(void);
-        extern uint8_t battery_get_error_code(void);
-        extern uint8_t battery_volt2celsius(uint16_t volt_100uV);
-        extern void battery_set_error_flag(uint8_t mask);
-        extern void battery_reset_error_flag(uint8_t mask);
-        extern int battery_check_state(void);
-        extern void battery_stop_balancing(void);
-        extern void battery_charging(void);
-        extern void battery_refresh_ivt_timer(void);
-        extern int battery_precharge_logic(void);
+        int battery_init(void);
+        uint8_t battery_get_status_code(void);
+        uint8_t battery_get_error_code(void);
+        uint8_t battery_volt2celsius(uint16_t volt_100uV);
+        void battery_set_error_flag(uint8_t mask);
+        void battery_reset_error_flag(uint8_t mask);
+        int battery_check_state(void);
+        void battery_stop_balancing(void);
+        void battery_charging(void);
+        void battery_refresh_ivt_timer(void);
+        int battery_precharge_logic(void);
     }
 
     class shutdowncircuit{
@@ -122,15 +122,15 @@ classDiagram
     }
 
     main ..> battery : uses
-    main ..> Can_Bus : uses
+    main ..> can_bus : uses
     main ..> serialmonitor : uses
     main ..> shutdowncircuit : uses
-    battery ..> spiMB : uses
-    Can_Bus ..> Status_error_flags: uses
+    battery ..> spi_mb : uses
+    can_bus ..> Status_error_flags: uses
     shutdowncircuit ..> Status_error_flags : uses
     battery ..> Status_error_flags : uses
-    main ..> spiMB : uses
-    Can_Bus ..> shutdowncircuit : uses    
+    main ..> spi_mb : uses
+    can_bus ..> shutdowncircuit : uses    
     battery ..> shutdowncircuit : uses
 
 
