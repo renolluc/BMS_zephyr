@@ -82,8 +82,8 @@ def parse_frame(data):
         html += f"Actual Current: {current:.2f} A<br>"
         html += f"Actual Voltage: {voltage:.2f} V<br>"
         html += f"Current Counter: {counter:.3f} Ah<br>"
-        html += f"Status Code: 0x{status:02X}<br>"
-        html += f"Error Code: 0x{error:02X}<br>"
+        html += f"Status Code: {status:02b}<br>"
+        html += f"Error Code: {error:02b}<br>"
         html += f"Cycle Time: {time_per_cycle} ms<br>"
         html += relays
         html += f"<small>Raw data: {data[:32].hex()}</small><br>"
