@@ -354,6 +354,7 @@ void battery_stop_balancing(void)
         /* Log an error if the SPI transfer failed */
         LOG_ERR("Failed to stop cell balancing (err %d)", err);
     }
+    battery_set_reset_status_flag(0, STATUS_CHARGING);
     gpio_pin_set_dt(&charge_en_spec, 0);
 }
 
@@ -509,7 +510,6 @@ void battery_charging(void)
         /* Charger has been unplugged */
         if (battery_values.status & STATUS_CHARGING)
         {
-            battery_set_reset_status_flag(0, STATUS_CHARGING);
             battery_stop_balancing();
         }
     }
