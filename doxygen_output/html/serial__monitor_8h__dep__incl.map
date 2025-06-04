@@ -1,5 +1,0 @@
-<map id="include/serial_monitor.h" name="include/serial_monitor.h">
-<area shape="rect" id="Node000001" title="API&#45;definition for the Serial Monitor module in the BMS&#45;System." alt="" coords="5,5,184,31"/>
-<area shape="rect" id="Node000002" href="$serial__monitor_8c.html" title="UART asynchronous transmission interface using Zephyr RTOS." alt="" coords="12,79,177,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="97,44,97,79,92,79,92,44"/>
-</map>

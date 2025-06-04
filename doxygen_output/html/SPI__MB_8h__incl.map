@@ -1,9 +1,0 @@
-<map id="include/SPI_MB.h" name="include/SPI_MB.h">
-<area shape="rect" id="Node000001" title="API&#45;definition for the SPI Module in the BMS&#45;System." alt="" coords="193,5,326,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,156,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,33,123,76,121,71,230,28"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="180,79,339,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="262,31,262,65,257,65,257,31"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="363,79,518,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="289,28,399,71,397,76,287,33"/>
-</map>
