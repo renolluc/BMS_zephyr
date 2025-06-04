@@ -161,7 +161,7 @@ int spi_loopback();
 /** @brief sends the unmute command to enable balancing 
  * @param state true to enable balancing, false to disable
 */
-void spi_enable_disable_discharge(bool state);
+void spi_enable_disable_balancing(bool state);
 
 /** @brief sends the mute command to disable balancing */
 
