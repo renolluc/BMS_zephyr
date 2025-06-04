@@ -719,9 +719,9 @@ int spi_set_discharge_cell_x(uint32_t* cells_to_balance) {
 
     /* Enable or disable cell discharge balancing based on the configuration */
     if (enable_discharge) {
-        spi_enable_disable_balancing(UNMUTE);  /* Enable balancing if any cell requires balancing */
+        spi_send_command(UNMUTE);  /* Enable balancing if any cell requires balancing */
     } else {
-        spi_enable_disable_balancing(MUTE); /* Disable balancing if no cells require balancing */
+        spi_send_command(MUTE); /* Disable balancing if no cells require balancing */
     }
 
     return status;  /* Return the aggregated status of all SPI operations */
