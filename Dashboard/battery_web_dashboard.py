@@ -17,6 +17,7 @@ log_buffer = []
 frame_count = 0
 blink = False
 lock = threading.Lock()
+ANSI_ESCAPE_RE = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
 
 # --- NEW: initialize the three grids as globals ---
 voltage_grid = []
@@ -194,9 +195,11 @@ def uart_reader(port="/dev/ttyACM0"):
             line_buf += char
             if char == '\n':
                 # Check if line starts with timestamp
-                if timestamp_pattern.match(line_buf):
-                    
-                    log_buffer.append(line_buf)
+                clean_line = line_buf.rstrip('\r\n')
+                clean_line = ANSI_ESCAPE_RE.sub('', clean_line)
+                if timestamp_pattern.match(clean_line):
+
+                    log_buffer.append(clean_line)
                     if len(log_buffer) > MAX_LOG_LINES:
                         log_buffer = log_buffer[-MAX_LOG_LINES:]
                 # Reset line buffer regardless
