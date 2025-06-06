@@ -61,6 +61,7 @@
                 <div style="flex: 1;">
                     <h3>Serial Console</h3>
                     <div id="log-view">Waiting for logs...</div>
+                    <button id="downloadLogs" style="margin-top: 5px;">Logs als TXT herunterladen</button>
                 </div>
                 <div style="min-width: 600px;">
                     <h3>Status / Error Flags</h3>
@@ -441,6 +442,29 @@
                     }
                 })
                 .catch(console.error);
+        });
+
+        // === Download-Button für Logs ===
+        const downloadBtn = document.getElementById("downloadLogs");
+        downloadBtn.addEventListener("click", () => {
+            fetch("/logs")
+                .then(r => r.json())
+                .then(lines => {
+                    const content = lines.join("\n");
+                    const blob = new Blob([content], { type: "text/plain" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "battery_logs.txt";
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                })
+                .catch(err => {
+                    console.error("Fehler beim Herunterladen der Logs:", err);
+                    alert("Fehler beim Herunterladen der Logs. Siehe Konsole.");
+                });
         });
 
         // Start polling every 100 ms

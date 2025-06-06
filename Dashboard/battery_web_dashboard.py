@@ -32,7 +32,7 @@ STOP_FRAME = b'\xFF\xB3'
 MIN_FRAME_LENGTH = 100
 READ_CHUNK_SIZE = 512
 BAUDRATE = 115200
-MAX_LOG_LINES = 100
+MAX_LOG_LINES = 1000
 
 # Number of daisy-chained BMS clients (must match front-end CLIENTS)
 CLIENTS = 2
@@ -195,6 +195,7 @@ def uart_reader(port="/dev/ttyACM0"):
             if char == '\n':
                 # Check if line starts with timestamp
                 if timestamp_pattern.match(line_buf):
+                    
                     log_buffer.append(line_buf)
                     if len(log_buffer) > MAX_LOG_LINES:
                         log_buffer = log_buffer[-MAX_LOG_LINES:]
