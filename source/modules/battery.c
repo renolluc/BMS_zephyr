@@ -296,8 +296,8 @@ int battery_check_state(void)
                         battery_values.temp_buffer);
 
     /* Check voltage limits */
-    if (battery_values.highestCellVoltage > MAX_VOLT_TEST ||
-        battery_values.lowestCellVoltage < MIN_VOLT_TEST)
+    if (battery_values.highestCellVoltage > MAX_VOLT ||
+        battery_values.lowestCellVoltage < MIN_VOLT)
     {
         battery_set_error_flag(ERROR_VOLT | ERROR_BATTERY);
         LOG_WRN("Voltage limits exceeded: %d mV", battery_values.highestCellVoltage);
