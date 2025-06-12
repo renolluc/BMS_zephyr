@@ -42,7 +42,7 @@
 };
 
 &gpiob{
-    spi_cs_pb1: spi_cs_pb1 {
+    spi_cs_pin: spi_cs_pin {
         gpios = <1 GPIO_ACTIVE_LOW>;
         gpio-hog;
         output-high;
