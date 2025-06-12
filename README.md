@@ -148,8 +148,10 @@ state main{
     Idle --> error
     PreCharge --> error
     Running --> error
-    Idle --> PreCharge: ECU rising edge
+    Idle --> PreCharge: ECU rising edge | charger connected
     PreCharge --> Running : precharge succesful
+    Charging --> Idle : charger disconnected
+    PreCharge --> Charging: charger connected
     Running --> Idle : ECU falling edge
 
 }
